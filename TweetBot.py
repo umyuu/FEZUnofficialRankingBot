@@ -70,9 +70,9 @@ parser.add_argument('--upload_file_limit', '-limit', type=int, default=104448)
 
 print('')
 bot = tweetbot(parser.parse_args())
-bot.downloadImage('https://i.gyazo.com/60afe1a6c22cb543ec950df3ac16104a.png')
+bot.downloadImage('https://i.gyazo.com/919c7be6531ffeb5cfeb1e6e701556d3.png')
 for media in bot.getImage():
     print('tweet media:{0}'.format(media))
-    #bot.tweet(media)
+    bot.tweet(media)
     bot.backup(media)
     #break
