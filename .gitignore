@@ -1,3 +1,7 @@
-*
-*/
+*.bat
+*.txt
+backup
+__pycache__
+!requirements.txt
+!DownloadList.txt
 !.gitignore

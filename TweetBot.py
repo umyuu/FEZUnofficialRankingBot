@@ -1,11 +1,13 @@
 # pip install python-twitter
 # https://apps.twitter.com
 import argparse
+from collections import OrderedDict
 from datetime import datetime
 import os
 import glob
 import shutil
 import requests
+import twitter
 
 class tweetbot():
     def __init__(self, args):
@@ -16,11 +18,26 @@ class tweetbot():
         self.dtNow = datetime.now()
         self.upload_file_limit = args.upload_file_limit;
         self.user_agent = args.user_agent;
-    def downloadImage(self, address):
-        headers = {'User-Agent': self.user_agent}
-        r = requests.get(address, headers=headers)
-        with open(os.path.join(self.upload, os.path.split(address)[1]), 'wb') as fout:
-            fout.write(r.content)
+        self.download_file_list = args.download_file_list
+    def downloadImage(self):
+        # internet -> local
+        dic = OrderedDict()
+        files = []
+        with open(self.download_file_list, 'r', encoding='utf-8') as fin:
+            for line in fin:
+                text = line.rstrip('\n')
+                if len(text) == 0:
+                    continue
+                dic[text] = None
+        if len(dic.keys()) == 0:
+            print('input:{0} Empty '.format(self.download_file_list))
+            return
+        headers = {'User-Agent': self.user_agent}        
+        for address in dic.keys():
+            print('download:{0}'.format(address))
+            r = requests.get(address, headers=headers)
+            with open(os.path.join(self.upload, os.path.split(address)[1]), 'wb') as fout:
+                fout.write(r.content)
     def getImage(self, files=None):
         if files is None:
             files = []
@@ -37,7 +54,6 @@ class tweetbot():
     def getFilePrefix(self, prefix='%Y%m%d%H%M_'):
         return self.dtNow.strftime(prefix)
     def tweet(self, media):
-        import twitter
         if self.t is None:
             self.t = twitter.Api(consumer_key=self.args.consumer_key,
                                  consumer_secret=self.args.consumer_secret,
@@ -59,18 +75,19 @@ class tweetbot():
 # parse
 parser = argparse.ArgumentParser(
     description='FEZ National Total War Ranking')
-# twitter auth params
+# must twitter auth params
 parser.add_argument('--consumer_key', '-ck')
 parser.add_argument('--consumer_secret', '-cs')
 parser.add_argument('--access_token', '-at')
 parser.add_argument('--access_token_secret', '-ats')
 # optional
+parser.add_argument('--download_file_list', '-dl', default='./DownloadList.txt')
 parser.add_argument('--user_agent', '-ua', default='Mozilla/5.0 (compatible; bot/0.1; +https://twitter.com/fez_ranking_bot)')
 parser.add_argument('--upload_file_limit', '-limit', type=int, default=104448)
 
 print('')
 bot = tweetbot(parser.parse_args())
-bot.downloadImage('https://i.gyazo.com/919c7be6531ffeb5cfeb1e6e701556d3.png')
+bot.downloadImage()
 for media in bot.getImage():
     print('tweet media:{0}'.format(media))
     bot.tweet(media)
