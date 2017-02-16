@@ -66,8 +66,6 @@ class tweetbot():
         self.args = args;
         self.t = None;
         self.download = download(args)
-        logger.info(args)
-        logger.info(self.download)
         self.upload = config['WORK_FOLDER']['UPLOAD']
         self.images = config['WORK_FOLDER']['images']
         self.dtNow = datetime.now()
@@ -77,37 +75,9 @@ class tweetbot():
         self.download_file_list_encoding = config['DOWNLOAD']['FILE_LIST_ENCODING']
         self.tweet_format = config['TWEET']['FORMAT']
         self.tweet_datefmt = config['TWEET']['DATEFMT']
-    def downloadList(self):
-        dic = OrderedDict()
-        with open(self.download_file_list, 'r', encoding=self.download_file_list_encoding) as fin:
-            for line in fin:
-                text = line.rstrip('\n')
-                if not text.startswith('http'):
-                    logger.warning(text)
-                    continue
-                dic[text] = None
-        if len(dic) == 0:
-            logger.warning('input:{0} Empty '.format(self.download_file_list))
-        return dic
     def downloadImage(self):
         # internet -> local
-        dic = self.download.downloadList()
-        headers = {'User-Agent': self.user_agent}        
-        for address in dic.keys():
-            logger.info('download:{0}'.format(address))
-            r = requests.get(address, headers=headers)
-            filepath = os.path.join(self.upload, os.path.basename(address))
-            
-            #basepath = self.upload
-            #filepath = os.path.join(basepath, os.path.basename(address))
-            # Randomize duplicate path
-            #while not os.path.isfile(filepath):                
-            #    filepath += 'a'
-            logger.info(filepath)                 
-            #with open(filepath, 'wb') as fout:
-            #    fout.write(r.content)
-            with open(os.path.join(self.upload, os.path.basename(address)), 'wb') as fout:
-                fout.write(r.content)
+        self.download.downloadImage()
     def getImage(self, files=None):
         if files is None:
             files = []
@@ -131,8 +101,8 @@ class tweetbot():
                                      access_token_key=self.args.access_token,
                                      access_token_secret=self.args.access_token_secret)
             text = '{0}\n{1}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
-            #media_id = self.t.UploadMediaSimple(media=media)
-            #self.t.PostUpdate(status=text, media=media_id)
+            media_id = self.t.UploadMediaSimple(media=media)
+            self.t.PostUpdate(status=text, media=media_id)
             logger.info(text)
         except Exception as ex:
             logger.exception(ex)
