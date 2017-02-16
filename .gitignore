@@ -1,7 +1,7 @@
 *.bat
 *.txt
+*.lnk
 backup
 __pycache__
 !requirements.txt
-!DownloadList.txt
 !.gitignore
