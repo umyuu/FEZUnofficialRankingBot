@@ -1,5 +1,3 @@
-# pip install python-twitter
-# https://apps.twitter.com
 import configparser
 from logging import getLogger, StreamHandler, DEBUG
 import argparse
@@ -7,7 +5,6 @@ from collections import OrderedDict
 from datetime import datetime
 import os
 import glob
-import shutil
 import requests
 import twitter
 
@@ -25,10 +22,10 @@ class tweetbot():
     def __init__(self, args):
         self.args = args;
         self.t = None;
-        self.upload = './upload/'
-        self.images = './images/'
+        self.upload = config['WORK_FOLDER']['UPLOAD']
+        self.images = config['WORK_FOLDER']['images']
         self.dtNow = datetime.now()
-        self.upload_file_size_limit = int(config['UPLOAD']['FILE_SIZE_LIMIT']);
+        self.upload_max_file_size = int(config['UPLOAD']['MAX_FILESIZE']);
         self.user_agent = config['DOWNLOAD']['USER_AGENT'];
         self.download_file_list = config['DOWNLOAD']['FILE_LIST']
         self.download_file_list_encoding = config['DOWNLOAD']['FILE_LIST_ENCODING']
@@ -40,20 +37,29 @@ class tweetbot():
         with open(self.download_file_list, 'r', encoding=self.download_file_list_encoding) as fin:
             for line in fin:
                 text = line.rstrip('\n')
-                if text.startswith('http'):
-                    dic[text] = None 
-                else:
+                if not text.startswith('http'):
                     logger.warning(text.encode(self.download_file_list_encoding))
                     continue
-                    
-        if len(dic.keys()) == 0:
+                dic[text] = None
+                
+        if len(dic) == 0:
             logger.warning('input:{0} Empty '.format(self.download_file_list))
             return
         headers = {'User-Agent': self.user_agent}        
         for address in dic.keys():
             logger.info('download:{0}'.format(address))
             r = requests.get(address, headers=headers)
-            with open(os.path.join(self.upload, os.path.split(address)[1]), 'wb') as fout:
+            #filepath = os.path.join(self.upload, os.path.basename(address))
+            
+            #basepath = self.upload
+            #filepath = os.path.join(basepath, os.path.basename(address))
+            # Randomize duplicate path
+            #while not os.path.isfile(filepath):                
+            #    filepath += 'a'
+                                
+            #with open(filepath, 'wb') as fout:
+            #    fout.write(r.content)
+            with open(os.path.join(self.upload, os.path.basename(address)), 'wb') as fout:
                 fout.write(r.content)
     def getImage(self, files=None):
         if files is None:
@@ -62,10 +68,10 @@ class tweetbot():
             for media in glob.iglob(os.path.join(self.upload, ext)):
                 # upload fileSize limit
                 size = os.path.getsize(media)
-                if size < self.upload_file_size_limit:
-                    files.append(media)
-                else:
-                    logger.warning('skip:{0}, size:{1}'.format(media, size))
+                if size > self.upload_max_file_size:
+                    logger.warning('skip:{0},size:{1},limit:{2},'.format(media, size, self.upload_max_file_size))
+                    continue
+                files.append(media)   
 
         return files
     def getFilePrefix(self, prefix='%Y%m%d%H%M_'):
@@ -84,11 +90,10 @@ class tweetbot():
         except Exception as ex:
             logger.exception(ex)
     def backup(self, file):
-        # file change & move
+        # filename change & move
         try:
-            newFile = os.path.join(self.upload, self.getFilePrefix() + os.path.split(file)[1])
-            os.rename(file, newFile)
-            shutil.move(newFile, self.images)
+            newFile = os.path.join(self.images, self.getFilePrefix() + os.path.basename(file))
+            os.replace(file, newFile)
         except Exception as ex:
             logger.exception(ex)
 
