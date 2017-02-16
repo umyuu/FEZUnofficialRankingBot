@@ -31,7 +31,7 @@ class tweetbot():
         self.tweet_datefmt = config['TWEET']['DATEFMT']
     def downloadImage(self):
         # internet -> local
-        self.download.downloadImage()
+        self.download.request()
     def getImage(self, files=None):
         if files is None:
             files = []
@@ -55,8 +55,8 @@ class tweetbot():
                                      access_token_key=self.args.access_token,
                                      access_token_secret=self.args.access_token_secret)
             text = '{0}\n{1}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
-            media_id = self.t.UploadMediaSimple(media=media)
-            self.t.PostUpdate(status=text, media=media_id)
+            #media_id = self.t.UploadMediaSimple(media=media)
+            #self.t.PostUpdate(status=text, media=media_id)
             logger.info(text)
         except Exception as ex:
             logger.exception(ex)

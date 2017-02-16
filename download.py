@@ -12,7 +12,7 @@ class download():
         self.user_agent = config['DOWNLOAD']['USER_AGENT'];
         self.file_list = config['DOWNLOAD']['FILE_LIST']
         self.file_list_encoding = config['DOWNLOAD']['FILE_LIST_ENCODING']
-    def downloadList(self):
+    def requestList(self):
         dic = OrderedDict()
         with open(self.file_list, 'r', encoding=self.file_list_encoding) as fin:
             for line in fin:
@@ -24,9 +24,9 @@ class download():
         if len(dic) == 0:
             logger.warning('input:{0} Empty '.format(self.file_list))
         return dic
-    def downloadImage(self):
+    def request(self):
         # internet -> local
-        dic = self.downloadList()
+        dic = self.requestList()
         headers = {'User-Agent': self.user_agent}        
         for address in dic.keys():
             logger.info('download:{0}'.format(address))
