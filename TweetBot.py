@@ -14,16 +14,18 @@ config = configparser.ConfigParser()
 with open('./setting.ini', 'r', encoding='utf-8-sig') as f:
     config.read_file(f)
 # console output
-logger = getLogger(__name__)
+logger = getLogger('myapp.tweetbot')
 handler = StreamHandler()
 handler.setLevel(DEBUG)
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
 class tweetbot():
+    aaa = 0
     def __init__(self, args):
         self.args = args;
         self.api = None;
+        logger.info(args)
         self.download = download.download(config)
         self.upload = config['WORK_FOLDER']['UPLOAD']
         self.images = config['WORK_FOLDER']['images']
@@ -34,6 +36,7 @@ class tweetbot():
         self.tweet_datefmt = config['TWEET']['DATEFMT']
         self.tweet_screen_name = config['TWEET']['SCREEN_NAME']
         self.tweet_limit = int(config['TWEET']['LIMIT'])
+        tweetbot.aaa += 1
     def twitter_init(self):
         if self.api is None:
             self.api = twitter.Api(consumer_key=self.args.consumer_key,
@@ -62,7 +65,7 @@ class tweetbot():
             self.twitter_init()
             text = '{0}\n{1}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
             isTweet = False
-            isTweet = True
+            #isTweet = True
             if isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
@@ -93,26 +96,31 @@ class tweetbot():
         except Exception as ex:
             logger.exception(ex)
 
-#if __name__ == "__main__":
-"""
-  parse
-    must twitter auth params
-"""
-parser = argparse.ArgumentParser(prog='tweetbot',
-    description='FEZ Unofficial National Total War Ranking TwitterBot')
-parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
-parser.add_argument('--consumer_key', '-ck', required=True, help='Twitter Apps Auth set consumer_key')
-parser.add_argument('--consumer_secret', '-cs', required=True, help='Twitter Apps Auth set consumer_secret')
-parser.add_argument('--access_token', '-at', required=True, help='Twitter Apps Auth set access_token')
-parser.add_argument('--access_token_secret', '-ats', required=True, help='Twitter Apps Auth set access_token_secret')
-parser.add_argument('--debug', action='store_true', default=True)
-
-logger.info('START')
-bot = tweetbot(parser.parse_args())
-bot.download.request()
-for media in bot.getImage():
-    logger.info('tweet media:{0}'.format(media))
-    bot.tweet(media)
-    #bot.deletetweet()
-    bot.backup(media)
-logger.info('END')
+def main():
+    """
+        parse
+            must twitter auth params
+    """
+    parser = argparse.ArgumentParser(prog='tweetbot',
+                                     description='FEZ Unofficial National Total War Ranking TwitterBot')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
+    parser.add_argument('--consumer_key', '-ck', required=True, help='Twitter Apps Auth set consumer_key')
+    parser.add_argument('--consumer_secret', '-cs', required=True, help='Twitter Apps Auth set consumer_secret')
+    parser.add_argument('--access_token', '-at', required=True, help='Twitter Apps Auth set access_token')
+    parser.add_argument('--access_token_secret', '-ats', required=True, help='Twitter Apps Auth set access_token_secret')
+    parser.add_argument('--debug', default=True)
+    
+    logger.info('START')
+    bot = tweetbot(parser.parse_args())
+    bot.download.request()
+    for media in bot.getImage():
+        logger.info('tweet media:{0}'.format(media))
+        bot.tweet(media)
+        #bot.deletetweet()
+        bot.backup(media)
+        logger.info('END')
+    print(tweetbot.aaa)
+    
+    
+if __name__ == "__main__":
+    main()

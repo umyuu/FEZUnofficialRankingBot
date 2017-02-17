@@ -2,11 +2,13 @@
 from logging import getLogger
 import os
 import sys
+import tempfile
+import re
 from pathlib import Path
 # library
 import requests
 
-logger = getLogger('__main__')
+logger = getLogger('myapp.tweetbot')
 
 class download():
     def __init__(self, config):
@@ -36,19 +38,35 @@ class download():
         """
         count = 0
         headers = {'User-Agent': self.user_agent}
+        comp = re.compile(r'/(\w+);')
         for address in self.requestList():
             count += 1
             logger.info('download:{0}'.format(address))
+            basename = os.path.basename(address)
             r = requests.get(address, headers=headers)
-            p = Path(self.data, os.path.basename(address))
-            i = 0;
-            basePath = p
-            while p.exists():
-                i += 1
-                p = p.with_name('{0}({1}){2}'.format(basePath.stem, i, basePath.suffix))
-                if sys.maxsize == i:
-                    break
-            with p.open('wb') as f:
-                f.write(r.content)
+            with tempfile.NamedTemporaryFile(dir=self.data, delete=False) as temp:
+                temp.write(r.content)
+                temp_file_name = temp.name
+                if len(basename) == 0:
+                    logger.warning('create_filename:{0}'.format(temp.name))
+                    m = comp.search(r.headers['content-type'])
+                    ext = '.html'
+                    if not m is None:
+                        ext = '.' + m.group(1)
+                    else:
+                        logger.error(r.headers['content-type'])
+                    basename = os.path.basename(temp_file_name) + ext
+                p = Path(self.data, basename)
+                i = 0;
+                logger.info('aaaaaa:{0}'.format(p))
+                basePath = p
+                while p.exists():
+                    i += 1
+                    p = p.with_name('{0}({1}){2}'.format(basePath.stem, i, basePath.suffix))
+                    if sys.maxsize == i:
+                        break
+            
+            os.replace(temp_file_name, str(p))
+            logger.info('cccccc:{0}'.format(p))
         if count == 0:
             logger.warning('input:{0} Empty'.format(self.file_list))
