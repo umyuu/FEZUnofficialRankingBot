@@ -15,7 +15,7 @@ class download():
         self.file_list_encoding = config['DOWNLOAD']['FILE_LIST_ENCODING']
     def requestList(self):
         """
-            @return yield  text
+            @yield URL
         """
         with open(self.file_list, 'r', encoding=self.file_list_encoding) as f:
             for line in f:

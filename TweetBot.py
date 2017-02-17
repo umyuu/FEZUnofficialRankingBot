@@ -41,6 +41,9 @@ class tweetbot():
                                  access_token_key=self.args.access_token,
                                  access_token_secret=self.args.access_token_secret)
     def getImage(self):
+        """
+            @yield media
+        """
         for ext in self.upload_file_suffixes:
             for media in glob.iglob(os.path.join(self.upload, ext)):
                 # upload fileSize limit
@@ -58,9 +61,9 @@ class tweetbot():
         try:
             self.twitter_init()
             text = '{0}\n{1}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
-            isSend = False
-            #isSend = True
-            if isSend:
+            isTweet = False
+            isTweet = True
+            if isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
             logger.info(text)
@@ -93,12 +96,10 @@ class tweetbot():
 #if __name__ == "__main__":
 """
   parse
+    must twitter auth params
 """
 parser = argparse.ArgumentParser(prog='tweetbot',
     description='FEZ Unofficial National Total War Ranking TwitterBot')
-"""
-  must twitter auth params
-"""
 parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
 parser.add_argument('--consumer_key', '-ck', required=True, help='Twitter Apps Auth set consumer_key')
 parser.add_argument('--consumer_secret', '-cs', required=True, help='Twitter Apps Auth set consumer_secret')
