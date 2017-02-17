@@ -9,7 +9,7 @@ import twitter
 # app
 import download
 config = configparser.ConfigParser()
-with open('./setting.ini', 'r', encoding='utf-8') as f:
+with open('./setting.ini', 'r', encoding='utf-8-sig') as f:
     config.read_file(f)
 # console output
 logger = getLogger(__name__)
@@ -25,10 +25,13 @@ class tweetbot():
         self.download = download.download(config)
         self.upload = config['WORK_FOLDER']['UPLOAD']
         self.images = config['WORK_FOLDER']['images']
+        self.upload_file_suffixes = config['WORK_FOLDER']['SUFFIXES'].split('|')
         self.dtNow = datetime.now()
-        self.upload_max_file_size = int(config['UPLOAD']['MAX_FILESIZE']);
+        self.upload_max_file_size = int(config['UPLOAD']['MAX_FILESIZE'])
         self.tweet_format = config['TWEET']['FORMAT']
         self.tweet_datefmt = config['TWEET']['DATEFMT']
+        self.tweet_screen_name = config['TWEET']['SCREEN_NAME']
+        self.tweet_limit = int(config['TWEET']['LIMIT'])
     def twitter_init(self):
         if self.api is None:
             self.api = twitter.Api(consumer_key=self.args.consumer_key,
@@ -41,7 +44,8 @@ class tweetbot():
     def getImage(self, files=None):
         if files is None:
             files = []
-        for ext in ['*.png', '*.jpg']:
+        for ext in self.upload_file_suffixes:
+            logger.info(ext)
             for media in glob.iglob(os.path.join(self.upload, ext)):
                 # upload fileSize limit
                 size = os.path.getsize(media)
@@ -54,17 +58,23 @@ class tweetbot():
     def getFilePrefix(self, prefix='%Y%m%d%H%M_'):
         return self.dtNow.strftime(prefix)
     def tweet(self, media):
+        """
+            @params media uploadFile
+        """
         try:
             self.twitter_init()
             text = '{0}\n{1}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
-            #media_id = self.api.UploadMediaSimple(media=media)
-            #self.api.PostUpdate(status=text, media=media_id)
+            isSend = False
+            isSend = True
+            if isSend:
+                media_id = self.api.UploadMediaSimple(media=media)
+                self.api.PostUpdate(status=text, media=media_id)
             logger.info(text)
         except Exception as ex:
             logger.exception(ex)
     def deletetweet(self):
         """
-            @params none
+            
         """
         try:
             self.twitter_init()
@@ -76,7 +86,11 @@ class tweetbot():
         except Exception as ex:
             logger.exception(ex)
     def backup(self, file):
-        # filename change & move
+        """
+           moveTo
+             src:@params file
+             dst:[images\YYYYmmddHHMM_]FileName
+        """
         try:
             newFile = os.path.join(self.images, self.getFilePrefix() + os.path.basename(file))
             os.replace(file, newFile)
@@ -87,10 +101,10 @@ class tweetbot():
 #if __name__ == "__main__":
 
 # parse
-parser = argparse.ArgumentParser(
-    description='FEZ National Total War Ranking')
+parser = argparse.ArgumentParser(prog='tweetbot',
+    description='FEZ Unofficial National Total War Ranking TwitterBot')
 # must twitter auth params
-parser.add_argument('--version', action='version', version='version 0.0.1')
+parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
 parser.add_argument('--consumer_key', '-ck', required=True, help='Twitter Apps Auth set consumer_key')
 parser.add_argument('--consumer_secret', '-cs', required=True, help='Twitter Apps Auth set consumer_secret')
 parser.add_argument('--access_token', '-at', required=True, help='Twitter Apps Auth set access_token')
