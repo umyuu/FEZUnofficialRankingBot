@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import configparser
 from logging import getLogger, StreamHandler, DEBUG
 import argparse
@@ -8,6 +9,7 @@ import glob
 import twitter
 # app
 import download
+
 config = configparser.ConfigParser()
 with open('./setting.ini', 'r', encoding='utf-8-sig') as f:
     config.read_file(f)
@@ -25,8 +27,8 @@ class tweetbot():
         self.download = download.download(config)
         self.upload = config['WORK_FOLDER']['UPLOAD']
         self.images = config['WORK_FOLDER']['images']
-        self.upload_file_suffixes = config['WORK_FOLDER']['SUFFIXES'].split('|')
         self.dtNow = datetime.now()
+        self.upload_file_suffixes = config['WORK_FOLDER']['SUFFIXES'].split('|')
         self.upload_max_file_size = int(config['UPLOAD']['MAX_FILESIZE'])
         self.tweet_format = config['TWEET']['FORMAT']
         self.tweet_datefmt = config['TWEET']['DATEFMT']
@@ -38,19 +40,15 @@ class tweetbot():
                                  consumer_secret=self.args.consumer_secret,
                                  access_token_key=self.args.access_token,
                                  access_token_secret=self.args.access_token_secret)
-    def downloadImage(self):
-        # internet -> local
-        self.download.request()
     def getImage(self, files=None):
         if files is None:
             files = []
         for ext in self.upload_file_suffixes:
-            logger.info(ext)
             for media in glob.iglob(os.path.join(self.upload, ext)):
                 # upload fileSize limit
                 size = os.path.getsize(media)
                 if size > self.upload_max_file_size:
-                    logger.warning('skip:{0},size:{1},limit:{2},'.format(media, size, self.upload_max_file_size))
+                    logger.warning('skip:{0},size:{1},limit:{2}'.format(media, size, self.upload_max_file_size))
                     continue
                 files.append(media)   
 
@@ -78,9 +76,7 @@ class tweetbot():
         """
         try:
             self.twitter_init()
-            screen_name = 'fez_ranking_bot'
-            limit = 1
-            for s in self.api.GetUserTimeline(screen_name=screen_name, count=limit):
+            for s in self.api.GetUserTimeline(screen_name=self.tweet_screen_name, count=self.tweet_limit):
                 self.api.DestroyStatus(s.id)
                 logger.info('delete:{0},posted:{1}'.format(s.text, s.created_at))
         except Exception as ex:
@@ -89,7 +85,7 @@ class tweetbot():
         """
            moveTo
              src:@params file
-             dst:[images\YYYYmmddHHMM_]FileName
+             dst:[images\YYYYmmddHHMM_]FileName.extensions
         """
         try:
             newFile = os.path.join(self.images, self.getFilePrefix() + os.path.basename(file))
@@ -99,11 +95,14 @@ class tweetbot():
             logger.exception(ex)
 
 #if __name__ == "__main__":
-
-# parse
+"""
+  parse
+"""
 parser = argparse.ArgumentParser(prog='tweetbot',
     description='FEZ Unofficial National Total War Ranking TwitterBot')
-# must twitter auth params
+"""
+  must twitter auth params
+"""
 parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
 parser.add_argument('--consumer_key', '-ck', required=True, help='Twitter Apps Auth set consumer_key')
 parser.add_argument('--consumer_secret', '-cs', required=True, help='Twitter Apps Auth set consumer_secret')
@@ -113,10 +112,10 @@ parser.add_argument('--debug', action='store_true', default=True)
 
 logger.info('')
 bot = tweetbot(parser.parse_args())
-bot.downloadImage()
+bot.download.request()
 for media in bot.getImage():
     logger.info('tweet media:{0}'.format(media))
     bot.tweet(media)
     #bot.deletetweet()
     bot.backup(media)
-    #break
+logger.info('END')
