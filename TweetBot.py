@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-import configparser
 from logging import getLogger, StreamHandler, DEBUG
+import configparser
 import argparse
 from datetime import datetime
 import os
 import glob
 # library
 import twitter
-# app
+# Myapp library
 import download
 
 config = configparser.ConfigParser()
@@ -107,7 +107,7 @@ parser.add_argument('--access_token', '-at', required=True, help='Twitter Apps A
 parser.add_argument('--access_token_secret', '-ats', required=True, help='Twitter Apps Auth set access_token_secret')
 parser.add_argument('--debug', action='store_true', default=True)
 
-logger.info('')
+logger.info('START')
 bot = tweetbot(parser.parse_args())
 bot.download.request()
 for media in bot.getImage():

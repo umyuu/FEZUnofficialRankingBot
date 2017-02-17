@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
 import os
+import sys
 from pathlib import Path
 # library
 import requests
@@ -26,36 +27,24 @@ class download():
                 yield text
     def request(self):
         """
-           internet -> local
-           duplicate file 
-             address[_SequentialNo]
+           internet -- (Get) --> local
+           exists fileName
+             exsample.png
+             exsample(1).png
+             exsample(2).png
+             exsample(n).png
         """
         count = 0
         headers = {'User-Agent': self.user_agent}
         for address in self.requestList():
             count += 1
-        #for address in dic.keys():
             logger.info('download:{0}'.format(address))
             r = requests.get(address, headers=headers)
-            #filepath = os.path.join(self.data, os.path.basename(address))
-            
-            #basepath = self.data
-            #filepath = os.path.join(basepath, os.path.basename(address))
-            # Randomize duplicate path
-            #while not os.path.isfile(filepath):                
-            #    filepath += 'a'
-            #logger.info(filepath)
             p = Path(self.data, os.path.basename(address))
             i = 0;
-            s = '_'
+            basePath = p
             while p.exists():
-                old = p
-                if not i == 0:
-                    s = ''
-                p =p.with_name('{0}{1}{2}{3}'.format(old.stem, s, str(i), old.suffix))
                 i += 1
-                logger.info("duplicate:")
-                logger.info(p)
             
             with p.open('wb') as fout:
                 fout.write(r.content)
