@@ -45,10 +45,10 @@ class download():
             basePath = p
             while p.exists():
                 i += 1
-            
-            with p.open('wb') as fout:
-                fout.write(r.content)
-            #with open(os.path.join(self.data, os.path.basename(address)), 'wb') as fout:
-            #    fout.write(r.content)
+                p = p.with_name('{0}({1}){2}'.format(basePath.stem, i, basePath.suffix))
+                if sys.maxsize == i:
+                    break
+            with p.open('wb') as f:
+                f.write(r.content)
         if count == 0:
             logger.warning('input:{0} Empty'.format(self.file_list))
