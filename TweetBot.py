@@ -40,9 +40,7 @@ class tweetbot():
                                  consumer_secret=self.args.consumer_secret,
                                  access_token_key=self.args.access_token,
                                  access_token_secret=self.args.access_token_secret)
-    def getImage(self, files=None):
-        if files is None:
-            files = []
+    def getImage(self):
         for ext in self.upload_file_suffixes:
             for media in glob.iglob(os.path.join(self.upload, ext)):
                 # upload fileSize limit
@@ -50,9 +48,7 @@ class tweetbot():
                 if size > self.upload_max_file_size:
                     logger.warning('skip:{0},size:{1},limit:{2}'.format(media, size, self.upload_max_file_size))
                     continue
-                files.append(media)   
-
-        return files
+                yield media
     def getFilePrefix(self, prefix='%Y%m%d%H%M_'):
         return self.dtNow.strftime(prefix)
     def tweet(self, media):
@@ -63,7 +59,7 @@ class tweetbot():
             self.twitter_init()
             text = '{0}\n{1}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
             isSend = False
-            isSend = True
+            #isSend = True
             if isSend:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)

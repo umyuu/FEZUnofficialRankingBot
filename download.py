@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
-from collections import OrderedDict
 import os
 from pathlib import Path
 # library
