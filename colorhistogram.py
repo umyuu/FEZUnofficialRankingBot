@@ -165,6 +165,7 @@ class colorhistogram():
         # resize
         zoom=2
         return cv2.resize(color, (color.shape[1]*zoom, color.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
+    def matchTemplate(self, src):
         template = cv2.imread('./hints/template.png')
         template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         if len(template.shape) == 3:
@@ -208,6 +209,7 @@ class colorhistogram():
         #
 
         #
+        self.matchTemplate(inv)
         aaaa = image()
         aaaa._image = inv
         aaaa.save('./hints/fffff.png')
