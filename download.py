@@ -16,6 +16,7 @@ class download():
         self.user_agent = config['DOWNLOAD']['USER_AGENT'];
         self.file_list = config['DOWNLOAD']['FILE_LIST']
         self.file_list_encoding = config['DOWNLOAD']['FILE_LIST_ENCODING']
+        self.comp = re.compile(r'/(\w+);')
     def requestList(self):
         """
             @yield URL
@@ -27,6 +28,15 @@ class download():
                     #logger.warning(text)
                     continue
                 yield text
+    def getSuffix(self, r, suffix='.html'):
+        """
+            ContentType -> suffix
+        """
+        m = self.comp.search(r.headers['content-type'])
+        if not m is None:
+            return '.' + m.group(1)
+        logger.error(r.headers['content-type'])
+        return suffix
     def request(self):
         """
            internet -- (Get) --> local
@@ -38,7 +48,6 @@ class download():
         """
         count = 0
         headers = {'User-Agent': self.user_agent}
-        comp = re.compile(r'/(\w+);')
         for address in self.requestList():
             count += 1
             logger.info('download:{0}'.format(address))
@@ -49,16 +58,9 @@ class download():
                 temp_file_name = temp.name
                 if len(basename) == 0:
                     logger.warning('create_filename:{0}'.format(temp.name))
-                    m = comp.search(r.headers['content-type'])
-                    ext = '.html'
-                    if not m is None:
-                        ext = '.' + m.group(1)
-                    else:
-                        logger.error(r.headers['content-type'])
-                    basename = os.path.basename(temp_file_name) + ext
+                    basename = os.path.basename(temp_file_name) + self.getSuffix(r)
                 p = Path(self.data, basename)
                 i = 0;
-                logger.info('aaaaaa:{0}'.format(p))
                 basePath = p
                 while p.exists():
                     i += 1
@@ -67,6 +69,5 @@ class download():
                         break
             
             os.replace(temp_file_name, str(p))
-            logger.info('cccccc:{0}'.format(p))
         if count == 0:
             logger.warning('input:{0} Empty'.format(self.file_list))
