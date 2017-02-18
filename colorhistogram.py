@@ -52,32 +52,49 @@ class colorhistogram():
         keypoints = detector.detect(img)
         out = cv2.drawKeypoints(img, keypoints, None)
         cv2.imshow("keypoints", out)
-        
+    def drawContours(self, color, src):
+        _, contours, _ = cv2.findContours(src, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        for c in contours:
+            #if cv2.contourArea(c) < 90:
+            #    continue
+            approx = None
+            #cv2.convexHull(c, approx);
+            epsilon = 0.01 * cv2.arcLength(c, True)
+            approx = cv2.approxPolyDP(c, epsilon, True)
+            #s=abs(cv2.contourArea(c))
+            #if s <= AREA_MAX:
+            #if len(approx) == 4:
+            #cv2.drawContours(color, c, -1, (0, 0, 255), 3)
+            #cv2.drawContours(color, [approx], -1, (0, 255, 0), 3)
+            x,y,w,h = cv2.boundingRect(c)
+            color = cv2.rectangle(color,(x,y),(x+w,y+h),(0,255,0),2)
+            
+            
+            #approx = cv2.convexHull(c)
+            #rect = cv2.boundingRect(approx)
+            #cvRectangle
+        #plt.imshow(color)
+        #contours, _ = cv2.findContours(src, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #rects = []
+        #for contour in contours:
+        #    approx = cv2.convexHull(contour)
+        #    rect = cv2.boundingRect(approx)
+        #    rects.append(np.array(rect))
 
-    def drawContours(self, src):
-        #imgray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
-        
-        imgray = src
-        #imgray = cv2.resize(imgray, (imgray.shape[1]*2, imgray.shape[0]*2), interpolation=cv2.INTER_CUBIC)
-        imgray = cv2.Laplacian(imgray, cv2.CV_32F,ksize=3)
-        cv2.imwrite('./hints/aaaacccc.png', imgray)
-        #ret,thresh = cv2.threshold(imgray, 127, 255, 0)
-        thresh = cv2.Canny(imgray, threshold1=90, threshold2=110)
-        cv2.imwrite('./hints/aaaa.png', thresh)
-        #image, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-        #img = cv2.drawContours(src, contours, -1, (0,255,0), 3)
-        #cv2.imwrite('./hints/aaaa.png', img)
-    def drawEgge(self, cups_preprocessed):
-        cups_edges = cv2.Canny(cups_preprocessed, threshold1=90, threshold2=110)
-        plt.imshow(cv2.cvtColor(cups_edges, cv2.COLOR_GRAY2RGB))
-        cv2.imwrite('cups-edges.jpg', cups_edges)
+        #plt.imshow(cv2.cvtColor(color, cv2.COLOR_BGR2RGB))
+        #plt.show()
+
     def getWhiteMasking(self, img):
-        
-        # 取得する色の範囲を指定する
-        sensitivity = 16
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        sensitivity = 15
         lower_white = np.array([0, 0, 255 - sensitivity])
         upper_white = np.array([255, sensitivity, 255])
-        return cv2.inRange(img, lower_white, upper_white)
+        return cv2.inRange(hsv, lower_white, upper_white)
+    def getRedMasking(self, img):
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        lower_blue = np.array([106, 47, 71])
+        upper_blue = np.array([106, 47, 71])
+        return cv2.inRange(hsv, lower_blue, upper_blue)
         #res = cv2.bitwise_and(img, img, mask= img_mask)
         #cv2.imwrite('./hints/cccc.png', res) 
     def getRect(self,l_img):
@@ -139,28 +156,64 @@ class colorhistogram():
         thresh = cv2.adaptiveThreshold(greyscale, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
             cv2.THRESH_BINARY, 11, 2)
         return thresh
-    def aaaa(self):
-        print('aaaa')
-        #im_mask = cv2.imread('./hints/white.png')
-        img = cv2.imread('./hints/netzawar.png')
-        if img is None:
+    def read(self, name):
+        print("read")
+        color = cv2.imread(name)
+        if color is None:
             print("notfound")
+            return None
+        # resize
+        zoom=2
+        return cv2.resize(color, (color.shape[1]*zoom, color.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
+        template = cv2.imread('./hints/template.png')
+        template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+        if len(template.shape) == 3:
+            height, width, channels = template.shape[:3]
+        else:
+            height, width = template.shape[:2]
+            channels = 1
+        template_width = width
+        template_height = height
+        matches = cv2.matchTemplate(src, template, cv2.TM_CCORR_NORMED)
+
+        mn,_,mnLoc,_ = cv2.minMaxLoc(matches)
+        x, y = mnLoc
+        print(mn)
+        print(mnLoc)
+        margin_with = 5
+        threshold = 0.73
+        src = cv2.rectangle(src, (x, y),
+                        (x + template_width + margin_with, y + template_height),
+                         (0, 0, 255), 2)
+                    
+        cv2.imshow('score', src)       
+        cv2.waitKey(0)
+    def aaaa(self):
+        color = self.read('./hints/netzawar.png')
+        if color is None:
             return
+        white = self.getWhiteMasking(color.copy())
+        red = self.getRedMasking(color.copy())
         # 画像の白文字部分を抽出
-        img = self.resize(img)
-        #img = self.binary_threshold(img)
-        #img = cv2.bitwise_not(img)
+        #resized = self.resize(color)
+        binary = self.binary_threshold(color)
+        binary = cv2.bitwise_and(binary, binary, mask= white)
+        
+        
+        # 白黒反転
+        inv = cv2.bitwise_not(binary)
+        #self.drawContours(color, inv)
         #img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 
         #
 
         #
-        img = self.getWhiteMasking(img)
-
         aaaa = image()
-        aaaa._image = img
+        aaaa._image = inv
         aaaa.save('./hints/fffff.png')
-        
+        aaaa._image = color
+        aaaa.save('./hints/color.png')
+
         #img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
         
         #cv2.imwrite('./hints/bbbb.png', img)
