@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+import glob
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -46,44 +48,26 @@ class colorhistogram():
         print ("distance: ", dist)
 
         plt.show()
-    def FeatureDetection(self):
-        img = cv2.imread('img.jpg')
-        detector = cv2.ORB_create()
-        keypoints = detector.detect(img)
-        out = cv2.drawKeypoints(img, keypoints, None)
-        cv2.imshow("keypoints", out)
-    def drawContours(self, color, src):
-        _, contours, _ = cv2.findContours(src, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        for c in contours:
-            #if cv2.contourArea(c) < 90:
-            #    continue
-            approx = None
-            #cv2.convexHull(c, approx);
-            epsilon = 0.01 * cv2.arcLength(c, True)
-            approx = cv2.approxPolyDP(c, epsilon, True)
-            #s=abs(cv2.contourArea(c))
-            #if s <= AREA_MAX:
-            #if len(approx) == 4:
-            #cv2.drawContours(color, c, -1, (0, 0, 255), 3)
-            #cv2.drawContours(color, [approx], -1, (0, 255, 0), 3)
-            x,y,w,h = cv2.boundingRect(c)
-            color = cv2.rectangle(color,(x,y),(x+w,y+h),(0,255,0),2)
-            
-            
-            #approx = cv2.convexHull(c)
-            #rect = cv2.boundingRect(approx)
-            #cvRectangle
-        #plt.imshow(color)
-        #contours, _ = cv2.findContours(src, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        #rects = []
-        #for contour in contours:
-        #    approx = cv2.convexHull(contour)
-        #    rect = cv2.boundingRect(approx)
-        #    rects.append(np.array(rect))
-
-        #plt.imshow(cv2.cvtColor(color, cv2.COLOR_BGR2RGB))
-        #plt.show()
-
+    def FeatureDetection(self, target_img):
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING)
+        detector = cv2.AKAZE_create()
+        (target_kp, target_des) = detector.detectAndCompute(target_img, None)
+        ser = []
+        for media in glob.iglob(os.path.join('./hints/sample/', "*.png")):
+            comparing_img_path = media
+            try:
+                
+                comparing_img = self.read(comparing_img_path)
+                white = self.getWhiteMasking(comparing_img.copy())
+                comparing_img = self.binary_threshold(comparing_img)
+                comparing_img = cv2.bitwise_and(comparing_img, comparing_img, mask= white)
+                (comparing_kp, comparing_des) = detector.detectAndCompute(comparing_img, None)
+                dist = [m.distance for m in bf.match(target_des, comparing_des)]
+                ret = sum(dist) / len(dist)
+            except cv2.error:
+                ret = 100000
+            print(media, ret)
+        return ser
     def getWhiteMasking(self, img):
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         sensitivity = 15
@@ -97,32 +81,6 @@ class colorhistogram():
         return cv2.inRange(hsv, lower_blue, upper_blue)
         #res = cv2.bitwise_and(img, img, mask= img_mask)
         #cv2.imwrite('./hints/cccc.png', res) 
-    def getRect(self,l_img):
-        
-
-        # 白枠で縁取られた面積最大の領域を探す
-        image, contours, hierarchy = cv2.findContours(l_img,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)
-
-        inner_contours = []
-        for index, contour in enumerate(contours):
-            if hierarchy[0][index][2] == -1:
-                inner_contours.append(contour)
-
-        approxes = []
-        max_box = None
-        for contour in inner_contours:
-            # 矩形補完
-            epsilon = 0.01*cv2.arcLength(contour,True)
-            approx = cv2.approxPolyDP(contour,epsilon,True)
-            area = cv2.contourArea(approx)
-
-            if max_box is None or cv2.contourArea(max_box) < cv2.contourArea(approx):
-                max_box = approx
-                if(area > 20):
-                    approxes.append(approx)
-            x,y,w,h = cv2.boundingRect(contour)
-            l_img = cv2.rectangle(l_img,(x,y),(x+w,y+h),(0,255,0),2)
-            
     def calcHist(self, img):
         #self.colorHist(img)
         #self.Knn()
@@ -157,7 +115,7 @@ class colorhistogram():
             cv2.THRESH_BINARY, 11, 2)
         return thresh
     def read(self, name):
-        print("read")
+        #print("read")
         color = cv2.imread(name)
         if color is None:
             print("notfound")
@@ -167,7 +125,7 @@ class colorhistogram():
         return cv2.resize(color, (color.shape[1]*zoom, color.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
     def matchTemplate(self, src):
         template = cv2.imread('./hints/template.png')
-        template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+        template = self.binary_threshold(template)
         if len(template.shape) == 3:
             height, width, channels = template.shape[:3]
         else:
@@ -189,6 +147,12 @@ class colorhistogram():
                     
         cv2.imshow('score', src)       
         cv2.waitKey(0)
+        
+        clip = src[y:y + height, x:x + width]
+        #sss =src[x:y, (x + template_width + margin_with): (y + template_height)]
+        cv2.imshow('score', clip)
+        cv2.waitKey(0)
+        return clip
     def aaaa(self):
         color = self.read('./hints/netzawar.png')
         if color is None:
@@ -202,14 +166,17 @@ class colorhistogram():
         
         
         # 白黒反転
-        inv = cv2.bitwise_not(binary)
+        #inv = cv2.bitwise_not(binary)
         #self.drawContours(color, inv)
         #img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 
         #
 
         #
-        self.matchTemplate(inv)
+        self.FeatureDetection(binary)
+        #self.matchTemplate(inv)
+        
+        
         aaaa = image()
         aaaa._image = inv
         aaaa.save('./hints/fffff.png')
