@@ -25,7 +25,7 @@ class tweetbot():
         self.args = args;
         self.api = None;
         logger.info(args)
-        self.download = download.download(config)
+        self.__download = download.download(config)
         self.upload = config['WORK_FOLDER']['UPLOAD']
         self.images = config['WORK_FOLDER']['images']
         self.dtNow = datetime.now()
@@ -35,6 +35,9 @@ class tweetbot():
         self.tweet_datefmt = config['TWEET']['DATEFMT']
         self.tweet_screen_name = config['TWEET']['SCREEN_NAME']
         self.tweet_limit = int(config['TWEET']['LIMIT'])
+    @property
+    def download(self):
+        return self.__download
     def twitter_init(self):
         if self.api is None:
             self.api = twitter.Api(consumer_key=self.args.consumer_key,
@@ -63,7 +66,7 @@ class tweetbot():
             self.twitter_init()
             text = '{0}\n{1}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
             isTweet = False
-            isTweet = True
+            #isTweet = True
             if isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
