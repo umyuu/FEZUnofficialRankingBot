@@ -103,6 +103,7 @@ def main():
     #d = c.getCountry('./backup/hints/Hordine.png')
     for i in range(10):
         d = c.getCountry('./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png')
+        d = c.getCountry('./backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png')
         for k in d.keys():
             country_name = c.getName(k)
             print(country_name)

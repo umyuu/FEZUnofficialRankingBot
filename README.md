@@ -2,6 +2,7 @@
 FEZ 非公式な国家総力戦ランキングTwitter 手動bot
 
 ## 依存ライブラリ(pip install -r requirements.txt)
+- python 3.5+ (Developer Use 3.5)
 - python-twitter
 - opencv
 - numpy
