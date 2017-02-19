@@ -25,7 +25,6 @@ class tweetbot():
     def __init__(self, args):
         self.args = args;
         self.api = None;
-        logger.info(args)
         self.__download = download.download(config)
         self.__country = country.country(config)
         self.upload = config['WORK_FOLDER']['UPLOAD']
@@ -33,7 +32,6 @@ class tweetbot():
         self.dtNow = datetime.now()
         self.upload_file_suffixes = config['WORK_FOLDER']['SUFFIXES'].split('|')
         self.upload_max_file_size = int(config['UPLOAD']['MAX_FILESIZE'])
-        
         self.tweet_format = config['TWEET']['FORMAT']
         self.tweet_datefmt = config['TWEET']['DATEFMT']
         self.tweet_screen_name = config['TWEET']['SCREEN_NAME']
@@ -70,7 +68,7 @@ class tweetbot():
         """
         try:
             d = self.country.getCountry(media)
-            for k,v in d.items():
+            for k in d.keys():
                 country_name = self.country.getName(k)
                 break;
             
