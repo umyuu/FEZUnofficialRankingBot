@@ -9,6 +9,7 @@ import glob
 import twitter
 # Myapp library
 import download
+import country
 
 config = configparser.ConfigParser()
 with open('./setting.ini', 'r', encoding='utf-8-sig') as f:
@@ -26,11 +27,13 @@ class tweetbot():
         self.api = None;
         logger.info(args)
         self.__download = download.download(config)
+        self.__country = country.country(config)
         self.upload = config['WORK_FOLDER']['UPLOAD']
         self.images = config['WORK_FOLDER']['images']
         self.dtNow = datetime.now()
         self.upload_file_suffixes = config['WORK_FOLDER']['SUFFIXES'].split('|')
         self.upload_max_file_size = int(config['UPLOAD']['MAX_FILESIZE'])
+        
         self.tweet_format = config['TWEET']['FORMAT']
         self.tweet_datefmt = config['TWEET']['DATEFMT']
         self.tweet_screen_name = config['TWEET']['SCREEN_NAME']
@@ -38,6 +41,9 @@ class tweetbot():
     @property
     def download(self):
         return self.__download
+    @property
+    def country(self):
+        return self.__country
     def twitter_init(self):
         if self.api is None:
             self.api = twitter.Api(consumer_key=self.args.consumer_key,
@@ -63,10 +69,15 @@ class tweetbot():
             @params media uploadFile
         """
         try:
+            d = self.country.getCountry(media)
+            for k,v in d.items():
+                country_name = self.country.getName(k)
+                break;
+            
             self.twitter_init()
-            text = '{0}\n{1}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
+            text = '{0}\n{1}\n一位:{2}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format, country_name)
             isTweet = False
-            #isTweet = True
+            isTweet = True
             if isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
