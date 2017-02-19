@@ -5,6 +5,7 @@ import os
 import sys
 import glob
 from collections import OrderedDict
+import functools
 import cv2
 import numpy as np
 logger = getLogger('myapp.tweetbot')
@@ -66,11 +67,7 @@ class country():
         for media in glob.iglob(os.path.join(self.hints, "*.png")):
             basename = os.path.basename(media)
             try:
-                pro = DataProcessor(media)
-                if pro.prepare() is None:
-                    return
-                second = pro.batch()
-                (kp_second, des_second) = self.detector.detectAndCompute(second, None)
+                (kp_second, des_second) = self.__cachedetect(media)
                 dist = [m.distance for m in self.bf.match(des_first, des_second)]
                 result = sum(dist) / len(dist)
                 d[basename] = result
@@ -78,6 +75,12 @@ class country():
                 d[basename] = sys.maxsize
 
         return OrderedDict(sorted(d.items(), key=lambda x: x[1]))
+    @functools.lru_cache(maxsize=8)
+    def __cachedetect(self, media):
+        pro = DataProcessor(media)
+        if pro.prepare() is None:
+           return None
+        return self.detector.detectAndCompute(pro.batch(), None)
     def getCountry(self, src):
         pro = DataProcessor(src)
         if pro.prepare() is None:
@@ -98,7 +101,7 @@ def main():
         config.read_file(f)
     c = country(config)
     #d = c.getCountry('./backup/hints/Hordine.png')
-    for i in range(3):
+    for i in range(10):
         d = c.getCountry('./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png')
         for k in d.keys():
             country_name = c.getName(k)
