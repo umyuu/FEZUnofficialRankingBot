@@ -25,6 +25,9 @@ class DataProcessor():
         binary = self.__binary_threshold(self.color)
         # マスク
         binary = cv2.bitwise_and(binary, binary, mask= white)
+        height, width = self.color.shape[:2]
+        # １位より下を黒色で塗りつぶしてマスク。
+        cv2.rectangle(binary, (0, min(500, height)),(width,height),(0,0,0),-1)
         return binary
     def __getWhiteMasking(self, img):
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -37,8 +40,6 @@ class DataProcessor():
         lower_Red = np.array([106, 47, 71])
         upper_Red = np.array([106, 47, 71])
         return cv2.inRange(hsv, lower_Red, upper_Red)
-    def __resize(self, img, zoom=2):
-        return cv2.resize(img, (img.shape[1]*zoom, img.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
     def __binary_threshold(self, img):
         greyscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         thresh = cv2.adaptiveThreshold(greyscale, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
@@ -80,6 +81,7 @@ class country():
         pro = DataProcessor(media)
         if pro.prepare() is None:
            return None
+        #cv2.imwrite('./binary_{0}.png'.format(os.path.basename(media)), pro.batch())
         return self.detector.detectAndCompute(pro.batch(), None)
     def getCountry(self, src):
         pro = DataProcessor(src)
@@ -87,8 +89,8 @@ class country():
            return
         binary = pro.batch()
         # imwrite#cvtColorで色情報が足りないとエラー
-        cv2.imwrite('./b_color.png', pro.color)
-        cv2.imwrite('./b_binary.png', binary)
+        #cv2.imwrite('./b_color.png', pro.color)
+        #cv2.imwrite('./b_binary.png', binary)
         d = self.__Detection(binary)
         print(d)
         return d
@@ -101,9 +103,10 @@ def main():
         config.read_file(f)
     c = country(config)
     #d = c.getCountry('./backup/hints/Hordine.png')
-    for i in range(10):
+    for i in range(1):
         d = c.getCountry('./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png')
         d = c.getCountry('./backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png')
+        d = c.getCountry('./backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png')
         for k in d.keys():
             country_name = c.getName(k)
             print(country_name)
