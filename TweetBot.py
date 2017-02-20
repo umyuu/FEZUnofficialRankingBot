@@ -59,6 +59,7 @@ class tweetbot():
                 if size > self.upload_max_file_size:
                     logger.warning('skip:{0},size:{1},limit:{2}'.format(media, size, self.upload_max_file_size))
                     continue
+                # Todo:check image file
                 yield media
     def getFilePrefix(self, prefix='%Y%m%d%H%M_'):
         return self.dtNow.strftime(prefix)
@@ -67,7 +68,10 @@ class tweetbot():
             @params media uploadFile
         """
         try:
+            country_name = None
             d = self.country.getCountry(media)
+            if d is None:
+                return
             for k in d.keys():
                 country_name = self.country.getName(k)
                 break;
@@ -75,7 +79,7 @@ class tweetbot():
             self.twitter_init()
             text = '{0}\n{1}\n一位:{2}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format, country_name)
             isTweet = False
-            isTweet = True
+            #isTweet = True
             if isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
@@ -112,7 +116,7 @@ def main():
             must twitter auth params
     """
     parser = argparse.ArgumentParser(prog='tweetbot',
-                                     description='FEZ Unofficial National Total War Ranking TwitterBot')
+                                     description='FEZ Unofficial Total War Ranking TwitterBot')
     parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
     parser.add_argument('--consumer_key', '-ck', required=True, help='Twitter Apps Auth set consumer_key')
     parser.add_argument('--consumer_secret', '-cs', required=True, help='Twitter Apps Auth set consumer_secret')
