@@ -5,6 +5,7 @@ import sys
 import tempfile
 import re
 from pathlib import Path
+import functools
 # library
 import requests
 
@@ -28,16 +29,17 @@ class download():
                     #logger.warning(text)
                     continue
                 yield text
-    def getSuffix(self, r, suffix='.html'):
+    @functools.lru_cache(maxsize=4)
+    def getSuffix(self, contentType, suffix='.html'):
         """
             ContentType -> suffix
-            text/html; charset=utf-8
-            image/png
+            in:text/html; charset=utf-8         out:.html
+            in:image/png                        out:.png
         """
-        m = self.comp.search(r.headers['content-type'])
+        m = self.comp.search(contentType)
         if not m is None:
             return '.' + m.group(1)
-        #logger.error(r.headers['content-type'])
+        logger.error(contentType)
         return suffix
     def request(self):
         """
@@ -55,14 +57,15 @@ class download():
             logger.info('download:{0}'.format(address))
             basename = os.path.basename(address)
             r = requests.get(address, headers=headers)
-            logger.info('content-type:{0},decode:{1}'.format(r.headers['content-type'], self.getSuffix(r)))
+            contentType = r.headers['content-type']
+            logger.info('content-type:{0},decode:{1}'.format(contentType, self.getSuffix(contentType)))
             
             with tempfile.NamedTemporaryFile(dir=self.data, delete=False) as temp:
                 temp.write(r.content)
                 temp_file_name = temp.name
                 if len(basename) == 0:
                     logger.warning('create_filename:{0}'.format(os.path.basename(temp.name)))
-                    basename = os.path.basename(temp_file_name) + self.getSuffix(r)
+                    basename = os.path.basename(temp_file_name) + self.getSuffix(contentType)
                 p = Path(self.data, basename)
                 i = 0;
                 basePath = p
