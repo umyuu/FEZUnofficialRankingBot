@@ -62,14 +62,14 @@ def main():
     parser = argparse.ArgumentParser(prog='hsvmask',
                                      description='HSV ColorMask Simulator')
     parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
-    parser.add_argument('--imagefile', '-image', default='../dat/Netzawar.png')
+    parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
     parser.add_argument('--delay', '-d', default='100')
     args = parser.parse_args()
     
     print('args:{0}'.format(args))
     delay_time = int(args.delay)
     with Window() as win:
-        win.createCanvas(cv2.imread(args.imagefile))
+        win.createCanvas(cv2.imread(args.image))
         while not win.isClosed:
             win.Draw()
             if ((cv2.waitKey(delay_time) & 0xFF) == 27):
