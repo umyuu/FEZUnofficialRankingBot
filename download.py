@@ -16,7 +16,7 @@ class download():
         self.user_agent = config['DOWNLOAD']['USER_AGENT'];
         self.file_list = config['DOWNLOAD']['FILE_LIST']
         self.file_list_encoding = config['DOWNLOAD']['FILE_LIST_ENCODING']
-        self.comp = re.compile(r'/(\w+);')
+        self.comp = re.compile(r'/(\w+);?')
     def requestList(self):
         """
             @yield URL
@@ -31,16 +31,18 @@ class download():
     def getSuffix(self, r, suffix='.html'):
         """
             ContentType -> suffix
+            text/html; charset=utf-8
+            image/png
         """
         m = self.comp.search(r.headers['content-type'])
         if not m is None:
             return '.' + m.group(1)
-        logger.error(r.headers['content-type'])
+        #logger.error(r.headers['content-type'])
         return suffix
     def request(self):
         """
            internet -- (Get) --> local
-           exists fileName
+           exsample)exists file
              exsample.png
              exsample(1).png
              exsample(2).png
@@ -53,11 +55,13 @@ class download():
             logger.info('download:{0}'.format(address))
             basename = os.path.basename(address)
             r = requests.get(address, headers=headers)
+            logger.info('content-type:{0},decode:{1}'.format(r.headers['content-type'], self.getSuffix(r)))
+            
             with tempfile.NamedTemporaryFile(dir=self.data, delete=False) as temp:
                 temp.write(r.content)
                 temp_file_name = temp.name
                 if len(basename) == 0:
-                    logger.warning('create_filename:{0}'.format(temp.name))
+                    logger.warning('create_filename:{0}'.format(os.path.basename(temp.name)))
                     basename = os.path.basename(temp_file_name) + self.getSuffix(r)
                 p = Path(self.data, basename)
                 i = 0;
