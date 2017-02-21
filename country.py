@@ -18,43 +18,71 @@ if __name__ == "__main__":
 
 class DataProcessor():
     def __init__(self, name):
-        self._name = name
+        self.__name = name
         self.color = None
+        self.hsv = None
+    @property
+    def name(self):
+        return self.__name
     def prepare(self):
         """
             @return color image
         """
-        self.color = self.__read(self._name)
-        if self.color is None:
-            return None
+        self.color = self.__read(self.name)
+        if self.color is not None:
+            self.hsv = cv2.cvtColor(self.color, cv2.COLOR_BGR2HSV)
+        else:
+            self.hsv = None        
         return self.color
-    def batch(self,ranking=1):
+    def batch(self,ranking=None):
         """
+            masking)
+                step1:white color
+                step2:country color
+                step3:fill min(500, height)
             @return binary image
         """
-        # 画像の白文字部分を抽出
-        white = self.__getWhiteMasking(self.color.copy())
+        white = self.__getWhiteMasking(self.hsv)
         binary = self.__binary_threshold(self.color)
-        # マスク
+        # white color
         binary = cv2.bitwise_and(binary, binary, mask=white)
+        #fez country color mask pattern
+        lower, upper = self.__netzawar()
+        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
+        lower, upper = self.__geburand()
+        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
+        lower, upper = self.__ielsord()
+        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
+        lower, upper = self.__casedria()
+        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
+        lower, upper = self.__hordine()
+        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
+                    
         # １位より下を黒色で塗りつぶしてマスク。
         height, width = self.color.shape[:2]
         cv2.rectangle(binary, (0, min(500, height)), (width,height), (0,0,0), -1)
         return binary
-    def __getWhiteMasking(self, img):
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    def __getWhiteMasking(self, hsv):
         sensitivity = 15
-        lower_white = np.array([0, 0, 255 - sensitivity])
-        upper_white = np.array([255, sensitivity, 255])
-        return cv2.inRange(hsv, lower_white, upper_white)
-    def __getRedMasking(self, img):
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        lower_Red = np.array([106, 47, 71])
-        upper_Red = np.array([106, 47, 71])
-        return cv2.inRange(hsv, lower_Red, upper_Red)
+        lower = np.array([0, 0, 255 - sensitivity])
+        upper = np.array([255, sensitivity, 255])
+        return self.__inRange(hsv, lower, upper)
+    def __netzawar(self):
+        return np.array([175, 55, 0]),np.array([255, 255, 255])
+    def __geburand(self):
+        return np.array([120, 0, 100]), np.array([150, 255, 255])
+    def __ielsord(self):
+        return np.array([79, 0, 0]), np.array([112, 255, 255])
+    def __casedria(self):
+        return np.array([53, 0, 0]), np.array([79, 255, 255])
+    def __hordine(self):
+        return np.array([24, 0, 249]), np.array([30, 255, 255])
+    def __inRange(self, hsv, lower, upper):
+        return cv2.inRange(hsv, lower, upper)
     def __binary_threshold(self, img):
         greyscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        thresh = cv2.adaptiveThreshold(greyscale, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
+        thresh = cv2.adaptiveThreshold(greyscale
+                    , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
             cv2.THRESH_BINARY, 11, 2)
         return thresh
     def __read(self, name, zoom=2):
@@ -99,7 +127,7 @@ class country():
         pro = DataProcessor(media)
         if pro.prepare() is None:
            return None
-        #cv2.imwrite('./binary_{0}.png'.format(os.path.basename(media)), pro.batch())
+        cv2.imwrite('./binary_{0}.png'.format(os.path.basename(media)), pro.batch())
         return self.detector.detectAndCompute(pro.batch(), None)
     def getCountry(self, src):
         """
@@ -109,10 +137,10 @@ class country():
         if pro.prepare() is None:
            logger.error('image error:{0}'.format(src))
            return None
-        binary = pro.batch()
+        binary = pro.batch(1)
         # imwrite#cvtColorで色情報が足りないとエラー
-        #cv2.imwrite('./b_color.png', pro.color)
-        #cv2.imwrite('./b_binary.png', binary)
+        cv2.imwrite('./b_color.png', pro.color)
+        cv2.imwrite('./b_binary.png', binary)
         d = self.__Detection(binary)
         logger.info(d)
         return d
@@ -127,8 +155,8 @@ def main():
     # benchMark
     for i in range(1):
         ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
-             './backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
-             './backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
+              './backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
+        #     './backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
              ]
         for l in ele:
             logger.info(l)

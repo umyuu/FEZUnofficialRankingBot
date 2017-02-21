@@ -79,7 +79,7 @@ class tweetbot():
             self.twitter_init()
             text = '{0}\n{1}\n一位:{2}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format, country_name)
             isTweet = False
-            isTweet = True
+            #isTweet = True
             if isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
