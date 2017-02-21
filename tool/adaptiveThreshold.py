@@ -6,7 +6,6 @@ class Window():
     def __init__(self, title='AdaptiveThreshold Simulator:stop esc key'):
         self.__title = title
         self.__canvas = None
-        self.__hsv = None
         self.__grayscale = None
         self.titles = [self.title, 'src image ' + self.title]
         for t in self.titles:
@@ -53,7 +52,7 @@ class Window():
         thresholdType = self.__thresholdType[cv2.getTrackbarPos(self.switch_two, self.title)]
         size = cv2.getTrackbarPos(self.blocksize, self.title)
         c = cv2.getTrackbarPos(self.c, self.title)
-        message = 'adaptiveMethod:{0}, thresholdType:{1}, blocksize:{2}, c:{3}'.format(
+        message = 'params adaptiveMethod:{0}, thresholdType:{1}, blocksize:{2}, c:{3}'.format(
                 adaptiveMethod, thresholdType, size, c)
         if message != self.__lastMessage:
            self.__lastMessage = message
@@ -61,11 +60,13 @@ class Window():
         # adaptiveThreshold params check
         if size % 2 == 0:
             return
-        if c > size:
-            print('c > size:{0},{1}'.format(c, size))
+        if (size * size - c) <= 0 or (size == 1 and c == 0):
             return
-        result = cv2.adaptiveThreshold(self.grayscale, 255, adaptiveMethod, thresholdType, size, c)
-        self.__updateCanvas(result)
+        try:
+            result = cv2.adaptiveThreshold(self.grayscale, 255, adaptiveMethod, thresholdType, size, c)
+            self.__updateCanvas(result)
+        except:
+            pass
     def __updateCanvas(self, result):
         cv2.imshow(self.title, result)
         cv2.waitKey(1) # main Window PostQuitMessage.
@@ -80,7 +81,7 @@ class Window():
 def main():
     parser = argparse.ArgumentParser(prog='adaptiveThreshold',
                                      description='AdaptiveThreshold Simulator')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.2')
     parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
     parser.add_argument('--delay', '-d', default='100')
     args = parser.parse_args()
