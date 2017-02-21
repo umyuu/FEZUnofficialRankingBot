@@ -3,9 +3,6 @@ import argparse
 import cv2
 import numpy as np
 
-def nothing(x):
-    pass
-
 class Window():
     def __init__(self, title='window:stop esc key'):
         self.__title = title
@@ -14,12 +11,14 @@ class Window():
         cv2.namedWindow(self.title, cv2.WINDOW_NORMAL)
         # createTrackbar params
         # trackbar_name,window_name,value,Maxvalue,on_changeCallBack
-        cv2.createTrackbar('l_h', self.title, 0, 255, nothing)
-        cv2.createTrackbar('l_s', self.title, 0, 255, nothing)
-        cv2.createTrackbar('l_v', self.title, 0, 255, nothing)
-        cv2.createTrackbar('u_h', self.title, 255, 255, nothing)
-        cv2.createTrackbar('u_s', self.title, 255, 255, nothing)
-        cv2.createTrackbar('u_v', self.title, 255, 255, nothing)
+        cv2.createTrackbar('lower_h', self.title, 0, 255, self.nothing)
+        cv2.createTrackbar('lower_s', self.title, 0, 255, self.nothing)
+        cv2.createTrackbar('lower_v', self.title, 0, 255, self.nothing)
+        cv2.createTrackbar('upper_h', self.title, 255, 255, self.nothing)
+        cv2.createTrackbar('upper_s', self.title, 255, 255, self.nothing)
+        cv2.createTrackbar('upper_v', self.title, 255, 255, self.nothing)
+    def nothing(self, x):
+        pass
     @property
     def title(self):
         return self.__title
@@ -36,9 +35,9 @@ class Window():
         assert src is not None
         self.__canvas = src.copy()
         self.__hsv = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2HSV)
-    def Draw(self):
-        lower_b = np.array(self.__pickColor(['l_h', 'l_s', 'l_v']))
-        upper_b = np.array(self.__pickColor(['u_h', 'u_s', 'u_v']))
+    def draw(self):
+        lower_b = np.array(self.__pickColor(['lower_h', 'lower_s', 'lower_v']))
+        upper_b = np.array(self.__pickColor(['upper_h', 'upper_s', 'upper_v']))
         mask = cv2.inRange(self.hsv, lower_b, upper_b)
         result = cv2.bitwise_and(self.canvas, self.canvas, mask = mask)
         self.__updateCanvas(result)
@@ -71,7 +70,7 @@ def main():
     with Window() as win:
         win.createCanvas(cv2.imread(args.image))
         while not win.isClosed:
-            win.Draw()
+            win.draw()
             if ((cv2.waitKey(delay_time) & 0xFF) == 27):
                 break
             
