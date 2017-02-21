@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 class Window():
-    def __init__(self, title='window:stop esc key'):
+    def __init__(self, title='HSV ColorMask Simulator:stop esc key'):
         self.__title = title
         self.__canvas = None
         self.__hsv = None
