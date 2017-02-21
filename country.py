@@ -80,8 +80,8 @@ class DataProcessor():
     def __inRange(self, hsv, lower, upper):
         return cv2.inRange(hsv, lower, upper)
     def __binary_threshold(self, img):
-        greyscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        thresh = cv2.adaptiveThreshold(greyscale
+        grayscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        thresh = cv2.adaptiveThreshold(grayscale
                     , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
             cv2.THRESH_BINARY, 11, 2)
         return thresh
