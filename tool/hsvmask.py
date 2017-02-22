@@ -16,8 +16,18 @@ class ImageData(object):
     @property
     def hsv(self):
         return self.__hsv
-    def change(self):
-        return self.__hsv
+    def bitwise_and(self, lower, upper):
+        mask = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
+        return cv2.bitwise_and(self.canvas, self.canvas, mask = mask)
+    def bitwise_or(self, lower, upper):
+        mask = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
+        return cv2.bitwise_or(self.canvas, self.canvas, mask = mask)
+    def bitwise_xor(self, lower, upper):
+        mask = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
+        return cv2.bitwise_xor(self.canvas, self.canvas, mask = mask)
+    def bitwise_not(self, lower, upper):
+        mask = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
+        return cv2.bitwise_not(self.canvas, self.canvas, mask = mask)
 class HSVcolor(object):
     __slots__ = ['h','s','v']
     def __init__(self, h=0, s=0, v=0):
@@ -25,9 +35,8 @@ class HSVcolor(object):
         self.s = s
         self.v = v
     def __str__(self):
-        res = ','.join([str(self.h), str(self.s), str(self.v)])
-        return res
-    def toarray_np(self):
+        return ','.join([str(self.h), str(self.s), str(self.v)])
+    def to_np(self):
         return np.array([self.h, self.s, self.v])
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -75,12 +84,6 @@ class Application(tk.Frame):
             @params names controlnames
         """
         return tk.Scale(root,h), tk.Scale(root,s), tk.Scale(root,v)
-    @property
-    def canvas(self):
-        return self.data.canvas
-    @property
-    def hsv(self):
-        return self.data.hsv
     def loadImage(self, src):
         self.data = ImageData(src)
         self.__changeImage(src)
@@ -92,8 +95,7 @@ class Application(tk.Frame):
         lower = HSVcolor(self.lower_h.get(), self.lower_s.get(), self.lower_v.get())
         upper = HSVcolor(self.upper_h.get(), self.upper_s.get(), self.upper_v.get())
         #print(lower, upper, sep=' | ')
-        mask = cv2.inRange(self.hsv, lower.toarray_np(), upper.toarray_np())
-        result = cv2.bitwise_and(self.canvas, self.canvas, mask = mask)
+        result = self.data.bitwise_and(lower, upper)
         self.__changeImage(result)
 
 def main():

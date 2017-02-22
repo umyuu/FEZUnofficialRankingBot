@@ -23,6 +23,7 @@ class DataProcessor(object):
         self.__name = name
         self.color = None
         self.hsv = None
+        # todo:static fileds
         self.__contryMask = {'netzawar':(HSVcolor(175, 55, 0), HSVcolor(255, 255, 255)),
                              'casedria':(HSVcolor(53, 0, 0), HSVcolor(79, 255, 255)),
                              'geburand':(HSVcolor(120, 0, 100), HSVcolor(150, 255, 255)), 
