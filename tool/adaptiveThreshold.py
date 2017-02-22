@@ -36,11 +36,13 @@ class Window():
         self.__grayscale = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2GRAY)
         # createTrackbar params
         # trackbar_name, window_name, value, Maxvalue, on_changeCallBack
-        self.switch_one = '0 : MEAN_C\n 1 : GAUSSIAN_C'
+        self.switch_one = '''MEAN
+GAUSS'''
         cv2.createTrackbar(self.switch_one, self.title, 1, 1, self.nothing)
-        self.switch_two = '0 : BINARY\n1 : BINARY_INV'
+        self.switch_two = '''BINARY
+INV'''
         cv2.createTrackbar(self.switch_two, self.title, 0, 1, self.nothing)
-        self.blocksize = 'blocksize'
+        self.blocksize = ' blocksize'
         cv2.createTrackbar(self.blocksize, self.title, 11, 255, self.nothing)
         self.c = 'c'
         cv2.createTrackbar(self.c, self.title, 2, 255, self.nothing) 
