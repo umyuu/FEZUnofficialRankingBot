@@ -54,8 +54,8 @@ class Application(tk.Frame):
         self.upper_v.set(255)
         self.upper_v.pack()
         
-        self.lmain = tk.Label(self)
-        self.lmain.grid(row=1, column=0, columnspan=2)
+        self.lblimage = tk.Label(self)
+        self.lblimage.grid(row=1, column=0, columnspan=2)
     @property
     def canvas(self):
         return self.data.canvas
@@ -67,8 +67,8 @@ class Application(tk.Frame):
         self.__changeImage(src)
     def __changeImage(self, src):
         imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
-        self.lmain.imgtk = imgtk
-        self.lmain.configure(image= imgtk) 
+        self.lblimage.imgtk = imgtk
+        self.lblimage.configure(image= imgtk) 
     def updateScaleValue(self, event):
         l_h = self.lower_h.get()
         l_s = self.lower_s.get()
@@ -84,9 +84,8 @@ class Application(tk.Frame):
 def main():
     parser = argparse.ArgumentParser(prog='hsvmask',
                                      description='HSV ColorMask Simulator')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.2')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.3')
     parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
-    parser.add_argument('--delay', '-d', default='100')
     args = parser.parse_args()
     print('args:{0}'.format(args))
     
