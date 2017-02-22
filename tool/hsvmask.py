@@ -19,6 +19,7 @@ class ImageData(object):
     def change(self):
         return self.__hsv
 class HSVcolor(object):
+    __slots__ = ['h','s','v']
     def __init__(self, h=0, s=0, v=0):
         self.h = h
         self.s = s
@@ -98,7 +99,7 @@ class Application(tk.Frame):
 def main():
     parser = argparse.ArgumentParser(prog='hsvmask',
                                      description='HSV ColorMask Simulator')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.3')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.4')
     parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
     args = parser.parse_args()
     print('args:{0}'.format(args))
