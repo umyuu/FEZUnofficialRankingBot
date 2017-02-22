@@ -83,6 +83,7 @@ class tweetbot():
             if isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
+                logger.info('tweet')
             logger.info(text)
         except Exception as ex:
             logger.exception(ex)
