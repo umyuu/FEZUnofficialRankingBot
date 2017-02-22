@@ -58,9 +58,15 @@ class Window():
            self.__lastMessage = message
            print(message)
         # adaptiveThreshold params check
-        if size % 2 == 0:
+        # blocksize range:Odd numbers{3,5,7,9,…} intial:3
+        #   in:0,0  out:NG blocksize of even.
+        #   in:1,0  out:NG initial stepvalue 3.
+        #   in:2,0  out:NG blocksize of even.
+        #   in:3,10　out:NG size * size - c < 0
+        #   in:5,25 out:OK
+        if size % 2 == 0 or size == 1:
             return
-        if (size * size - c) <= 0 or (size == 1 and c == 0):
+        if (size * size - c) < 0:
             return
         try:
             result = cv2.adaptiveThreshold(self.grayscale, 255, adaptiveMethod, thresholdType, size, c)
