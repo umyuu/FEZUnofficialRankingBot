@@ -8,7 +8,9 @@ from collections import OrderedDict
 import functools
 # library
 import cv2
-import numpy as np
+# Myapp library
+from hsvcolor import HSVcolor
+
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
     handler = StreamHandler()
@@ -16,27 +18,16 @@ if __name__ == "__main__":
     logger.setLevel(DEBUG)
     logger.addHandler(handler)
 
-class HSVcolor(object):
-    def __init__(self, h=0, s=0, v=0):
-        self.h = h
-        self.s = s
-        self.v = v
-    def __str__(self):
-        res = ','.join([str(self.h), str(self.s), str(self.v)])
-        return res
-    def to_np(self):
-        return np.array([self.h, self.s, self.v])
-class DataProcessor():
-    
+class DataProcessor(object):
     def __init__(self, name):
         self.__name = name
         self.color = None
         self.hsv = None
-        self.__contryMask = {'netzawar':(np.array([175, 55, 0]),np.array([255, 255, 255])),
-                             'casedria':(np.array([53, 0, 0]), np.array([79, 255, 255])),
-                             'geburand':(np.array([120, 0, 100]), np.array([150, 255, 255])), 
-                             'hordine':(np.array([24, 0, 249]), np.array([30, 255, 255])),
-                             'ielsord':(np.array([79, 0, 0]), np.array([112, 255, 255]))}
+        self.__contryMask = {'netzawar':(HSVcolor(175, 55, 0), HSVcolor(255, 255, 255)),
+                             'casedria':(HSVcolor(53, 0, 0), HSVcolor(79, 255, 255)),
+                             'geburand':(HSVcolor(120, 0, 100), HSVcolor(150, 255, 255)), 
+                             'hordine':(HSVcolor(24, 0, 249), HSVcolor(30, 255, 255)),
+                             'ielsord':(HSVcolor(79, 0, 0), HSVcolor(112, 255, 255))}
     @property
     def name(self):
         return self.__name
@@ -81,11 +72,13 @@ class DataProcessor():
         return binary
     def __getWhiteMasking(self, hsv):
         sensitivity = 15
-        lower = HSVcolor(0, 0, 255 - sensitivity).to_np()
-        upper = HSVcolor(255, sensitivity, 255).to_np()
+        lower = HSVcolor(0, 0, 255 - sensitivity)
+        upper = HSVcolor(255, sensitivity, 255)
         return self.__inRange(hsv, lower, upper)
     def __inRange(self, hsv, lower, upper):
-        return cv2.inRange(hsv, lower, upper)
+        lower_np = lower.to_np()
+        upper_np = upper.to_np()
+        return cv2.inRange(hsv, lower_np, upper_np)
     def __binary_threshold(self, img):
         grayscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         thresh = cv2.adaptiveThreshold(grayscale
@@ -98,7 +91,7 @@ class DataProcessor():
             return None
         # note:cv2.resize remove must #batch change
         return cv2.resize(color, (color.shape[1]*zoom, color.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
-class country():
+class country(object):
     def __init__(self, config):
         self.hints = config['WORK_FOLDER']['HINTS']
         d = dict()
@@ -149,6 +142,7 @@ class country():
         cv2.imwrite('./base_binary.png', binary)
         d = self.__Detection(binary)
         logger.info(d)
+        
         return d
     def getName(self, n):
         return self.names[n]
