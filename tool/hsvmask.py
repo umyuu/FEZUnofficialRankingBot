@@ -16,6 +16,18 @@ class ImageData(object):
     @property
     def hsv(self):
         return self.__hsv
+    def change(self):
+        return self.__hsv
+class HSVcolor(object):
+    def __init__(self, h=0, s=0, v=0):
+        self.h = h
+        self.s = s
+        self.v = v
+    def __str__(self):
+        res = ','.join([str(self.h), str(self.s), str(self.v)])
+        return res
+    def toarray_np(self):
+        return np.array([self.h, self.s, self.v])
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -44,6 +56,7 @@ class Application(tk.Frame):
         
         self.upperframe = tk.LabelFrame(self, text='upper')
         self.upperframe.grid(row=0, column=1)
+                
         self.upper_h = tk.Scale(self.upperframe, controls['upper_h'])
         self.upper_h.set(255)
         self.upper_h.pack()
@@ -53,9 +66,14 @@ class Application(tk.Frame):
         self.upper_v = tk.Scale(self.upperframe, controls['upper_v'])
         self.upper_v.set(255)
         self.upper_v.pack()
-        
+
         self.lblimage = tk.Label(self)
         self.lblimage.grid(row=1, column=0, columnspan=2)
+    def __createHSV(self, root, h, s, v):
+        """
+            @params names controlnames
+        """
+        return tk.Scale(root,h), tk.Scale(root,s), tk.Scale(root,v)
     @property
     def canvas(self):
         return self.data.canvas
@@ -70,14 +88,10 @@ class Application(tk.Frame):
         self.lblimage.imgtk = imgtk
         self.lblimage.configure(image= imgtk) 
     def updateScaleValue(self, event):
-        l_h = self.lower_h.get()
-        l_s = self.lower_s.get()
-        l_v = self.lower_v.get()
-        u_h = self.upper_h.get()
-        u_s = self.upper_s.get()
-        u_v = self.upper_v.get()
-        #print(l_h, l_s, l_v, u_h, u_s, u_v,sep=',')
-        mask = cv2.inRange(self.hsv, np.array([l_h, l_s, l_v]), np.array([u_h, u_s, u_v]))
+        lower = HSVcolor(self.lower_h.get(), self.lower_s.get(), self.lower_v.get())
+        upper = HSVcolor(self.upper_h.get(), self.upper_s.get(), self.upper_v.get())
+        #print(lower, upper, sep=' | ')
+        mask = cv2.inRange(self.hsv, lower.toarray_np(), upper.toarray_np())
         result = cv2.bitwise_and(self.canvas, self.canvas, mask = mask)
         self.__changeImage(result)
 
