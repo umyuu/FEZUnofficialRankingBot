@@ -35,7 +35,12 @@ class DataProcessor(object):
         """
             @return color image
         """
-        self.color = self.__read(self.name)
+        zoom = 2
+        c = cv2.imread(self.name)
+        if c is None:
+            logger.info("notfound:{0}".format(self.name))
+            return c
+        self.color = cv2.resize(c, (c.shape[1]*zoom, c.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
         if self.color is not None:
             self.hsv = cv2.cvtColor(self.color, cv2.COLOR_BGR2HSV)
         else:
@@ -76,21 +81,12 @@ class DataProcessor(object):
         upper = HSVcolor(255, sensitivity, 255)
         return self.__inRange(hsv, lower, upper)
     def __inRange(self, hsv, lower, upper):
-        lower_np = lower.to_np()
-        upper_np = upper.to_np()
-        return cv2.inRange(hsv, lower_np, upper_np)
+        return cv2.inRange(hsv, lower.to_np(), upper.to_np())
     def __binary_threshold(self, img):
         grayscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         thresh = cv2.adaptiveThreshold(grayscale
                     , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
         return thresh
-    def __read(self, name, zoom=2):
-        color = cv2.imread(name)
-        if color is None:
-            logger.info("notfound:{0}".format(name))
-            return None
-        # note:cv2.resize remove must #batch change
-        return cv2.resize(color, (color.shape[1]*zoom, color.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
 class country(object):
     def __init__(self, config):
         self.hints = config['WORK_FOLDER']['HINTS']
