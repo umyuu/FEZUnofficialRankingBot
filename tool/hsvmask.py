@@ -84,14 +84,14 @@ class Application(tk.Frame):
 def main():
     parser = argparse.ArgumentParser(prog='hsvmask',
                                      description='HSV ColorMask Simulator')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.2')
     parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
     parser.add_argument('--delay', '-d', default='100')
     args = parser.parse_args()
     print('args:{0}'.format(args))
     
     app = Application()
-    app.master.title('Sample application')
+    app.master.title('HSV ColorMask Simulator')
     app.loadImage(cv2.imread(args.image))
     app.pack()
     app.mainloop()
