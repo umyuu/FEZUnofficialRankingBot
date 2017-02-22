@@ -1,61 +1,85 @@
 import argparse
+import tkinter as tk
 # library
 import cv2
 import numpy as np
+from PIL import Image, ImageTk
 
-class Window():
-    def __init__(self, title='HSV ColorMask Simulator:stop esc key'):
-        self.__title = title
-        self.__canvas = None
-        self.__hsv = None
-        cv2.namedWindow(self.title, cv2.WINDOW_NORMAL)
-        # createTrackbar params
-        # trackbar_name,window_name,value,Maxvalue,on_changeCallBack
-        cv2.createTrackbar('lower_h', self.title, 0, 255, self.nothing)
-        cv2.createTrackbar('lower_s', self.title, 0, 255, self.nothing)
-        cv2.createTrackbar('lower_v', self.title, 0, 255, self.nothing)
-        cv2.createTrackbar('upper_h', self.title, 255, 255, self.nothing)
-        cv2.createTrackbar('upper_s', self.title, 255, 255, self.nothing)
-        cv2.createTrackbar('upper_v', self.title, 255, 255, self.nothing)
-    def nothing(self, x):
-        pass
-    @property
-    def title(self):
-        return self.__title
+class ImageData(object):
+    def __init__(self, src):
+        assert src is not None
+        self.__canvas = src.copy()
+        self.__hsv = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2HSV)
     @property
     def canvas(self):
         return self.__canvas
     @property
     def hsv(self):
         return self.__hsv
+class Application(tk.Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.data = None
+        self.createWidgets()
+    def createWidgets(self):
+        controls = dict()
+        # lower
+        controls['lower_h'] = {'label':'Hue','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.updateScaleValue}
+        controls['lower_s'] = {'label':'Saturation','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.updateScaleValue}
+        controls['lower_v'] = {'label':'Value','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.updateScaleValue}
+        # upper
+        controls['upper_h'] = {'label':'Hue','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.updateScaleValue}
+        controls['upper_s'] = {'label':'Saturation','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.updateScaleValue}
+        controls['upper_v'] = {'label':'Value','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.updateScaleValue}
+        
+        #print(controls)
+        self.lowerframe = tk.LabelFrame(self, text='lower')
+        self.lowerframe.grid(row=0, column=0)
+        self.lower_h = tk.Scale(self.lowerframe, controls['lower_h'])
+        self.lower_h.pack()
+        self.lower_s = tk.Scale(self.lowerframe, controls['lower_s'])
+        self.lower_s.pack()
+        self.lower_v = tk.Scale(self.lowerframe, controls['lower_v'])
+        self.lower_v.pack()
+        
+        self.upperframe = tk.LabelFrame(self, text='upper')
+        self.upperframe.grid(row=0, column=1)
+        self.upper_h = tk.Scale(self.upperframe, controls['upper_h'])
+        self.upper_h.set(255)
+        self.upper_h.pack()
+        self.upper_s = tk.Scale(self.upperframe, controls['upper_s'])
+        self.upper_s.set(255)
+        self.upper_s.pack()
+        self.upper_v = tk.Scale(self.upperframe, controls['upper_v'])
+        self.upper_v.set(255)
+        self.upper_v.pack()
+        
+        self.lmain = tk.Label(self)
+        self.lmain.grid(row=1, column=0, columnspan=2)
     @property
-    def isClosed(self):
-        return cv2.getWindowProperty(self.title, 0) < 0
-    def createCanvas(self, src):
-        assert src is not None
-        self.__canvas = src.copy()
-        self.__hsv = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2HSV)
-    def draw(self):
-        lower_b = np.array(self.__pickColor(['lower_h', 'lower_s', 'lower_v']))
-        upper_b = np.array(self.__pickColor(['upper_h', 'upper_s', 'upper_v']))
-        mask = cv2.inRange(self.hsv, lower_b, upper_b)
+    def canvas(self):
+        return self.data.canvas
+    @property
+    def hsv(self):
+        return self.data.hsv
+    def loadImage(self, src):
+        self.data = ImageData(src)
+        self.__changeImage(src)
+    def __changeImage(self, src):
+        imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
+        self.lmain.imgtk = imgtk
+        self.lmain.configure(image= imgtk) 
+    def updateScaleValue(self, event):
+        l_h = self.lower_h.get()
+        l_s = self.lower_s.get()
+        l_v = self.lower_v.get()
+        u_h = self.upper_h.get()
+        u_s = self.upper_s.get()
+        u_v = self.upper_v.get()
+        #print(l_h, l_s, l_v, u_h, u_s, u_v,sep=',')
+        mask = cv2.inRange(self.hsv, np.array([l_h, l_s, l_v]), np.array([u_h, u_s, u_v]))
         result = cv2.bitwise_and(self.canvas, self.canvas, mask = mask)
-        self.__updateCanvas(result)
-    def __pickColor(self, colors):
-        assert colors is not None
-        h = cv2.getTrackbarPos(colors[0], self.title)
-        s = cv2.getTrackbarPos(colors[1], self.title)
-        v = cv2.getTrackbarPos(colors[2], self.title)
-        return [h,s,v]
-    def __updateCanvas(self, result):
-        cv2.imshow(self.title, result)
-        cv2.waitKey(1) # main Window PostQuitMessage.
-    def __enter__(self):
-        return self
-    def __exit__(self, exception_type, exception_value	, traceback):
-        cv2.destroyWindow(self.title)
-        del self.__hsv
-        del self.__canvas
+        self.__changeImage(result)
 
 def main():
     parser = argparse.ArgumentParser(prog='hsvmask',
@@ -64,15 +88,13 @@ def main():
     parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
     parser.add_argument('--delay', '-d', default='100')
     args = parser.parse_args()
-    
     print('args:{0}'.format(args))
-    delay_time = int(args.delay)
-    with Window() as win:
-        win.createCanvas(cv2.imread(args.image))
-        while not win.isClosed:
-            win.draw()
-            if ((cv2.waitKey(delay_time) & 0xFF) == 27):
-                break
+    
+    app = Application()
+    app.master.title('Sample application')
+    app.loadImage(cv2.imread(args.image))
+    app.pack()
+    app.mainloop()
             
 if __name__ == "__main__":
     main()
