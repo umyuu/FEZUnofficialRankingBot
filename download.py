@@ -11,7 +11,7 @@ import requests
 
 logger = getLogger('myapp.tweetbot')
 
-class download():
+class download(object):
     def __init__(self, config):
         self.data = config['WORK_FOLDER']['UPLOAD']
         self.user_agent = config['DOWNLOAD']['USER_AGENT'];

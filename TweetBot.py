@@ -21,7 +21,7 @@ handler.setLevel(DEBUG)
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
-class tweetbot():
+class tweetbot(object):
     def __init__(self, args):
         self.args = args;
         self.api = None;
