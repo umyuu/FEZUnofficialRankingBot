@@ -14,9 +14,10 @@ class Classifier(object):
         self.bf = cv2.BFMatcher(cv2.NORM_HAMMING)
     def fit(self, features):
         self.features = features
-    def predict(self, descriptors):
+    def predict(self, descriptors, top_n=None):
         """
             @params descriptors image descriptors
+                    top_n　　　　　　top n
             @return keys        basename
                     value       sum(distance)
                     order by    value
@@ -30,5 +31,6 @@ class Classifier(object):
                 d[basename] = sum(dist) / len(dist)
             except cv2.error:
                 d[basename] = sys.maxsize
-
-        return OrderedDict(sorted(d.items(), key=lambda x: x[1]))
+        
+        sort = sorted(d.items(), key=lambda x: x[1])[:top_n]
+        return OrderedDict(sort)

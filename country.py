@@ -60,21 +60,19 @@ class DataProcessor(object):
         # white color
         binary = cv2.bitwise_and(binary, binary, mask=white)
         #fez country color mask pattern
-        lower, upper = self.__contryMask['netzawar']
-        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
-        lower, upper = self.__contryMask['geburand']
-        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
-        lower, upper = self.__contryMask['ielsord']
-        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
-        lower, upper = self.__contryMask['casedria']
-        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
-        lower, upper = self.__contryMask['hordine']
-        binary = cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
+        binary = self.bitwise_not(binary, self.__contryMask['netzawar'])
+        binary = self.bitwise_not(binary, self.__contryMask['geburand'])
+        binary = self.bitwise_not(binary, self.__contryMask['ielsord'])
+        binary = self.bitwise_not(binary, self.__contryMask['casedria'])
+        binary = self.bitwise_not(binary, self.__contryMask['hordine'])
         
         # １位より下を黒色で塗りつぶしてマスク。
         height, width = self.color.shape[:2]
         cv2.rectangle(binary, (0, min(500, height)), (width,height), (0,0,0), -1)
         return binary
+    def bitwise_not(self, binary, mask_range):
+        lower, upper = mask_range
+        return cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
     def __getWhiteMasking(self, hsv):
         sensitivity = 15
         lower = HSVcolor(0, 0, 255 - sensitivity)
@@ -127,7 +125,8 @@ class country(object):
             return
         d = self.classifier.predict(descriptors)
         logger.info(d)
-        
+        d2 = self.classifier.predict(descriptors, top_n=2)
+        logger.info(d2)
         return d
     def getName(self, n):
         return self.names[n]
