@@ -2,14 +2,13 @@
 from logging import getLogger, StreamHandler, DEBUG
 import configparser
 import os
-import sys
 import glob
-from collections import OrderedDict
 import functools
 # library
 import cv2
 # Myapp library
 from hsvcolor import HSVcolor
+from classifier import Classifier
 
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
@@ -17,40 +16,7 @@ if __name__ == "__main__":
     handler.setLevel(DEBUG)
     logger.setLevel(DEBUG)
     logger.addHandler(handler)
-class Classifier(object):
-    def __init__(self, config):
-        self.hints = config['WORK_FOLDER']['HINTS']
-        self.bf = cv2.BFMatcher(cv2.NORM_HAMMING)
-        self.detector = cv2.AKAZE_create()
-        pass
-    #def fit(self, features, labels):
-    #    return None
-    def predict(self, first):
-        """
-            @return keys        basename
-                    value       sum(distance)
-                    order by    value
-        """
-        (kp_first, des_first) = self.detector.detectAndCompute(first, None)
-        d = dict()
-        for media in glob.iglob(os.path.join(self.hints, "*.png")):
-            basename = os.path.basename(media)
-            try:
-                (kp_second, des_second) = self.__cachedetect(media)
-                dist = [m.distance for m in self.bf.match(des_first, des_second)]
-                #dist = [m.distance for m in self.bf.knnMatch(des_first, des_second, 3)]
-                d[basename] = sum(dist) / len(dist)
-            except cv2.error:
-                d[basename] = sys.maxsize
 
-        return OrderedDict(sorted(d.items(), key=lambda x: x[1]))
-    @functools.lru_cache(maxsize=8)
-    def __cachedetect(self, media):
-        pro = DataProcessor(media)
-        if pro.prepare() is None:
-           return None
-        cv2.imwrite('./binary_{0}'.format(os.path.basename(media)), pro.batch())
-        return self.detector.detectAndCompute(pro.batch(), None)
 class DataProcessor(object):
     def __init__(self, name):
         self.__name = name
@@ -130,28 +96,14 @@ class country(object):
            c = ele.split(":")
            d[c[0]] = c[1]
         self.names = d
-        self.bf = cv2.BFMatcher(cv2.NORM_HAMMING)
         self.detector = cv2.AKAZE_create()
-        self.classifier = Classifier(config)
-    def __Detection(self, first):
-        """
-            @return keys        basename
-                    value       sum(distance)
-                    order by    value
-        """
-        (kp_first, des_first) = self.detector.detectAndCompute(first, None)
-        d = dict()
+        self.classifier = Classifier()
+        # loading descriptors image
+        features = dict()
         for media in glob.iglob(os.path.join(self.hints, "*.png")):
-            basename = os.path.basename(media)
-            try:
-                (kp_second, des_second) = self.__cachedetect(media)
-                dist = [m.distance for m in self.bf.match(des_first, des_second)]
-                #dist = [m.distance for m in self.bf.knnMatch(des_first, des_second, 3)]
-                d[basename] = sum(dist) / len(dist)
-            except cv2.error:
-                d[basename] = sys.maxsize
-
-        return OrderedDict(sorted(d.items(), key=lambda x: x[1]))
+            (keypoints, descriptors) = self.__cachedetect(media)
+            features[media] = descriptors
+        self.classifier.fit(features)
     @functools.lru_cache(maxsize=8)
     def __cachedetect(self, media):
         pro = DataProcessor(media)
@@ -171,13 +123,8 @@ class country(object):
         # imwrite#cvtColorで色情報が足りないとエラー
         cv2.imwrite('./base_color.png', pro.color)
         cv2.imwrite('./base_binary.png', binary)
-        
-
-        
-        d1 = self.classifier.predict(binary)
-        
-        d = self.__Detection(binary)
-        logger.info(d1)
+        (keypoints, descriptors) = self.detector.detectAndCompute(binary, None)
+        d = self.classifier.predict(descriptors)
         logger.info(d)
         
         return d
