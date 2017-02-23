@@ -35,8 +35,9 @@ class DataProcessor(object):
         """
             @return color image
         """
+        filename = self.name
         zoom = 2
-        c = cv2.imread(self.name)
+        c = cv2.imread(filename)
         if c is None:
             logger.info("notfound:{0}".format(self.name))
             return c
@@ -44,7 +45,7 @@ class DataProcessor(object):
         if self.color is not None:
             self.hsv = cv2.cvtColor(self.color, cv2.COLOR_BGR2HSV)
         else:
-            self.hsv = None        
+            self.hsv = None
         return self.color
     def batch(self,ranking=None):
         """
@@ -108,7 +109,6 @@ class country(object):
         labels = []
         i = 0
         for media in glob.iglob(os.path.join(path, "*.png")):
-            print(media)
             (keypoints, descriptors) = self.__cachedetect(media)
             features[i] = descriptors
             labels.append(os.path.basename(media))
@@ -121,7 +121,7 @@ class country(object):
         pro = DataProcessor(media)
         if pro.prepare() is None:
             logger.error('image error:{0}'.format(media))
-            return None
+            return None, None
         batch = pro.batch(ranking)
         # imwrite#cvtColorで色情報が足りないとエラー
         if ranking == 1:
@@ -158,7 +158,7 @@ def main():
     # benchMark
     for i in range(1):
         ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
-        #     './backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
+        #    './backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
         #     './backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
              ]
         for l in ele:

@@ -36,7 +36,8 @@ class Classifier(object):
                 #dist = [m.distance for m in self.bf.knnMatch(descriptors, self.features[k], 3)]
                 d[label] = sum(dist) / len(dist)
             except cv2.error:
-                d[label] = sys.maxsize
+                #d[label] = sys.maxsize
+                d[label] = sys.minsize 
         
         sort = sorted(d.items(), key=lambda x: x[1])[:top_n]
         return OrderedDict(sort)
