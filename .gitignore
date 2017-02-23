@@ -1,14 +1,8 @@
 *.bat
 *.txt
 *.lnk
+*.png
 backup
 __pycache__
 !requirements.txt
 !.gitignore
-base_color.png
-base_binary.png
-binary_Geburand.png
-binary_Hordine.png
-binary_Ielsord.png
-binary_Netzawar.png
-binary_Casedria.png

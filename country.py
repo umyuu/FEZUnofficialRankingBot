@@ -96,14 +96,26 @@ class country(object):
         self.names = d
         self.detector = cv2.AKAZE_create()
         self.classifier = Classifier()
-        # loading descriptors image and label
+        self.numberclassifier = Classifier()
+        self.__load(self.classifier, self.hints)
+        self.__load(self.numberclassifier, self.hints + 'number/')
+    def __load(self, classifier, path, opt=None):
+        """
+            loading descriptors image and label
+        """
+        assert path is not None
         features = dict()
-        labels = dict()
-        for media in glob.iglob(os.path.join(self.hints, "*.png")):
+        labels = []
+        i = 0
+        for media in glob.iglob(os.path.join(path, "*.png")):
+            print(media)
             (keypoints, descriptors) = self.__cachedetect(media)
-            features[media] = descriptors
-            labels[media] = os.path.basename(media)
-        self.classifier.fit(features, labels)
+            features[i] = descriptors
+            labels.append(os.path.basename(media))
+            i += 1
+        classifier.fit(features, labels)
+        logger.info('load classifier')
+        logger.info(labels)
     @functools.lru_cache(maxsize=8)
     def __cachedetect(self, media, ranking=None):
         pro = DataProcessor(media)
@@ -127,11 +139,12 @@ class country(object):
             return None
         d = self.classifier.predict(descriptors)
         logger.info(d)
-        d2 = self.classifier.predict(descriptors, top_n=1)
-        logger.info(d2)
+        #d2 = self.classifier.predict(descriptors, top_n=1)
+        #logger.info(d2)
+        d3 = self.numberclassifier.predict(descriptors, top_n=2)
+        logger.info(d3)
         return d
     def classify(features):
-        # do some logic
         label = ''
         return label
     def getName(self, n):
@@ -143,7 +156,7 @@ def main():
         config.read_file(f)
     c = country(config)
     # benchMark
-    for i in range(3):
+    for i in range(1):
         ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
         #     './backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
         #     './backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
