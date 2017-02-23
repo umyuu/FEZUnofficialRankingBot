@@ -34,7 +34,12 @@ class Classifier(object):
             try:
                 dist = [m.distance for m in self.bf.match(descriptors, self.features[k])]
                 #dist = [m.distance for m in self.bf.knnMatch(descriptors, self.features[k], 3)]
-                d[label] = sum(dist) / len(dist)
+                #d[label] = sum(dist) / len(dist)
+                l = len(dist)
+                if (l == 0):
+                    d[label] = sum(dist)
+                else:
+                    d[label] = sum(dist) / l
             except cv2.error:
                 #d[label] = sys.maxsize
                 d[label] = sys.minsize 

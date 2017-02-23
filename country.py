@@ -4,6 +4,7 @@ import configparser
 import os
 import glob
 import functools
+from enum import Enum, unique
 # library
 import cv2
 # Myapp library
@@ -16,10 +17,18 @@ if __name__ == "__main__":
     handler.setLevel(DEBUG)
     logger.setLevel(DEBUG)
     logger.addHandler(handler)
+@unique
+class ImageType(Enum):
+    RAW = 1
+    NUMBER = 2
+    HINTS = 4
+    HINT_RAW = RAW | HINTS
+    HINT_NUMBER = NUMBER | HINTS
 
 class DataProcessor(object):
-    def __init__(self, name):
+    def __init__(self, name, image_type):
         self.__name = name
+        self.image_type = image_type
         self.color = None
         self.hsv = None
         # todo:static fileds
@@ -41,13 +50,20 @@ class DataProcessor(object):
         if c is None:
             logger.info("notfound:{0}".format(self.name))
             return c
+        if (self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER):
+            """
+                number image size small.
+                keypoints to 0
+                image scall zooming
+            """
+            zoom = 10
         self.color = cv2.resize(c, (c.shape[1]*zoom, c.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
         if self.color is not None:
             self.hsv = cv2.cvtColor(self.color, cv2.COLOR_BGR2HSV)
         else:
             self.hsv = None
         return self.color
-    def batch(self,ranking=None):
+    def batch(self):
         """
             masking)
                 step1:white color
@@ -56,6 +72,8 @@ class DataProcessor(object):
                 step4:fill min(500, height)
             @return binary image
         """
+        if (self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER):
+            return self.color
         white = self.__getWhiteMasking(self.hsv)
         binary = self.__binary_threshold(self.color)
         # white color
@@ -98,9 +116,9 @@ class country(object):
         self.detector = cv2.AKAZE_create()
         self.classifier = Classifier()
         self.numberclassifier = Classifier()
-        self.__load(self.classifier, self.hints)
-        self.__load(self.numberclassifier, self.hints + 'number/')
-    def __load(self, classifier, path, opt=None):
+        self.__load(self.classifier, self.hints, ImageType.HINT_RAW)
+        self.__load(self.numberclassifier, self.hints + 'number/', ImageType.HINT_NUMBER)
+    def __load(self, classifier, path, image_type):
         """
             loading descriptors image and label
         """
@@ -109,7 +127,11 @@ class country(object):
         labels = []
         i = 0
         for media in glob.iglob(os.path.join(path, "*.png")):
-            (keypoints, descriptors) = self.__cachedetect(media)
+            (keypoints, descriptors) = self.__cachedetect(media, image_type)
+            if (image_type == ImageType.HINT_NUMBER):
+                #logger.info(keypoints)
+                pass
+                
             features[i] = descriptors
             labels.append(os.path.basename(media))
             i += 1
@@ -117,16 +139,19 @@ class country(object):
         logger.info('load classifier')
         logger.info(labels)
     @functools.lru_cache(maxsize=8)
-    def __cachedetect(self, media, ranking=None):
-        pro = DataProcessor(media)
+    def __cachedetect(self, media, image_type=None):
+        pro = DataProcessor(media, image_type)
         if pro.prepare() is None:
             logger.error('image error:{0}'.format(media))
             return None, None
-        batch = pro.batch(ranking)
-        # imwrite#cvtColorで色情報が足りないとエラー
-        if ranking == 1:
+        batch = pro.batch()
+        if image_type == ImageType.RAW:
             cv2.imwrite('./base_color.png', pro.color)
             cv2.imwrite('./base_binary.png', batch)
+        elif image_type == ImageType.NUMBER \
+                or image_type == ImageType.HINT_NUMBER  \
+                or image_type == ImageType.HINT_RAW:
+            pass
         else:
             cv2.imwrite('./binary_{0}'.format(os.path.basename(media)), batch)
         return self.detector.detectAndCompute(batch, None)
@@ -134,16 +159,21 @@ class country(object):
         """
             @return country list
         """
-        (keypoints, descriptors) = self.__cachedetect(src, 1)
+        (keypoints, descriptors) = self.__cachedetect(src, ImageType.RAW)
         if keypoints is None:
             return None
         d = self.classifier.predict(descriptors)
         logger.info(d)
         #d2 = self.classifier.predict(descriptors, top_n=1)
         #logger.info(d2)
-        d3 = self.numberclassifier.predict(descriptors, top_n=2)
-        logger.info(d3)
         return d
+    def getNumber(self, src):
+        (keypoints, descriptors) = self.__cachedetect(src, ImageType.NUMBER)
+        if keypoints is None:
+            return None
+        d3 = self.numberclassifier.predict(descriptors, top_n=100)
+        logger.info(d3)
+        return d3
     def classify(features):
         label = ''
         return label
@@ -156,18 +186,22 @@ def main():
         config.read_file(f)
     c = country(config)
     # benchMark
-    for i in range(1):
-        ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
+    ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
         #    './backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
         #     './backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
-             ]
-        for l in ele:
-            logger.info(l)
-            d = c.getCountry(l)
-            for k in d.keys():
-                country_name = c.getName(k)
-                logger.info(country_name)
-                break;
-        
+        ] * 2
+    for l in ele:
+        logger.info(l)
+        for k in c.getCountry(l).keys():
+            country_name = c.getName(k)
+            logger.info(country_name)
+            break;
+    ele = ['./dat/number/sample/1.png',
+           './dat/number/sample/1_1.png',
+          ] * 1
+    for l in ele:
+        logger.info(l)
+        d = c.getNumber(l)
+
 if __name__ == "__main__":
     main()
