@@ -29,6 +29,7 @@ class ImageData(object):
     def bitwise_not(self, lower, upper):
         mask = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
         return cv2.bitwise_not(self.canvas, self.canvas.copy(), mask = mask)
+    
 class HSVcolor(object):
     __slots__ = ['h','s','v']
     def __init__(self, h=0, s=0, v=0):
@@ -39,6 +40,7 @@ class HSVcolor(object):
         return ','.join([str(self.h), str(self.s), str(self.v)])
     def to_np(self):
         return np.array([self.h, self.s, self.v])
+    
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)

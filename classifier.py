@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import sys
 from collections import OrderedDict
 # library
@@ -12,25 +11,32 @@ class Classifier(object):
     """
     def __init__(self):
         self.bf = cv2.BFMatcher(cv2.NORM_HAMMING)
-    def fit(self, features):
+        self.features = None
+        self.labels = None
+    def fit(self, features, labels):
+        """
+            @params features descriptors[]
+                    labels target label[]
+        """
         self.features = features
+        self.labels = labels
     def predict(self, descriptors, top_n=None):
         """
             @params descriptors image descriptors
                     top_n　　　　　　top n
-            @return keys        basename
+            @return keys        label
                     value       sum(distance)
                     order by    value
         """
         d = dict()
         for k in self.features.keys():
-            basename = os.path.basename(k)
+            label = self.labels[k]
             try:
                 dist = [m.distance for m in self.bf.match(descriptors, self.features[k])]
                 #dist = [m.distance for m in self.bf.knnMatch(descriptors, self.features[k], 3)]
-                d[basename] = sum(dist) / len(dist)
+                d[label] = sum(dist) / len(dist)
             except cv2.error:
-                d[basename] = sys.maxsize
+                d[label] = sys.maxsize
         
         sort = sorted(d.items(), key=lambda x: x[1])[:top_n]
         return OrderedDict(sort)

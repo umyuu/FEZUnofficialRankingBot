@@ -96,12 +96,14 @@ class country(object):
         self.names = d
         self.detector = cv2.AKAZE_create()
         self.classifier = Classifier()
-        # loading descriptors image
+        # loading descriptors image and label
         features = dict()
+        labels = dict()
         for media in glob.iglob(os.path.join(self.hints, "*.png")):
             (keypoints, descriptors) = self.__cachedetect(media)
             features[media] = descriptors
-        self.classifier.fit(features)
+            labels[media] = os.path.basename(media)
+        self.classifier.fit(features, labels)
     @functools.lru_cache(maxsize=8)
     def __cachedetect(self, media, ranking=None):
         pro = DataProcessor(media)
@@ -122,12 +124,16 @@ class country(object):
         """
         (keypoints, descriptors) = self.__cachedetect(src, 1)
         if keypoints is None:
-            return
+            return None
         d = self.classifier.predict(descriptors)
         logger.info(d)
-        d2 = self.classifier.predict(descriptors, top_n=2)
+        d2 = self.classifier.predict(descriptors, top_n=1)
         logger.info(d2)
         return d
+    def classify(features):
+        # do some logic
+        label = ''
+        return label
     def getName(self, n):
         return self.names[n]
 
