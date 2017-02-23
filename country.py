@@ -105,25 +105,26 @@ class country(object):
             features[media] = descriptors
         self.classifier.fit(features)
     @functools.lru_cache(maxsize=8)
-    def __cachedetect(self, media):
+    def __cachedetect(self, media, ranking=None):
         pro = DataProcessor(media)
         if pro.prepare() is None:
-           return None
-        cv2.imwrite('./binary_{0}'.format(os.path.basename(media)), pro.batch())
-        return self.detector.detectAndCompute(pro.batch(), None)
+            logger.error('image error:{0}'.format(media))
+            return None
+        batch = pro.batch(ranking)
+        # imwrite#cvtColorで色情報が足りないとエラー
+        if ranking == 1:
+            cv2.imwrite('./base_color.png', pro.color)
+            cv2.imwrite('./base_binary.png', batch)
+        else:
+            cv2.imwrite('./binary_{0}'.format(os.path.basename(media)), batch)
+        return self.detector.detectAndCompute(batch, None)
     def getCountry(self, src):
         """
             @return country list
         """
-        pro = DataProcessor(src)
-        if pro.prepare() is None:
-           logger.error('image error:{0}'.format(src))
-           return None
-        binary = pro.batch(1)
-        # imwrite#cvtColorで色情報が足りないとエラー
-        cv2.imwrite('./base_color.png', pro.color)
-        cv2.imwrite('./base_binary.png', binary)
-        (keypoints, descriptors) = self.detector.detectAndCompute(binary, None)
+        (keypoints, descriptors) = self.__cachedetect(src, 1)
+        if keypoints is None:
+            return
         d = self.classifier.predict(descriptors)
         logger.info(d)
         
@@ -137,7 +138,7 @@ def main():
         config.read_file(f)
     c = country(config)
     # benchMark
-    for i in range(1):
+    for i in range(3):
         ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
         #     './backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
         #     './backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
