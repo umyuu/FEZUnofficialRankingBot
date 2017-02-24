@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import argparse
 # library
 import cv2
