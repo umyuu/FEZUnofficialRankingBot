@@ -5,8 +5,8 @@ import argparse
 import cv2
 
 class IImageFilter(object):
-    def __init__(self):
-        self.name = 'IImageFilter'
+    def __init__(self, name='IImageFilter'):
+        self.name = name
     def filtered(self, stream):
         """
             @params stream source stream
@@ -16,24 +16,22 @@ class IImageFilter(object):
 
 class GrayScaleFilter(IImageFilter):
     def __init__(self):
-        super().__init__()
-        self.name = 'GrayScaleFilter'
+        super().__init__('GrayScaleFilter')
     def filtered(self, stream):
         result = cv2.cvtColor(stream, cv2.COLOR_BGR2GRAY)
         return result
 
 class AdaptiveThresholdFilter(IImageFilter):
     def __init__(self):
-        super().__init__()
-        self.name = 'AdaptiveThresholdFilter'
+        super().__init__('AdaptiveThresholdFilter')
     def filtered(self, stream):
         result = cv2.adaptiveThreshold(stream
                     , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
         return result
+
 class CanvesFillFilter(IImageFilter):
     def __init__(self):
-        super().__init__()
-        self.name = 'CanvesFillFilter'
+        super().__init__('CanvesFillFilter')
     def filtered(self, stream):
         height, width = stream.shape[:2]
         cv2.rectangle(stream, (0, min(self.widthLimit, height)), (width,height), (0,0,0), -1)
