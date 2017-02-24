@@ -1,7 +1,7 @@
 # FEZ Unofficial Ranking Bot
 FEZ 非公式な国家総力戦ランキングTwitterボット
 
-## 依存ライブラリ(pip install -r requirements.txt)
+## Dependencies(pip install -r requirements.txt)
 - python 3.5+
 - python-twitter
 - opencv

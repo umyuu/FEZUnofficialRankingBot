@@ -2,9 +2,11 @@
 from logging import getLogger, StreamHandler, DEBUG
 import configparser
 import os
+import shutil
 import glob
 import functools
 from enum import Enum, unique
+from pathlib import Path
 # library
 import cv2
 # Myapp library
@@ -22,6 +24,7 @@ class ImageType(Enum):
     RAW = 1
     NUMBER = 2
     HINTS = 4
+    PLAN = 8
     HINT_RAW = RAW | HINTS
     HINT_NUMBER = NUMBER | HINTS
 
@@ -30,7 +33,7 @@ class DataProcessor(object):
         self.__name = name
         self.image_type = image_type
         self.color = None
-        self.hsv = None
+        self.__hsv = None
         # todo:static fileds
         self.__contryMask = {'netzawar':(HSVcolor(175, 55, 0), HSVcolor(255, 255, 255)),
                              'casedria':(HSVcolor(53, 0, 0), HSVcolor(79, 255, 255)),
@@ -40,6 +43,11 @@ class DataProcessor(object):
     @property
     def name(self):
         return self.__name
+    @property
+    def hsv(self):
+        if self.__hsv is None:
+            self.__hsv = cv2.cvtColor(self.color, cv2.COLOR_BGR2HSV)
+        return self.__hsv
     def prepare(self):
         """
             @return color image
@@ -58,10 +66,6 @@ class DataProcessor(object):
             """
             zoom = 10
         self.color = cv2.resize(c, (c.shape[1]*zoom, c.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
-        if self.color is not None:
-            self.hsv = cv2.cvtColor(self.color, cv2.COLOR_BGR2HSV)
-        else:
-            self.hsv = None
         return self.color
     def batch(self):
         """
@@ -78,13 +82,17 @@ class DataProcessor(object):
         binary = self.__binary_threshold(self.color)
         # white color
         binary = cv2.bitwise_and(binary, binary, mask=white)
+        if self.image_type == ImageType.PLAN:
+            height, width = self.color.shape[:2]
+            cv2.rectangle(binary, (0, 0), (min(1000, width),height), (0,0,0), -1)
+            print(self.color.shape[:2])
+            return binary
         #fez country color mask pattern
         binary = self.bitwise_not(binary, self.__contryMask['netzawar'])
         binary = self.bitwise_not(binary, self.__contryMask['geburand'])
         binary = self.bitwise_not(binary, self.__contryMask['ielsord'])
         binary = self.bitwise_not(binary, self.__contryMask['casedria'])
         binary = self.bitwise_not(binary, self.__contryMask['hordine'])
-        
         # １位より下を黒色で塗りつぶしてマスク。
         height, width = self.color.shape[:2]
         cv2.rectangle(binary, (0, min(500, height)), (width,height), (0,0,0), -1)
@@ -116,28 +124,33 @@ class country(object):
         self.detector = cv2.AKAZE_create()
         self.classifier = Classifier()
         self.numberclassifier = Classifier()
-        self.__load(self.classifier, self.hints, ImageType.HINT_RAW)
-        self.__load(self.numberclassifier, self.hints + 'number/', ImageType.HINT_NUMBER)
-    def __load(self, classifier, path, image_type):
+        self.__load(self.classifier, ImageType.HINT_RAW)
+        for i in range(10):
+            self.__load(self.numberclassifier, ImageType.HINT_NUMBER, i)
+        
+    
+    def __load(self, classifier, image_type, n=None):
         """
             loading descriptors image and label
         """
-        assert path is not None
-        features = dict()
+        loadPath = Path(self.hints)
+        if n is not None:
+            loadPath  = Path(self.hints, 'number', str(n))
+        features = []
         labels = []
-        i = 0
-        for media in glob.iglob(os.path.join(path, "*.png")):
+        for media in glob.iglob(os.path.join(str(loadPath), "*.png")):
             (keypoints, descriptors) = self.__cachedetect(media, image_type)
             if (image_type == ImageType.HINT_NUMBER):
                 #logger.info(keypoints)
                 pass
-                
-            features[i] = descriptors
-            labels.append(os.path.basename(media))
-            i += 1
+            features.append(descriptors)
+            if (image_type == ImageType.HINT_NUMBER):
+                labels.append(n)
+            else:
+                labels.append(os.path.basename(media))
         classifier.fit(features, labels)
         logger.info('load classifier')
-        logger.info(labels)
+        logger.info(classifier.labels)
     @functools.lru_cache(maxsize=8)
     def __cachedetect(self, media, image_type=None):
         pro = DataProcessor(media, image_type)
@@ -172,11 +185,75 @@ class country(object):
         if keypoints is None:
             return None
         d3 = self.numberclassifier.predict(descriptors, top_n=100)
-        logger.info(d3)
+        #logger.info(d3)
         return d3
     def classify(features):
         label = ''
         return label
+    def createNumberData(self, media):
+        """
+            fillter
+                1,頂点数が3未満
+                2,面積が50未満
+        """
+        pro = DataProcessor(media, ImageType.PLAN)
+        pro.prepare()
+        batch = pro.batch()
+        cv2.imwrite('./test/binary_color{0}'.format(os.path.basename(pro.name)), pro.color)
+        cv2.imwrite('./test/binary_{0}'.format(os.path.basename(pro.name)), batch)
+        image, contours, hierarchy = cv2.findContours(batch, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        rect=[]
+        for c in contours:
+            approx = cv2.approxPolyDP(c,1,True)
+            if len(approx) < 3:
+                continue
+            area = cv2.contourArea(approx)
+            if area < 50:
+                continue
+            
+            cv2.drawContours(pro.color, [c], -1, (0,255,0), 3)
+            rect.append(cv2.boundingRect(approx))
+                
+
+        rect = sorted(rect, key=lambda x:(x[1],x[0]))
+        self.saveClipImage(pro, rect)
+        return ''
+    def saveClipImage(self, pro, rect):
+        srcPath = Path(pro.name)
+        srcfilename = os.path.basename(srcPath.stem)
+        for i, value  in enumerate(rect):
+            x, y = value[0], value[1]
+            w, h = value[2], value[3]
+            p1 = (x, y)
+            p2 = (x+w, y+h)
+            #cv2.rectangle(pro.color, p1, p2, 255, 2)
+            roi = pro.color[y:y+h,x:x+w]
+            #image = cv2.resize(pro.color[y:y+h,x:x+w],(32,32))
+            image = roi
+            cv2.imwrite('./test/{0}_{1}_{2}{3}'.format(srcfilename, i, value, srcPath.suffix), image)
+    def classifyNumberImage(self):
+        basepath = './test/'
+        count = 0
+        for media in glob.iglob(os.path.join(basepath, "*.png")):
+            if  os.path.getsize(media) > 2048:
+                continue
+            count += 1
+            d = self.getNumber(media)
+            logger.info(d)
+            s = sum([v for m,v in d.items()])
+            if (s == 0):
+                logger.warning('keypoint NotFound:{0}'.format(media))
+                continue
+            for k in d.keys():
+                
+                prefix = str(k)
+                filename = os.path.join(basepath + prefix + '/', os.path.basename(media))
+                directory = os.path.dirname(filename)
+                if not os.path.exists(directory):
+                    os.mkdir(directory)
+                shutil.copy2(media, filename)
+                break
+        return None
     def getName(self, n):
         return self.names[n]
 
@@ -202,6 +279,13 @@ def main():
     for l in ele:
         logger.info(l)
         d = c.getNumber(l)
-
+    ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
+           './backup/201702161156_919c7be6531ffeb5cfeb1e6e701556d3.png',
+           './images/201702212104_4f1abbaf37872a27bec7f908a527f512.png',
+          ] * 1
+    for l in ele:
+        c.createNumberData(l)    
+    
+    c.classifyNumberImage()
 if __name__ == "__main__":
     main()

@@ -18,8 +18,12 @@ class Classifier(object):
             @params features descriptors[]
                     labels target label[]
         """
-        self.features = features
-        self.labels = labels
+        if (self.features is None):
+            self.features = features
+        self.features.extend(features)
+        if (self.labels is None):
+            self.labels = labels
+        self.labels.extend(labels)
     def predict(self, descriptors, top_n=None):
         """
             @params descriptors image descriptors
@@ -29,10 +33,10 @@ class Classifier(object):
                     order by    value
         """
         d = dict()
-        for k in self.features.keys():
-            label = self.labels[k]
+        for i, value in enumerate(self.features):
+            label = self.labels[i]
             try:
-                dist = [m.distance for m in self.bf.match(descriptors, self.features[k])]
+                dist = [m.distance for m in self.bf.match(descriptors, value)]
                 #dist = [m.distance for m in self.bf.knnMatch(descriptors, self.features[k], 3)]
                 #d[label] = sum(dist) / len(dist)
                 l = len(dist)
