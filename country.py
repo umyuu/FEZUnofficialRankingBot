@@ -9,8 +9,10 @@ from enum import Enum, unique
 from pathlib import Path
 # library
 import cv2
+import numpy as np
 # Myapp library
 from hsvcolor import HSVcolor
+from iimagefillter import GrayScaleFilter,AdaptiveThresholdFilter
 from classifier import Classifier
 
 logger = getLogger('myapp.tweetbot')
@@ -111,6 +113,7 @@ class DataProcessor(object):
         grayscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         thresh = cv2.adaptiveThreshold(grayscale
                     , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
+        
         return thresh
 class country(object):
     def __init__(self, config):
@@ -190,47 +193,6 @@ class country(object):
     def classify(features):
         label = ''
         return label
-    def createNumberData(self, media):
-        """
-            fillter
-                1,頂点数が3未満
-                2,面積が50未満
-        """
-        pro = DataProcessor(media, ImageType.PLAN)
-        pro.prepare()
-        batch = pro.batch()
-        cv2.imwrite('./test/binary_color{0}'.format(os.path.basename(pro.name)), pro.color)
-        cv2.imwrite('./test/binary_{0}'.format(os.path.basename(pro.name)), batch)
-        image, contours, hierarchy = cv2.findContours(batch, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        rect=[]
-        for c in contours:
-            approx = cv2.approxPolyDP(c,1,True)
-            if len(approx) < 3:
-                continue
-            area = cv2.contourArea(approx)
-            if area < 50:
-                continue
-            
-            cv2.drawContours(pro.color, [c], -1, (0,255,0), 3)
-            rect.append(cv2.boundingRect(approx))
-                
-
-        rect = sorted(rect, key=lambda x:(x[1],x[0]))
-        self.saveClipImage(pro, rect)
-        return ''
-    def saveClipImage(self, pro, rect):
-        srcPath = Path(pro.name)
-        srcfilename = os.path.basename(srcPath.stem)
-        for i, value  in enumerate(rect):
-            x, y = value[0], value[1]
-            w, h = value[2], value[3]
-            p1 = (x, y)
-            p2 = (x+w, y+h)
-            #cv2.rectangle(pro.color, p1, p2, 255, 2)
-            roi = pro.color[y:y+h,x:x+w]
-            #image = cv2.resize(pro.color[y:y+h,x:x+w],(32,32))
-            image = roi
-            cv2.imwrite('./test/{0}_{1}_{2}{3}'.format(srcfilename, i, value, srcPath.suffix), image)
     def classifyNumberImage(self):
         basepath = './test/'
         count = 0
@@ -257,6 +219,58 @@ class country(object):
     def getName(self, n):
         return self.names[n]
 
+class Clipping(object):
+    def __init__(self, media, target=None):
+        self.media = media
+        self.target = target
+        pro = DataProcessor(self.media, ImageType.PLAN)
+        pro.prepare()
+        self.binary = pro.batch()
+        self.color = pro.color
+        self.drawClipSource = True
+    def loadImage(self):
+        pass
+    def imagefilter(self):
+        pass
+    def getNumber(self):
+        """
+            fillter
+                1,頂点数が3未満
+                2,面積が50未満
+        """
+        cv2.imwrite('./test/binary_color{0}'.format(os.path.basename(self.media)), self.color)
+        cv2.imwrite('./test/binary_{0}'.format(os.path.basename(self.media)), self.binary)
+        image, contours, hierarchy = cv2.findContours(self.binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        rect = []
+        for c in contours:
+            approx = cv2.approxPolyDP(c,1,True)
+            if len(approx) < 3:
+                continue
+            area = cv2.contourArea(approx)
+            if area < 50:
+                continue
+            if self.drawClipSource:
+                cv2.drawContours(self.color, [c], -1, (0,255,0), 3)
+                pass
+            rect.append(cv2.boundingRect(approx))
+
+        rect = sorted(rect, key=lambda x:(x[1], x[0]))
+        self.splitImage(rect)
+        return ''
+    def splitImage(self, rect):
+        srcPath = Path(self.media)
+        srcfilename = os.path.basename(srcPath.stem)
+        for i, value  in enumerate(rect):
+            x, y = value[0], value[1]
+            w, h = value[2], value[3]
+            p1 = (x, y)
+            p2 = (x+w, y+h)
+            cv2.rectangle(self.color, p1, p2, (0,255,0), 2)
+            roi = self.color[y:y+h,x:x+w]
+            #roi = roi.shape[:2]
+            #image = cv2.resize(self.color[y:y+h,x:x+w],(32,32))
+            image = roi
+            cv2.imwrite('./test/{0}_{1}_{2}{3}'.format(srcfilename, i, value, srcPath.suffix), image)
 def main():
     config = configparser.ConfigParser()
     with open('./setting.ini', 'r', encoding='utf-8-sig') as f:
@@ -281,10 +295,11 @@ def main():
         d = c.getNumber(l)
     ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
            './backup/201702161156_919c7be6531ffeb5cfeb1e6e701556d3.png',
-           './images/201702212104_4f1abbaf37872a27bec7f908a527f512.png',
+           #'./images/201702212104_4f1abbaf37872a27bec7f908a527f512.png',
           ] * 1
     for l in ele:
-        c.createNumberData(l)    
+        clip = Clipping(l)
+        clip.getNumber()
     
     c.classifyNumberImage()
 if __name__ == "__main__":
