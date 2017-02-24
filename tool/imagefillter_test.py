@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
 import argparse
+from abc import ABCMeta, abstractmethod
 # library
 import cv2
 
-class IImageFilter(object):
+class IImageFilter(metaclass=ABCMeta):
     def __init__(self, name='IImageFilter'):
         self.name = name
+    @abstractmethod
     def filtered(self, stream):
+        pass
         """
             @params stream source stream
             @return filtered stream
         """
+        return stream
+class EmptyFilter(IImageFilter):
+    def __init__(self):
+        super().__init__('EmptyFilter')
+    def filtered(self, stream):
         return stream
 class GrayScaleFilter(IImageFilter):
     def __init__(self):
@@ -62,17 +70,17 @@ class ImageStream(object):
         pass
 
 def main():
-    parser = argparse.ArgumentParser(prog='hsvmask',
-                                     description='HSV ColorMask Simulator')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.4')
+    parser = argparse.ArgumentParser(prog='ImageFilter',
+                                     description='ImageFilter Simulator')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
     parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
     args = parser.parse_args()
     print('args:{0}'.format(args))
     
     stream = ImageStream()
+    stream.addFilter(EmptyFilter())
     stream.addFilter(GrayScaleFilter())
     stream.addFilter(AdaptiveThresholdFilter())
-    stream.addFilter(IImageFilter())
     
     # 
     canvs = CanvesFillFilter()

@@ -31,15 +31,13 @@ class ImageType(Enum):
     HINT_NUMBER = NUMBER | HINTS
 class BaseFilter(IImageFilter):
     def __init__(self):
-        super().__init__()
-        self.name = 'BaseFilter'
+        super().__init__('BaseFilter')
     def filtered(self, stream):
         result = stream
         return result
 class AppImageFilter(IImageFilter):
     def __init__(self):
-        super().__init__()
-        self.name = 'AppImageFilter'
+        super().__init__('AppImageFilter')
         self.__contryMask = {'netzawar':(HSVcolor(175, 55, 0), HSVcolor(255, 255, 255)),
                              'casedria':(HSVcolor(53, 0, 0), HSVcolor(79, 255, 255)),
                              'geburand':(HSVcolor(120, 0, 100), HSVcolor(150, 255, 255)), 
@@ -263,7 +261,7 @@ class Clipping(object):
             if area < 50:
                 continue
             if self.drawClipSource:
-                cv2.drawContours(self.color, [c], -1, (0,255,0), 3)
+                #cv2.drawContours(self.color, [c], -1, (0,255,0), 3)
                 pass
             rect.append(cv2.boundingRect(approx))
 
@@ -300,7 +298,7 @@ def main():
             country_name = c.getName(k)
             logger.info(country_name)
             break;
-    return
+    #return
     ele = ['./dat/number/sample/1.png',
            './dat/number/sample/1_1.png',
           ] * 1

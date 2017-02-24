@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 import argparse
-
+from abc import ABCMeta, abstractmethod
 # library
 import cv2
 
-class IImageFilter(object):
+class IImageFilter(metaclass=ABCMeta):
     def __init__(self, name='IImageFilter'):
         self.name = name
+    @abstractmethod
     def filtered(self, stream):
         """
             @params stream source stream
             @return filtered stream
         """
         return stream
-
+class EmptyFilter(IImageFilter):
+    def __init__(self):
+        super().__init__('EmptyFilter')
+    def filtered(self, stream):
+        return stream
 class GrayScaleFilter(IImageFilter):
     def __init__(self):
         super().__init__('GrayScaleFilter')
