@@ -40,7 +40,7 @@ class ImageStream(object):
     def __init__(self):
         self.filters = []
         self.data = None
-    def AddFilter(self, imagefilter):
+    def addFilter(self, imagefilter):
         self.filters.append(imagefilter)
         return self
     def removeFilter(self, imagefilter):
@@ -54,6 +54,7 @@ class ImageStream(object):
             self.data = f.filtered(self.data)
             assert self.data is not None, 'filtered result None'
             self.fire_onfiltered(f)
+        return self.data
     def fire_onfiltered(self, sender):
         """
             @params sender IImageFilter implemts class
@@ -72,14 +73,14 @@ def main():
     print('args:{0}'.format(args))
     
     stream = ImageStream()
-    stream.AddFilter(GrayScaleFilter())
-    stream.AddFilter(AdaptiveThresholdFilter())
-    stream.AddFilter(IImageFilter())
+    stream.addFilter(GrayScaleFilter())
+    stream.addFilter(AdaptiveThresholdFilter())
+    stream.addFilter(IImageFilter())
     
     # 
     canvs = CanvesFillFilter()
     canvs.widthLimit = 400
-    stream.AddFilter(canvs)
+    stream.addFilter(canvs)
  
     stream.data = cv2.imread(args.image)
     assert stream.data is not None

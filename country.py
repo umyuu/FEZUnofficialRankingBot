@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 # Myapp library
 from hsvcolor import HSVcolor
-from iimagefillter import GrayScaleFilter,AdaptiveThresholdFilter
+from iimagefillter import GrayScaleFilter, AdaptiveThresholdFilter, IImageFilter, ImageStream
 from classifier import Classifier
 
 logger = getLogger('myapp.tweetbot')
@@ -30,6 +30,41 @@ class ImageType(Enum):
     HINT_RAW = RAW | HINTS
     HINT_NUMBER = NUMBER | HINTS
 
+class AppImageFilter(IImageFilter):
+    def __init__(self):
+        super().__init__()
+        self.name = 'AppImageFilter'
+        self.__contryMask = {'netzawar':(HSVcolor(175, 55, 0), HSVcolor(255, 255, 255)),
+                             'casedria':(HSVcolor(53, 0, 0), HSVcolor(79, 255, 255)),
+                             'geburand':(HSVcolor(120, 0, 100), HSVcolor(150, 255, 255)), 
+                             'hordine':(HSVcolor(24, 0, 249), HSVcolor(30, 255, 255)),
+                             'ielsord':(HSVcolor(79, 0, 0), HSVcolor(112, 255, 255))}
+    def filtered(self, stream):
+        binary = stream
+        # white color
+        binary = cv2.bitwise_and(binary, binary, mask=self.white)
+        if self.image_type == ImageType.PLAN:
+            height, width = stream.shape[:2]
+            cv2.rectangle(binary, (0, 0), (min(1000, width),height), (0,0,0), -1)
+            print(stream.shape[:2])
+            return binary
+        
+        #fez country color mask pattern
+        binary = self.bitwise_not(binary, self.__contryMask['netzawar'])
+        binary = self.bitwise_not(binary, self.__contryMask['geburand'])
+        binary = self.bitwise_not(binary, self.__contryMask['ielsord'])
+        binary = self.bitwise_not(binary, self.__contryMask['casedria'])
+        binary = self.bitwise_not(binary, self.__contryMask['hordine'])
+        # １位より下を黒色で塗りつぶしてマスク。
+        height, width = stream.shape[:2]
+        cv2.rectangle(binary, (0, min(500, height)), (width,height), (0,0,0), -1)
+        logger.info('filtered')
+        return binary
+    def bitwise_not(self, binary, mask_range):
+        lower, upper = mask_range
+        return cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
+    def __inRange(self, hsv, lower, upper):
+        return cv2.inRange(hsv, lower.to_np(), upper.to_np())
 class DataProcessor(object):
     def __init__(self, name, image_type):
         self.__name = name
@@ -81,27 +116,16 @@ class DataProcessor(object):
         if (self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER):
             return self.color
         white = self.__getWhiteMasking(self.hsv)
-        binary = self.__binary_threshold(self.color)
-        # white color
-        binary = cv2.bitwise_and(binary, binary, mask=white)
-        if self.image_type == ImageType.PLAN:
-            height, width = self.color.shape[:2]
-            cv2.rectangle(binary, (0, 0), (min(1000, width),height), (0,0,0), -1)
-            print(self.color.shape[:2])
-            return binary
-        #fez country color mask pattern
-        binary = self.bitwise_not(binary, self.__contryMask['netzawar'])
-        binary = self.bitwise_not(binary, self.__contryMask['geburand'])
-        binary = self.bitwise_not(binary, self.__contryMask['ielsord'])
-        binary = self.bitwise_not(binary, self.__contryMask['casedria'])
-        binary = self.bitwise_not(binary, self.__contryMask['hordine'])
-        # １位より下を黒色で塗りつぶしてマスク。
-        height, width = self.color.shape[:2]
-        cv2.rectangle(binary, (0, min(500, height)), (width,height), (0,0,0), -1)
-        return binary
-    def bitwise_not(self, binary, mask_range):
-        lower, upper = mask_range
-        return cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
+        colorStream = ImageStream()
+        colorStream.data = self.color
+        colorStream.addFilter(GrayScaleFilter())
+        colorStream.addFilter(AdaptiveThresholdFilter())
+        appfilter = AppImageFilter()
+        appfilter.image_type = self.image_type
+        appfilter.white = white
+        appfilter.hsv = self.hsv
+        colorStream.addFilter(appfilter)
+        return colorStream.tofiltered()
     def __getWhiteMasking(self, hsv):
         sensitivity = 15
         lower = HSVcolor(0, 0, 255 - sensitivity)
@@ -109,12 +133,6 @@ class DataProcessor(object):
         return self.__inRange(hsv, lower, upper)
     def __inRange(self, hsv, lower, upper):
         return cv2.inRange(hsv, lower.to_np(), upper.to_np())
-    def __binary_threshold(self, img):
-        grayscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        thresh = cv2.adaptiveThreshold(grayscale
-                    , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
-        
-        return thresh
 class country(object):
     def __init__(self, config):
         self.hints = config['WORK_FOLDER']['HINTS']
@@ -287,6 +305,7 @@ def main():
             country_name = c.getName(k)
             logger.info(country_name)
             break;
+    return
     ele = ['./dat/number/sample/1.png',
            './dat/number/sample/1_1.png',
           ] * 1
