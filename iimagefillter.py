@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import argparse
 from abc import ABCMeta, abstractmethod
 # library
 import cv2
@@ -47,11 +46,17 @@ class ImageStream(object):
     def __init__(self):
         self.filters = []
         self.data = None
-    def addFilter(self, imagefilter):
-        self.filters.append(imagefilter)
+    def addFilter(self, f):
+        if not isinstance(f, IImageFilter):
+            assert False, 'non implements'
+        if not (f in self.filters):
+            self.filters.append(f)
         return self
-    def removeFilter(self, imagefilter):
-        assert False, 'non implements'
+    def removeFilter(self, f):
+        if not isinstance(f, IImageFilter):
+            assert False, 'non implements'
+        if f in self.filters:
+            self.filters.remove(f)
         return self
     def clearFilter(self):
         self.filters = []
@@ -67,34 +72,7 @@ class ImageStream(object):
         return self.data
     def fire_onfiltered(self, sender):
         """
+            filtered event
             @params sender IImageFilter implemts class
         """
         pass
-
-def main():
-    parser = argparse.ArgumentParser(prog='hsvmask',
-                                     description='HSV ColorMask Simulator')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.4')
-    parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
-    args = parser.parse_args()
-    print('args:{0}'.format(args))
-    
-    stream = ImageStream()
-    stream.addFilter(GrayScaleFilter())
-    stream.addFilter(AdaptiveThresholdFilter())
-    stream.addFilter(IImageFilter())
-    
-    # 
-    canvs = CanvesFillFilter()
-    canvs.widthLimit = 400
-    stream.addFilter(canvs)
- 
-    stream.data = cv2.imread(args.image)
-    assert stream.data is not None
-    cv2.imshow('image:', stream.data)
-    cv2.waitKey(3000)
-    # fillter処理
-    stream.tofiltered()
-
-if __name__ == "__main__":
-    main()

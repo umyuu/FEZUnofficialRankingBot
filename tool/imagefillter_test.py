@@ -9,7 +9,6 @@ class IImageFilter(metaclass=ABCMeta):
         self.name = name
     @abstractmethod
     def filtered(self, stream):
-        pass
         """
             @params stream source stream
             @return filtered stream
@@ -40,16 +39,25 @@ class CanvesFillFilter(IImageFilter):
         height, width = stream.shape[:2]
         cv2.rectangle(stream, (0, min(self.widthLimit, height)), (width,height), (0,0,0), -1)
         return stream
+class IregalClassFilter(object):
+    def __init__(self):
+        pass
 class ImageStream(object):
     __slots__ = ['filters','data']
     def __init__(self):
         self.filters = []
         self.data = None
-    def addFilter(self, imagefilter):
-        self.filters.append(imagefilter)
+    def addFilter(self, f):
+        if not isinstance(f, IImageFilter):
+            assert False, 'non implements'
+        if not (f in self.filters):
+            self.filters.append(f)
         return self
-    def removeFilter(self, imagefilter):
-        assert False, 'non implements'
+    def removeFilter(self, f):
+        if not isinstance(f, IImageFilter):
+            assert False, 'non implements'
+        if f in self.filters:
+            self.filters.remove(f)
         return self
     def clearFilter(self):
         self.filters = []
@@ -62,13 +70,21 @@ class ImageStream(object):
         return self.data
     def fire_onfiltered(self, sender):
         """
+            filtered event
             @params sender IImageFilter implemts class
         """
         print(sender.name + ':event')
         cv2.imshow('image:', self.data)
         cv2.waitKey(3000)
         pass
-
+def test_scenario1():
+    stream = ImageStream()
+    stream.addFilter(IregalClassFilter())
+def test_scenario2():
+    stream = ImageStream()
+    empty = EmptyFilter()
+    stream.addFilter(empty)
+    stream.addFilter(empty)
 def main():
     parser = argparse.ArgumentParser(prog='ImageFilter',
                                      description='ImageFilter Simulator')
@@ -81,7 +97,6 @@ def main():
     stream.addFilter(EmptyFilter())
     stream.addFilter(GrayScaleFilter())
     stream.addFilter(AdaptiveThresholdFilter())
-    
     # 
     canvs = CanvesFillFilter()
     canvs.widthLimit = 400
