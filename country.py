@@ -243,7 +243,7 @@ class Clipping(object):
         pass
     def imagefilter(self):
         pass
-    def getNumber(self):
+    def number(self):
         """
             fillter
                 1,頂点数が3未満
@@ -307,11 +307,13 @@ def main():
         d = c.getNumber(l)
     ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
            './backup/201702161156_919c7be6531ffeb5cfeb1e6e701556d3.png',
-           #'./images/201702212104_4f1abbaf37872a27bec7f908a527f512.png',
-          ] * 1
+           './images/201702212104_4f1abbaf37872a27bec7f908a527f512.png',
+           './backup/201702161344_b17e5061a7083b933531d75808f3de48.png',
+           './backup/201702161659_b17e5061a7083b933531d75808f3de48.png',
+          ] * 5
     for l in ele:
         clip = Clipping(l)
-        clip.getNumber()
+        clip.number()
     
     c.classifyNumberImage()
 if __name__ == "__main__":
