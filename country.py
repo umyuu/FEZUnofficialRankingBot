@@ -208,7 +208,7 @@ class country(object):
         basepath = './test/'
         count = 0
         for media in glob.iglob(os.path.join(basepath, "*.png")):
-            if  os.path.getsize(media) > 2048:
+            if os.path.getsize(media) > 2048:
                 continue
             count += 1
             d = self.getNumber(media)
