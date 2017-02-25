@@ -23,7 +23,7 @@ class ImageData(object):
         return cv2.bitwise_and(self.canvas, self.canvas.copy(), mask = mask)
     def bitwise_or(self, lower, upper):
         mask = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
-        return cv2.bitwise_or(self.canvas,self.canvas, mask = mask)
+        return cv2.bitwise_or(self.canvas, self.canvas, mask = mask)
     def bitwise_xor(self, lower, upper):
         mask = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
         return cv2.bitwise_xor(self.canvas, self.canvas.copy(), mask = mask)
@@ -34,6 +34,8 @@ class ImageData(object):
 class HSVcolor(object):
     __slots__ = ['h','s','v']
     def __init__(self, h=0, s=0, v=0):
+        if h < 0:
+            h = h + 360
         self.h = h
         self.s = s
         self.v = v
@@ -50,11 +52,11 @@ class Application(tk.Frame):
     def createWidgets(self):
         controls = dict()
         # lower
-        controls['lower_h'] = {'label':'Hue','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['lower_h'] = {'label':'Hue','from_':0,'to':180,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         controls['lower_s'] = {'label':'Saturation','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         controls['lower_v'] = {'label':'Value','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         # upper
-        controls['upper_h'] = {'label':'Hue','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['upper_h'] = {'label':'Hue','from_':0,'to':180,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         controls['upper_s'] = {'label':'Saturation','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         controls['upper_v'] = {'label':'Value','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         
@@ -85,7 +87,7 @@ class Application(tk.Frame):
         self.upperframe.grid(row=0, column=2)
                 
         self.upper_h = tk.Scale(self.upperframe, controls['upper_h'])
-        self.upper_h.set(255)
+        self.upper_h.set(180)
         self.upper_h.pack()
         self.upper_s = tk.Scale(self.upperframe, controls['upper_s'])
         self.upper_s.set(255)
@@ -112,14 +114,13 @@ class Application(tk.Frame):
         imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
         self.lblimage.imgtk = imgtk
         self.lblimage.configure(image= imgtk)
-        print('END:{0}'.format(datetime.now()))
+        #print('END:{0}'.format(datetime.now()))
     def __stateChanged(self):
-        print('STA:{0}'.format(datetime.now()))
+        #print('STA:{0}'.format(datetime.now()))
         lower = HSVcolor(self.lower_h.get(), self.lower_s.get(), self.lower_v.get())
         upper = HSVcolor(self.upper_h.get(), self.upper_s.get(), self.upper_v.get())
         result = None
         v = self.rbnOperation.get()
-        print('bbb:{0}'.format(v))
         if v == 1:
             result = self.data.bitwise_and(lower, upper)
         elif v == 2:
