@@ -36,13 +36,15 @@ class BaseFilter(IImageFilter):
         result = stream
         return result
 class AppImageFilter(IImageFilter):
-    def __init__(self):
+    def __init__(self, image_type, hsv):
         super().__init__('AppImageFilter')
-        self.__contryMask = {'netzawar':(HSVcolor(175, 55, 0), HSVcolor(255, 255, 255)),
-                             'casedria':(HSVcolor(53, 0, 0), HSVcolor(79, 255, 255)),
-                             'geburand':(HSVcolor(120, 0, 100), HSVcolor(150, 255, 255)), 
-                             'hordine':(HSVcolor(24, 0, 249), HSVcolor(30, 255, 255)),
-                             'ielsord':(HSVcolor(79, 0, 0), HSVcolor(112, 255, 255))}
+        self._contryMask = {'netzawar':(HSVcolor(175, 55, 0), HSVcolor(255, 255, 255)),
+                            'casedria':(HSVcolor(53, 0, 0), HSVcolor(79, 255, 255)),
+                            'geburand':(HSVcolor(120, 0, 100), HSVcolor(150, 255, 255)),
+                            'hordine':(HSVcolor(24, 0, 249), HSVcolor(30, 255, 255)),
+                            'ielsord':(HSVcolor(79, 0, 0), HSVcolor(112, 255, 255))}
+        self.image_type = image_type
+        self.hsv = hsv
     def filtered(self, stream):
         binary = stream
         # white color
@@ -50,15 +52,15 @@ class AppImageFilter(IImageFilter):
         binary = cv2.bitwise_and(binary, binary, mask=white)
         if self.image_type == ImageType.PLAN:
             height, width = stream.shape[:2]
-            cv2.rectangle(binary, (0, 0), (min(1000, width),height), (0,0,0), -1)
+            cv2.rectangle(binary, (0, 0), (min(1000, width), height), (0,0,0), -1)
             return binary
         
         #fez country color mask pattern
-        binary = self.bitwise_not(binary, self.__contryMask['netzawar'])
-        binary = self.bitwise_not(binary, self.__contryMask['geburand'])
-        binary = self.bitwise_not(binary, self.__contryMask['ielsord'])
-        binary = self.bitwise_not(binary, self.__contryMask['casedria'])
-        binary = self.bitwise_not(binary, self.__contryMask['hordine'])
+        binary = self.bitwise_not(binary, self._contryMask['netzawar'])
+        binary = self.bitwise_not(binary, self._contryMask['geburand'])
+        binary = self.bitwise_not(binary, self._contryMask['ielsord'])
+        binary = self.bitwise_not(binary, self._contryMask['casedria'])
+        binary = self.bitwise_not(binary, self._contryMask['hordine'])
         # １位より下を黒色で塗りつぶしてマスク。
         height, width = stream.shape[:2]
         cv2.rectangle(binary, (0, min(500, height)), (width,height), (0,0,0), -1)
@@ -97,7 +99,7 @@ class DataProcessor(object):
         if c is None:
             logger.info("notfound:{0}".format(self.name))
             return c
-        if (self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER):
+        if self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER:
             """
                 small size image.
                     AKAZE#detectAndCompute at keypoints of 0.
@@ -115,16 +117,13 @@ class DataProcessor(object):
                 step4:fill min(500, height)
             @return binary image
         """
-        if (self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER):
+        if self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER:
             return self.color
         stream = ImageStream()
         stream.data = self.color
         stream.addFilter(GrayScaleFilter())
         stream.addFilter(AdaptiveThresholdFilter())
-        appfilter = AppImageFilter()
-        appfilter.image_type = self.image_type
-        appfilter.hsv = self.hsv
-        stream.addFilter(appfilter)
+        stream.addFilter(AppImageFilter(self.image_type, self.hsv))
         return stream.tofiltered()
 class country(object):
     def __init__(self, config):
@@ -132,16 +131,15 @@ class country(object):
         d = dict()
         names = config['COUNTRY']['NAMES'].split('|')
         for ele in names:
-           c = ele.split(":")
-           d[c[0]] = c[1]
+            c = ele.split(":")
+            d[c[0]] = c[1]
         self.names = d
         self.detector = cv2.AKAZE_create()
         self.classifier = Classifier()
         self.numberclassifier = Classifier()
         self.__load(self.classifier, ImageType.HINT_RAW)
         for i in range(10):
-            self.__load(self.numberclassifier, ImageType.HINT_NUMBER, i)
-        
+            self.__load(self.numberclassifier, ImageType.HINT_NUMBER, i)        
     
     def __load(self, classifier, image_type, n=None):
         """
@@ -154,11 +152,11 @@ class country(object):
         labels = []
         for media in glob.iglob(os.path.join(str(loadPath), "*.png")):
             (keypoints, descriptors) = self.__cachedetect(media, image_type)
-            if (image_type == ImageType.HINT_NUMBER):
+            if image_type == ImageType.HINT_NUMBER:
                 #logger.info(keypoints)
                 pass
             features.append(descriptors)
-            if (image_type == ImageType.HINT_NUMBER):
+            if image_type == ImageType.HINT_NUMBER:
                 labels.append(n)
             else:
                 labels.append(os.path.basename(media))
@@ -214,11 +212,10 @@ class country(object):
             d = self.getNumber(media)
             logger.info(d)
             s = sum([v for m,v in d.items()])
-            if (s == 0):
+            if s == 0:
                 logger.warning('keypoint NotFound:{0}'.format(media))
                 continue
             for k in d.keys():
-                
                 prefix = str(k)
                 filename = os.path.join(basepath + prefix + '/', os.path.basename(media))
                 directory = os.path.dirname(filename)
@@ -297,7 +294,7 @@ def main():
         for k in c.getCountry(l).keys():
             country_name = c.getName(k)
             logger.info(country_name)
-            break;
+            break
     #return
     ele = ['./dat/number/sample/1.png',
            './dat/number/sample/1_1.png',
