@@ -27,20 +27,20 @@ class Application(tk.Frame):
         self.topframe = tk.LabelFrame(self, text='params')
         self.topframe.grid(row=0, column=0)
 
-        controls['ADAPTIVE'] = {'label':'0:MEAN_C / 1:GAUSSIAN_C','from_':0,'to':1,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['ADAPTIVE'] = {'label':'0:MEAN_C / 1:GAUSSIAN_C', 'from_':0, 'to':1, 'length':300, 'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         self.scale_adaptive = tk.Scale(self.topframe, controls['ADAPTIVE'])
         self.scale_adaptive.pack()
         
-        controls['THRESHOLDTYPE'] = {'label':'0:BINARY / 1:INV','from_':0,'to':1,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['THRESHOLDTYPE'] = {'label':'0:BINARY / 1:INV', 'from_':0, 'to':1, 'length':300, 'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         self.scale_thresholdType = tk.Scale(self.topframe, controls['THRESHOLDTYPE'])
         self.scale_thresholdType.pack()
-        
-        controls['BLOCKSIZE'] = {'label':'blocksize','from_':3,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        # initial stepvalue 3.
+        controls['BLOCKSIZE'] = {'label':'blocksize', 'from_':3, 'to':255, 'length':300, 'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         self.scale_blocksize = tk.Scale(self.topframe, controls['BLOCKSIZE'])
         self.scale_blocksize.set(11)
         self.scale_blocksize.pack()
         
-        controls['C'] = {'label':'c','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['C'] = {'label':'c', 'from_':0, 'to':255, 'length':300, 'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         self.scale_c = tk.Scale(self.topframe, controls['C'])
         self.scale_c.set(2)
         self.scale_c.pack()
@@ -57,11 +57,10 @@ class Application(tk.Frame):
         # adaptiveThreshold params check
         # blocksize range:Odd numbers{3,5,7,9,…} intial:3
         #   in:0,0  out:NG blocksize of even.
-        #   in:1,0  out:NG initial stepvalue 3.
         #   in:2,0  out:NG blocksize of even.
         #   in:3,10　out:NG size * size - c < 0
         #   in:5,25 out:OK
-        if size % 2 == 0 or size == 1:
+        if size % 2 == 0:
             return
         if (size * size - c) < 0:
             return
