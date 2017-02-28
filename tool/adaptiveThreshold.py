@@ -29,6 +29,7 @@ class Application(tk.Frame):
 
         controls['ADAPTIVE'] = {'label':'0:MEAN_C / 1:GAUSSIAN_C', 'from_':0, 'to':1, 'length':300, 'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         self.scale_adaptive = tk.Scale(self.topframe, controls['ADAPTIVE'])
+        self.scale_adaptive.set(1)
         self.scale_adaptive.pack()
         
         controls['THRESHOLDTYPE'] = {'label':'0:BINARY / 1:INV', 'from_':0, 'to':1, 'length':300, 'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
