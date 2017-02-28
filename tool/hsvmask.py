@@ -145,15 +145,16 @@ class Application(tk.Frame):
         self.__changeImage(result)
 
 def main():
+    APP_VERSION =  (0, 0, 4)
     parser = argparse.ArgumentParser(prog='hsvmask',
                                      description='HSV ColorMask Simulator')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.4')
+    parser.add_argument('--version', action='version', version='%(prog)s {0}'.format(APP_VERSION))
     parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
     args = parser.parse_args()
     print('args:{0}'.format(args))
     
     app = Application()
-    app.master.title('HSV ColorMask Simulator')
+    app.master.title('HSV ColorMask Simulator version:{0}'.format(APP_VERSION))
     app.loadImage(cv2.imread(args.image))
     app.pack()
     app.mainloop()
