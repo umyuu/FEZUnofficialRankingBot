@@ -48,13 +48,13 @@ class ImageStream(object):
         self.data = None
     def addFilter(self, f):
         if not isinstance(f, IImageFilter):
-            assert False, 'non implements'
+            assert False, 'NotImplemented'
         if not (f in self.filters):
             self.filters.append(f)
         return self
     def removeFilter(self, f):
         if not isinstance(f, IImageFilter):
-            assert False, 'non implements'
+            assert False, 'NotImplemented'
         if f in self.filters:
             self.filters.remove(f)
         return self
