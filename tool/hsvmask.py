@@ -52,52 +52,60 @@ class Application(tk.Frame):
     def createWidgets(self):
         controls = dict()
         # lower
-        controls['lower_h'] = {'label':'Hue','from_':0,'to':180,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
-        controls['lower_s'] = {'label':'Saturation','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
-        controls['lower_v'] = {'label':'Value','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['lower_h'] = {'label':'Hue','from_':0,'to':180,'length':400,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['lower_s'] = {'label':'Saturation','from_':0,'to':255,'length':400,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['lower_v'] = {'label':'Value','from_':0,'to':255,'length':400,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         # upper
-        controls['upper_h'] = {'label':'Hue','from_':0,'to':180,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
-        controls['upper_s'] = {'label':'Saturation','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
-        controls['upper_v'] = {'label':'Value','from_':0,'to':255,'length':300,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['upper_h'] = {'label':'Hue','from_':0,'to':180,'length':400,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['upper_s'] = {'label':'Saturation','from_':0,'to':255,'length':400,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
+        controls['upper_v'] = {'label':'Value','from_':0,'to':255,'length':400,'orient':tk.HORIZONTAL, 'command':self.__onChanged_ScaleValue}
         
         #print(controls)
-        self.lowerframe = tk.LabelFrame(self, text='lower')
-        self.lowerframe.grid(row=0, column=0)
-        self.lower_h = tk.Scale(self.lowerframe, controls['lower_h'])
+        self.frame_top = tk.LabelFrame(self)
+        self.frame_top.grid(row=0, column=0, columnspan=2)
+        self.frame_lower = tk.LabelFrame(self.frame_top, text='lower')
+        self.frame_lower.grid(row=0, column=0)
+        self.lower_h = tk.Scale(self.frame_lower, controls['lower_h'])
         self.lower_h.pack()
-        self.lower_s = tk.Scale(self.lowerframe, controls['lower_s'])
+        self.lower_s = tk.Scale(self.frame_lower, controls['lower_s'])
         self.lower_s.pack()
-        self.lower_v = tk.Scale(self.lowerframe, controls['lower_v'])
+        self.lower_v = tk.Scale(self.frame_lower, controls['lower_v'])
         self.lower_v.pack()
         
-        self.opframe = tk.LabelFrame(self, text='op')
-        self.opframe.grid(row=0, column=1)
+        self.frame_op = tk.LabelFrame(self.frame_top, text='op')
+        self.frame_op.grid(row=0, column=1)
         self.rbnOperation = tk.IntVar()
         self.rbnOperation.set(1)
-        self.bitwise_and = tk.Radiobutton(self.opframe, text="and", variable=self.rbnOperation, value=1, command=self.__onChanged_rbnOperation)
+        self.bitwise_and = tk.Radiobutton(self.frame_op, text="and", variable=self.rbnOperation, value=1, command=self.__onChanged_rbnOperation)
         self.bitwise_and.pack( anchor = tk.W )
-        self.bitwise_or = tk.Radiobutton(self.opframe, text="or", variable=self.rbnOperation, value=2, command=self.__onChanged_rbnOperation)
+        self.bitwise_or = tk.Radiobutton(self.frame_op, text="or", variable=self.rbnOperation, value=2, command=self.__onChanged_rbnOperation)
         self.bitwise_or.pack( anchor = tk.W )
-        self.bitwise_xor = tk.Radiobutton(self.opframe, text="xor", variable=self.rbnOperation, value=3, command=self.__onChanged_rbnOperation)
+        self.bitwise_xor = tk.Radiobutton(self.frame_op, text="xor", variable=self.rbnOperation, value=3, command=self.__onChanged_rbnOperation)
         self.bitwise_xor.pack( anchor = tk.W )
-        self.bitwise_not = tk.Radiobutton(self.opframe, text="not", variable=self.rbnOperation, value=4, command=self.__onChanged_rbnOperation)
+        self.bitwise_not = tk.Radiobutton(self.frame_op, text="not", variable=self.rbnOperation, value=4, command=self.__onChanged_rbnOperation)
         self.bitwise_not.pack( anchor = tk.W )
         
-        self.upperframe = tk.LabelFrame(self, text='upper')
-        self.upperframe.grid(row=0, column=2)
-                
-        self.upper_h = tk.Scale(self.upperframe, controls['upper_h'])
+        self.frame_upper = tk.LabelFrame(self.frame_top, text='upper')
+        self.frame_upper.grid(row=0, column=2)
+        self.upper_h = tk.Scale(self.frame_upper, controls['upper_h'])
         self.upper_h.set(180)
         self.upper_h.pack()
-        self.upper_s = tk.Scale(self.upperframe, controls['upper_s'])
+        self.upper_s = tk.Scale(self.frame_upper, controls['upper_s'])
         self.upper_s.set(255)
         self.upper_s.pack()
-        self.upper_v = tk.Scale(self.upperframe, controls['upper_v'])
+        self.upper_v = tk.Scale(self.frame_upper, controls['upper_v'])
         self.upper_v.set(255)
         self.upper_v.pack()
 
-        self.lblimage = tk.Label(self)
-        self.lblimage.grid(row=1, column=0, columnspan=3)
+        self.frame_input_image = tk.LabelFrame(self, text='input')
+        self.frame_input_image.grid(row=1, column=0)
+        self.lbl_input = tk.Label(self.frame_input_image)
+        self.lbl_input.pack()
+        
+        self.frame_output_image = tk.LabelFrame(self, text='output')
+        self.frame_output_image.grid(row=1, column=1)
+        self.lbl_output = tk.Label(self.frame_output_image)
+        self.lbl_output.pack()
     def __onChanged_rbnOperation(self):
         self.__stateChanged()
     def __onChanged_ScaleValue(self, event):
@@ -109,11 +117,14 @@ class Application(tk.Frame):
         return tk.Scale(root,h), tk.Scale(root,s), tk.Scale(root,v)
     def loadImage(self, src):
         self.data = ImageData(src)
+        imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
+        self.lbl_input.imgtk = imgtk
+        self.lbl_input.configure(image= imgtk)
         self.__changeImage(src)
     def __changeImage(self, src):
         imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
-        self.lblimage.imgtk = imgtk
-        self.lblimage.configure(image= imgtk)
+        self.lbl_output.imgtk = imgtk
+        self.lbl_output.configure(image= imgtk)
         #print('END:{0}'.format(datetime.now()))
     def __stateChanged(self):
         #print('STA:{0}'.format(datetime.now()))
