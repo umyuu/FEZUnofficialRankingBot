@@ -51,6 +51,8 @@ class CoreApp(tk.Frame):
         self.focus_set()
         self.bind_all('<Control-Shift-KeyPress-Q>', self.onApplicationExit)
     def onApplicationExit(self, event=None):
+        # spyder IDE Run Script app hangup
+        # github doc\images\IDE_spyder_setting.jpg
         self.quit()
     def run(self):
         """
