@@ -45,7 +45,7 @@ class HSVcolor(object):
         return ','.join([str(self.h), str(self.s), str(self.v)])
     def to_np(self):
         return np.array([self.h, self.s, self.v])
-class BaseApp(tk.Frame):
+class CoreApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.focus_set()
@@ -57,12 +57,14 @@ class BaseApp(tk.Frame):
              start messageloop
         """
         self.pack()
-        self.mainloop() 
+        self.mainloop()
+    def title(self, title):
+        self.master.title(title)
     def __enter__(self):
         return self
     def __exit__(self, exception_type, exception_value	, traceback):
         self.onApplicationExit()
-class Application(BaseApp):
+class Application(CoreApp):
     def __init__(self, master=None):
         super().__init__(master)
         self.data = None
@@ -189,7 +191,7 @@ def main():
     args = parser.parse_args()
     print('args:{0}'.format(args))
     with Application() as app:
-        app.master.title('HSV ColorMask Simulator version:{0}'.format(APP_VERSION))
+        app.title('HSV ColorMask Simulator version:{0}'.format(APP_VERSION))
         app.loadImage(cv2.imread(args.image))
         app.run()
 
