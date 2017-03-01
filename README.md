@@ -9,12 +9,11 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
 - Pillow
 - pyocr
 - Tesseract-OCR
+
 ## スクリプト実行
 `python TweetBot.py -ck [consumer_key] -cs [consumer_secret] -at [access_token] -ats [access_token_secret]`
 
 ※https://apps.twitter.com も参照のこと。
-## 開発環境
-https://github.com/umyuu/FEZUnofficialRankingBot/wiki
 ## Source code License
 MIT License
 
@@ -23,7 +22,9 @@ https://github.com/umyuu/FEZUnofficialRankingBot
 - Twitter bot
 
     https://twitter.com/fez_ranking_bot 
+- 開発環境
 
+    https://github.com/umyuu/FEZUnofficialRankingBot/wiki/%E9%96%8B%E7%99%BA%E7%92%B0%E5%A2%83
 ## Copyright
 【FEZ】 Fantasy Earth ZERO
 
