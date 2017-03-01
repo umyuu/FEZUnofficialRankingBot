@@ -3,6 +3,7 @@ from logging import getLogger, StreamHandler, DEBUG
 import configparser
 import os
 import shutil
+import tempfile
 import glob
 import functools
 from enum import Enum, unique
@@ -10,10 +11,12 @@ from pathlib import Path
 # library
 import cv2
 import numpy as np
+from PIL import Image
 # Myapp library
 from hsvcolor import HSVcolor
 from iimagefillter import GrayScaleFilter, AdaptiveThresholdFilter, IImageFilter, ImageStream
 from classifier import Classifier
+from ocrengine import OCREngine
 
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
@@ -29,12 +32,15 @@ class ImageType(Enum):
     PLAN = 8
     HINT_RAW = RAW | HINTS
     HINT_NUMBER = NUMBER | HINTS
-class BaseFilter(IImageFilter):
+class ROIFilter(IImageFilter):
     def __init__(self):
         super().__init__('BaseFilter')
     def filtered(self, stream):
-        result = stream
-        return result
+        start_x = 240
+        start_y = 350
+        end_x = 920
+        end_y = 1500
+        return stream[start_y:end_x, start_x:end_y]
 class AppImageFilter(IImageFilter):
     def __init__(self, image_type, hsv):
         super().__init__('AppImageFilter')
@@ -47,6 +53,7 @@ class AppImageFilter(IImageFilter):
         self.hsv = hsv
     def filtered(self, stream):
         binary = stream
+
         # white color
         white = self.__getWhiteMasking(self.hsv)
         binary = cv2.bitwise_and(binary, binary, mask=white)
@@ -55,15 +62,22 @@ class AppImageFilter(IImageFilter):
             cv2.rectangle(binary, (0, 0), (min(1000, width), height), (0,0,0), -1)
             return binary
         
+        lower, upper = HSVcolor(0, 0, 0), HSVcolor(30, 66, 255)
+        binary = cv2.bitwise_and(binary, self.__inRange(self.hsv, lower, upper))
+        
         #fez country color mask pattern
-        binary = self.bitwise_not(binary, self._contryMask['netzawar'])
-        binary = self.bitwise_not(binary, self._contryMask['geburand'])
-        binary = self.bitwise_not(binary, self._contryMask['ielsord'])
-        binary = self.bitwise_not(binary, self._contryMask['casedria'])
-        binary = self.bitwise_not(binary, self._contryMask['hordine'])
-        # １位より下を黒色で塗りつぶしてマスク。
+        #binary = self.bitwise_not(binary, self._contryMask['netzawar'])
+        #binary = self.bitwise_not(binary, self._contryMask['geburand'])
+        #binary = self.bitwise_not(binary, self._contryMask['ielsord'])
+        #binary = self.bitwise_not(binary, self._contryMask['casedria'])
+        #binary = self.bitwise_not(binary, self._contryMask['hordine'])
+        # image out range fill
         height, width = stream.shape[:2]
-        cv2.rectangle(binary, (0, min(500, height)), (width,height), (0,0,0), -1)
+        start_x = 240
+        start_y = 350
+        end_x = 920
+        end_y = 1500
+        binary = binary[start_y:end_x, start_x:end_y]
         return binary
     def bitwise_not(self, binary, mask_range):
         lower, upper = mask_range
@@ -97,8 +111,7 @@ class DataProcessor(object):
         zoom = 2
         c = cv2.imread(filename)
         if c is None:
-            logger.info("notfound:{0}".format(self.name))
-            return c
+            raise FileNotFoundError(self.name)
         if self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER:
             """
                 small size image.
@@ -121,6 +134,7 @@ class DataProcessor(object):
             return self.color
         stream = ImageStream()
         stream.data = self.color
+        #stream.addFilter(ROIFilter())
         stream.addFilter(GrayScaleFilter())
         stream.addFilter(AdaptiveThresholdFilter())
         stream.addFilter(AppImageFilter(self.image_type, self.hsv))
@@ -161,8 +175,8 @@ class country(object):
             else:
                 labels.append(os.path.basename(media))
         classifier.fit(features, labels)
-        logger.info('load classifier')
-        logger.info(classifier.labels)
+        #logger.info('load classifier')
+        #logger.info(classifier.labels)
     @functools.lru_cache(maxsize=8)
     def __cachedetect(self, media, image_type=None):
         pro = DataProcessor(media, image_type)
@@ -188,6 +202,26 @@ class country(object):
         if keypoints is None:
             return None
         d = self.classifier.predict(descriptors)
+        
+        pro = DataProcessor(src, ImageType.RAW)
+        if pro.prepare() is None:
+            logger.error('image error:{0}'.format(src))
+            return None, None
+        batch = pro.batch()
+        baseName = Path(src)
+        ocr = OCREngine()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=baseName.suffix) as temp:
+             temp_file_name = temp.name
+             logger.info(temp_file_name)
+             cv2.imwrite(temp_file_name, batch)
+        
+        document = ocr.recognize(temp_file_name)
+        for text in [document.rank1, document.rank2, document.rank3
+                     , document.rank4, document.rank5]:
+            logger.info('{0}/{1}'.format(text['name'], text['score']))
+
+        #TextFormat()
+
         logger.info(d)
         #d2 = self.classifier.predict(descriptors, top_n=1)
         #logger.info(d2)
@@ -199,31 +233,6 @@ class country(object):
         d3 = self.numberclassifier.predict(descriptors, top_n=100)
         #logger.info(d3)
         return d3
-    def classify(features):
-        label = ''
-        return label
-    def classifyNumberImage(self):
-        basepath = './test/'
-        count = 0
-        for media in glob.iglob(os.path.join(basepath, "*.png")):
-            if os.path.getsize(media) > 2048:
-                continue
-            count += 1
-            d = self.getNumber(media)
-            logger.info(d)
-            s = sum([v for m,v in d.items()])
-            if s == 0:
-                logger.warning('keypoint NotFound:{0}'.format(media))
-                continue
-            for k in d.keys():
-                prefix = str(k)
-                filename = os.path.join(basepath + prefix + '/', os.path.basename(media))
-                directory = os.path.dirname(filename)
-                if not os.path.exists(directory):
-                    os.mkdir(directory)
-                shutil.copy2(media, filename)
-                break
-        return None
     def getName(self, n):
         return self.names[n]
 
@@ -258,7 +267,7 @@ class Clipping(object):
             if area < 50:
                 continue
             if self.drawClipSource:
-                #cv2.drawContours(self.color, [c], -1, (0,255,0), 3)
+                cv2.drawContours(self.color, [c], -1, (0,255,0), 3)
                 pass
             rect.append(cv2.boundingRect(approx))
 
@@ -295,23 +304,5 @@ def main():
             country_name = c.getName(k)
             logger.info(country_name)
             break
-    #return
-    ele = ['./dat/number/sample/1.png',
-           './dat/number/sample/1_1.png',
-          ] * 1
-    for l in ele:
-        logger.info(l)
-        d = c.getNumber(l)
-    ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
-           './backup/201702161156_919c7be6531ffeb5cfeb1e6e701556d3.png',
-           './images/201702212104_4f1abbaf37872a27bec7f908a527f512.png',
-           './backup/201702161344_b17e5061a7083b933531d75808f3de48.png',
-           './backup/201702161659_b17e5061a7083b933531d75808f3de48.png',
-          ] * 5
-    for l in ele:
-        clip = Clipping(l)
-        clip.number()
-    
-    c.classifyNumberImage()
 if __name__ == "__main__":
     main()
