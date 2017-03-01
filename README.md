@@ -6,18 +6,15 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
 - python-twitter
 - opencv
 - numpy
-
+- Pillow
+- pyocr
+- Tesseract-OCR
 ## スクリプト実行
 `python TweetBot.py -ck [consumer_key] -cs [consumer_secret] -at [access_token] -ats [access_token_secret]`
 
 ※https://apps.twitter.com も参照のこと。
 ## 開発環境
-- Windows 10
-- spyder
-- Python 3.5.2 :: Anaconda custom (64-bit)
-- opencv 3.1.0
-- numpy 1.11.1
-
+https://github.com/umyuu/FEZUnofficialRankingBot/wiki
 ## Source code License
 MIT License
 
