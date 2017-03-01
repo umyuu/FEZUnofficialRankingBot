@@ -70,6 +70,7 @@ class Application(CoreApp):
     def __init__(self, master=None):
         super().__init__(master)
         self.data = None
+        self.frame_inputimage = None
         self.createMenu()
         self.createWidgets()
         
@@ -139,9 +140,15 @@ class Application(CoreApp):
         menubar.add_cascade(label="File(F)", menu=filemenu, underline=5)
         visualmenu = tk.Menu(menubar)
         menubar.add_cascade(label="Visual(V)", menu=visualmenu, underline=7)
-        visualmenu.add_command(label="Input Image(I)...", under=13, command=self.openFile)
+        visualmenu.add_command(label="Input Image(I)...", under=13, command=self.createInputImageWindow)
         visualmenu.add_separator()
         visualmenu.add_command(label="Reset params(R)", under=0, command=self.hsvParamsReset)
+    def createInputImageWindow(self):
+        if self.frame_inputimage is None:
+           self.frame_inputimage = tk.Toplevel()
+           self.frame_inputimage.lbl_input = tk.Label(self.frame_inputimage)
+           self.frame_inputimage.lbl_input.pack()
+        
     def hsvParamsReset(self):
         self.lower_h.set(0)
         self.lower_s.set(0)
@@ -149,6 +156,7 @@ class Application(CoreApp):
         self.upper_h.set(180)
         self.upper_s.set(255)
         self.upper_v.set(255)
+    
     def openFile(self):
         name = askopenfilename(initialdir=os.getcwd())
         if len(name) == 0:
