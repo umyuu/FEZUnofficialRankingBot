@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import argparse
+import os
 import tkinter as tk
+from tkinter.filedialog import askopenfilename
 # library
 import cv2
 import numpy as np
@@ -48,7 +50,9 @@ class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.data = None
+        self.createMenu()
         self.createWidgets()
+        
     def createWidgets(self):
         controls = dict()
         # lower
@@ -106,6 +110,20 @@ class Application(tk.Frame):
         self.frame_output_image.grid(row=1, column=1)
         self.lbl_output = tk.Label(self.frame_output_image)
         self.lbl_output.pack()
+    def createMenu(self):
+        menubar = tk.Menu(self.master)
+        self.master.config(menu=menubar)
+        filemenu = tk.Menu(menubar)
+        filemenu.add_command(label="Open...", command=self.openFile)
+        filemenu.add_separator()
+        filemenu.add_command(label="Exit", command=self.__onQuit)
+        menubar.add_cascade(label="File", menu=filemenu)
+    def openFile(self):
+        name = askopenfilename(initialdir=os.getcwd())
+        if len(name) == 0:
+            return
+        image = cv2.imread(name)
+        self.loadImage(image)
     def __onChanged_rbnOperation(self):
         self.__stateChanged()
     def __onChanged_ScaleValue(self, event):
@@ -143,6 +161,15 @@ class Application(tk.Frame):
         else:
             assert False
         self.__changeImage(result)
+    def __onQuit(self):
+        self.quit()
+    def run(self):
+        self.pack()
+        self.mainloop() 
+    def __enter__(self):
+        return self
+    def __exit__(self, exception_type, exception_value	, traceback):
+        self.__onQuit()
 
 def main():
     APP_VERSION =  (0, 0, 4)
@@ -152,12 +179,10 @@ def main():
     parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
     args = parser.parse_args()
     print('args:{0}'.format(args))
-    
-    app = Application()
-    app.master.title('HSV ColorMask Simulator version:{0}'.format(APP_VERSION))
-    app.loadImage(cv2.imread(args.image))
-    app.pack()
-    app.mainloop()
-            
+    with Application() as app:
+        app.master.title('HSV ColorMask Simulator version:{0}'.format(APP_VERSION))
+        app.loadImage(cv2.imread(args.image))
+        app.run()
+
 if __name__ == "__main__":
     main()
