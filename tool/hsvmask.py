@@ -45,8 +45,24 @@ class HSVcolor(object):
         return ','.join([str(self.h), str(self.s), str(self.v)])
     def to_np(self):
         return np.array([self.h, self.s, self.v])
-    
-class Application(tk.Frame):
+class BaseApp(tk.Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.focus_set()
+        self.bind_all('<Control-Shift-KeyPress-Q>', self.onApplicationExit)
+    def onApplicationExit(self, event=None):
+        self.quit()
+    def run(self):
+        """
+             start messageloop
+        """
+        self.pack()
+        self.mainloop() 
+    def __enter__(self):
+        return self
+    def __exit__(self, exception_type, exception_value	, traceback):
+        self.onApplicationExit()
+class Application(BaseApp):
     def __init__(self, master=None):
         super().__init__(master)
         self.data = None
@@ -114,10 +130,12 @@ class Application(tk.Frame):
         menubar = tk.Menu(self.master)
         self.master.config(menu=menubar)
         filemenu = tk.Menu(menubar)
-        filemenu.add_command(label="Open...", command=self.openFile)
+        filemenu.add_command(label="Open(O)...", under=5, command=self.openFile)
         filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=self.__onQuit)
-        menubar.add_cascade(label="File", menu=filemenu)
+        filemenu.add_command(label="Exit(X)        Ctrl+Shift-Q", under=5, command=self.onApplicationExit)
+        menubar.add_cascade(label="File(F)", menu=filemenu, underline=5)
+        visualmenu = tk.Menu(menubar)
+        menubar.add_cascade(label="Visual(V)", menu=visualmenu, underline=7)
     def openFile(self):
         name = askopenfilename(initialdir=os.getcwd())
         if len(name) == 0:
@@ -161,15 +179,6 @@ class Application(tk.Frame):
         else:
             assert False
         self.__changeImage(result)
-    def __onQuit(self):
-        self.quit()
-    def run(self):
-        self.pack()
-        self.mainloop() 
-    def __enter__(self):
-        return self
-    def __exit__(self, exception_type, exception_value	, traceback):
-        self.__onQuit()
 
 def main():
     APP_VERSION =  (0, 0, 4)
