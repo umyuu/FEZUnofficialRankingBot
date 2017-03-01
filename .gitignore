@@ -4,5 +4,6 @@
 *.png
 backup
 __pycache__
+.spyproject
 !requirements.txt
 !.gitignore
