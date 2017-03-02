@@ -25,15 +25,22 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
 
          defalut Directory. C:\Program Files (x86)\Tesseract-OCR\tessdata
 
-2. Twitter Apps Page Create App Keys.
-
-    [Create New App](https://apps.twitter.com)
-
+2. Twitter Auth Settings.
+ 1. [Create New App Keys.](https://apps.twitter.com)
+ 2. create twitter.ini file.
+ 
+     1. sample filecopy.
+     
+        `copy resource\sample\twitter.ini resource\auth`
+     
+     2. Please edit and save twitter.ini with texteditor.
+     
+        consumer_key, consumer_secret, access_token, access_token_secret
 3. Python Run Script.
 
      `cd src`
      
-     `python TweetBot.py -ck [consumer_key] -cs [consumer_secret] -at [access_token] -ats [access_token_secret]`
+     `python TweetBot.py`
 
 ## Dependencies
 - python 3.5+
