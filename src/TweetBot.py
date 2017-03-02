@@ -11,15 +11,29 @@ import twitter
 import download
 import country
 
-config = configparser.ConfigParser()
-with open('../setting.ini', 'r', encoding='utf-8-sig') as f:
-    config.read_file(f)
 # console output
 logger = getLogger('myapp.tweetbot')
 handler = StreamHandler()
 handler.setLevel(DEBUG)
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
+def loadConfig(path, encoding='utf-8-sig'):
+    c = configparser.ConfigParser()
+    with open(path, 'r', encoding=encoding) as f:
+        c.read_file(f)
+    return c
+
+config = loadConfig('../setting.ini')
+twitter_auth = None
+try:
+    twitter_auth = loadConfig('../twitter.auth')
+    auth_params = ['CONSUMER_KEY','CONSUMER_SECRET','ACCESS_TOKEN','ACCESS_TOKEN_SECRET']
+    for p in auth_params:
+        if len(twitter_auth['AUTH'][p]) == 0:
+            twitter_auth = None
+            break
+except (FileNotFoundError):
+    pass
 
 class tweetbot(object):
     def __init__(self, args):
@@ -44,10 +58,10 @@ class tweetbot(object):
         return self.__country
     def twitter_init(self):
         if self.api is None:
-            self.api = twitter.Api(consumer_key=self.args.consumer_key,
-                                 consumer_secret=self.args.consumer_secret,
-                                 access_token_key=self.args.access_token,
-                                 access_token_secret=self.args.access_token_secret)
+            self.api = twitter.Api(consumer_key=self.args['consumer_key'],
+                                 consumer_secret=self.args['consumer_secret'],
+                                 access_token_key=self.args['access_token'],
+                                 access_token_secret=self.args['access_token_secret'])
     def getImage(self):
         """
             @yield media
@@ -79,7 +93,7 @@ class tweetbot(object):
             self.twitter_init()
             text = '{0}\n{1}\n一位:{2}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format, country_name)
             isTweet = False
-            #isTweet = True
+            isTweet = True
             if isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
@@ -111,6 +125,7 @@ class tweetbot(object):
         except Exception as ex:
             logger.exception(ex)
 
+
 def main():
     """
         parse
@@ -126,7 +141,20 @@ def main():
     parser.add_argument('--debug', default=True)
     
     logger.info('START')
-    bot = tweetbot(parser.parse_args())
+    args = parser.parse_args()
+    
+    dic_auth = dict()
+    dic_auth['consumer_key'] = args.consumer_key
+    dic_auth['consumer_secret'] = args.consumer_secret
+    dic_auth['access_token_key'] = args.access_token 
+    dic_auth['access_token_secret'] = args.access_token_secret
+    if twitter_auth is not None:
+        dic_auth['consumer_key'] = twitter_auth['AUTH']['CONSUMER_KEY']
+        dic_auth['consumer_secret'] = twitter_auth['AUTH']['CONSUMER_SECRET']
+        dic_auth['access_token_key'] = twitter_auth['AUTH']['ACCESS_TOKEN']
+        dic_auth['access_token_secret'] = twitter_auth['AUTH']['ACCESS_TOKEN_SECRET']
+     
+    bot = tweetbot(dic_auth)
     bot.download.request()
     for media in bot.getImage():
         logger.info('tweet media:{0}'.format(media))
