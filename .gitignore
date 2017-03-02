@@ -19,9 +19,7 @@
 #   spyder project
 # =========================
 backup
-__pycache__
 .spyproject
 # =========================
 !requirements.txt
 !.gitignore
-twitter.auth

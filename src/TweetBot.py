@@ -26,7 +26,7 @@ def loadConfig(path, encoding='utf-8-sig'):
 config = loadConfig('../setting.ini')
 twitter_auth = None
 try:
-    twitter_auth = loadConfig('../twitter.auth')
+    twitter_auth = loadConfig('../twitter_auth.ini')
     auth_params = ['CONSUMER_KEY','CONSUMER_SECRET','ACCESS_TOKEN','ACCESS_TOKEN_SECRET']
     for p in auth_params:
         if len(twitter_auth['AUTH'][p]) == 0:
@@ -82,16 +82,15 @@ class tweetbot(object):
             @params media uploadFile
         """
         try:
-            country_name = None
-            d = self.country.getCountry(media)
-            if d is None:
+            ranks = self.country.getCountry(media)
+            if ranks is None:
+                logger.warning('OCR Error')
                 return
-            for k in d.keys():
-                country_name = self.country.getName(k)
-                break;
-            
             self.twitter_init()
-            text = '{0}\n{1}\n一位:{2}'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format, country_name)
+            text = '{0}\n{1}\n'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
+            for i, contry in enumerate([ranks.rank1, ranks.rank2], start=1):
+                text += str(i) + '位:{name} {score} point\n'.format_map(contry)
+            
             isTweet = False
             isTweet = True
             if isTweet:
@@ -134,10 +133,10 @@ def main():
     parser = argparse.ArgumentParser(prog='tweetbot',
                                      description='FEZ Unofficial Total War Ranking TwitterBot')
     parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
-    parser.add_argument('--consumer_key', '-ck', required=True, help='Twitter Apps Auth set consumer_key')
-    parser.add_argument('--consumer_secret', '-cs', required=True, help='Twitter Apps Auth set consumer_secret')
-    parser.add_argument('--access_token', '-at', required=True, help='Twitter Apps Auth set access_token')
-    parser.add_argument('--access_token_secret', '-ats', required=True, help='Twitter Apps Auth set access_token_secret')
+    parser.add_argument('--consumer_key', '-ck', help='Twitter Apps Auth set consumer_key')
+    parser.add_argument('--consumer_secret', '-cs', help='Twitter Apps Auth set consumer_secret')
+    parser.add_argument('--access_token', '-at', help='Twitter Apps Auth set access_token')
+    parser.add_argument('--access_token_secret', '-ats', help='Twitter Apps Auth set access_token_secret')
     parser.add_argument('--debug', default=True)
     
     logger.info('START')
@@ -146,12 +145,12 @@ def main():
     dic_auth = dict()
     dic_auth['consumer_key'] = args.consumer_key
     dic_auth['consumer_secret'] = args.consumer_secret
-    dic_auth['access_token_key'] = args.access_token 
+    dic_auth['access_token'] = args.access_token 
     dic_auth['access_token_secret'] = args.access_token_secret
     if twitter_auth is not None:
         dic_auth['consumer_key'] = twitter_auth['AUTH']['CONSUMER_KEY']
         dic_auth['consumer_secret'] = twitter_auth['AUTH']['CONSUMER_SECRET']
-        dic_auth['access_token_key'] = twitter_auth['AUTH']['ACCESS_TOKEN']
+        dic_auth['access_token'] = twitter_auth['AUTH']['ACCESS_TOKEN']
         dic_auth['access_token_secret'] = twitter_auth['AUTH']['ACCESS_TOKEN_SECRET']
      
     bot = tweetbot(dic_auth)

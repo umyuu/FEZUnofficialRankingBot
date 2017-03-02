@@ -98,16 +98,9 @@ class country(object):
              cv2.imwrite(temp_file_name, batch)
         
         document = ocr.recognize(temp_file_name)
-        for text in [document.rank1, document.rank2, document.rank3
-                     , document.rank4, document.rank5]:
-            logger.info('{name}/{score}'.format_map(text))
+        document.dump()
 
-        #TextFormat()
-
-        logger.info(d)
-        #d2 = self.classifier.predict(descriptors, top_n=1)
-        #logger.info(d2)
-        return d
+        return document
     def getNumber(self, src):
         (keypoints, descriptors) = self.__cachedetect(src, ImageType.NUMBER)
         if keypoints is None:
@@ -115,9 +108,6 @@ class country(object):
         d3 = self.numberclassifier.predict(descriptors, top_n=100)
         #logger.info(d3)
         return d3
-    def getName(self, n):
-        return self.names[n]
-
 
 def main():
     config = configparser.ConfigParser()
@@ -131,9 +121,7 @@ def main():
         ] * 2
     for l in ele:
         logger.info(l)
-        for k in c.getCountry(l).keys():
-            country_name = c.getName(k)
-            logger.info(country_name)
-            break
+        ranks = c.getCountry(l)
+        logger.info(ranks)
 if __name__ == "__main__":
     main()

@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
+from logging import getLogger, StreamHandler, DEBUG
 # library
 import pyocr
 import pyocr.builders
 from PIL import Image
+
+logger = getLogger('myapp.tweetbot')
+if __name__ == "__main__":
+    handler = StreamHandler()
+    handler.setLevel(DEBUG)
+    logger.setLevel(DEBUG)
+    logger.addHandler(handler)
+
 class DocumentCore(object):
     def __init__(self, document):
         self.document = document
@@ -19,7 +28,10 @@ class OCRDocument(object):
         d = dict()
         d['name'] = self.document[index]
         d['score'] = self.document[index + 5]
-        return d   
+        return d
+    def dump(self):
+        for text in [self.rank1, self.rank2, self.rank3, self.rank4, self.rank5]:
+            logger.info('{name}/{score}'.format_map(text))
 class OCRText(object):
     def __init__(self, document):
         self.document = document
