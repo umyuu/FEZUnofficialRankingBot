@@ -24,16 +24,11 @@ def loadConfig(path, encoding='utf-8-sig'):
     return c
 
 config = loadConfig('../resource/setting.ini')
-twitter_auth = None
-try:
-    twitter_auth = loadConfig('../auth/twitter_auth.ini')
-    auth_params = ['CONSUMER_KEY','CONSUMER_SECRET','ACCESS_TOKEN','ACCESS_TOKEN_SECRET']
-    for p in auth_params:
-        if len(twitter_auth['AUTH'][p]) == 0:
-            twitter_auth = None
-            break
-except (FileNotFoundError):
-    pass
+twitter_auth = loadConfig(config['AUTH']['TWITTER'])
+#Set Twitter Apps Auth Keys
+twitter_auth_keys = dict()
+for key_name in ['CONSUMER_KEY', 'CONSUMER_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET']:
+    twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
 
 class tweetbot(object):
     def __init__(self, args):
@@ -58,10 +53,10 @@ class tweetbot(object):
         return self.__country
     def twitter_init(self):
         if self.api is None:
-            self.api = twitter.Api(consumer_key=self.args['consumer_key'],
-                                 consumer_secret=self.args['consumer_secret'],
-                                 access_token_key=self.args['access_token'],
-                                 access_token_secret=self.args['access_token_secret'])
+            self.api = twitter.Api(consumer_key=self.args['CONSUMER_KEY'],
+                                 consumer_secret=self.args['CONSUMER_SECRET'],
+                                 access_token_key=self.args['ACCESS_TOKEN'],
+                                 access_token_secret=self.args['ACCESS_TOKEN_SECRET'])
     def getImage(self):
         """
             @yield media
@@ -128,32 +123,15 @@ class tweetbot(object):
 def main():
     """
         parse
-            must twitter auth params
     """
     parser = argparse.ArgumentParser(prog='tweetbot',
                                      description='FEZ Unofficial Total War Ranking TwitterBot')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
-    parser.add_argument('--consumer_key', '-ck', help='Twitter Apps Auth set consumer_key')
-    parser.add_argument('--consumer_secret', '-cs', help='Twitter Apps Auth set consumer_secret')
-    parser.add_argument('--access_token', '-at', help='Twitter Apps Auth set access_token')
-    parser.add_argument('--access_token_secret', '-ats', help='Twitter Apps Auth set access_token_secret')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.2')
     parser.add_argument('--debug', default=True)
     
     logger.info('START')
     args = parser.parse_args()
-    
-    dic_auth = dict()
-    dic_auth['consumer_key'] = args.consumer_key
-    dic_auth['consumer_secret'] = args.consumer_secret
-    dic_auth['access_token'] = args.access_token 
-    dic_auth['access_token_secret'] = args.access_token_secret
-    if twitter_auth is not None:
-        dic_auth['consumer_key'] = twitter_auth['AUTH']['CONSUMER_KEY']
-        dic_auth['consumer_secret'] = twitter_auth['AUTH']['CONSUMER_SECRET']
-        dic_auth['access_token'] = twitter_auth['AUTH']['ACCESS_TOKEN']
-        dic_auth['access_token_secret'] = twitter_auth['AUTH']['ACCESS_TOKEN_SECRET']
-     
-    bot = tweetbot(dic_auth)
+    bot = tweetbot(twitter_auth_keys)
     bot.download.request()
     for media in bot.getImage():
         logger.info('tweet media:{0}'.format(media))
