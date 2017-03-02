@@ -4,7 +4,7 @@ import os
 import cv2
 from pathlib import Path
 # Myapp library
-from dataProcessor import DataProcessor, ImageType
+from dataprocessor import DataProcessor, ImageType
 
 class Clipping(object):
     def __init__(self, media, target=None):

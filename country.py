@@ -12,7 +12,7 @@ import cv2
 # Myapp library
 from classifier import Classifier
 from ocrengine import OCREngine
-from dataProcessor import DataProcessor, ImageType
+from dataprocessor import DataProcessor, ImageType
 
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
