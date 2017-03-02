@@ -12,13 +12,20 @@
 *.lnk
 /*.png
 *.prof
+
 # =========================
-# Directory
-#   backup
+# Current Directory
+# =========================
+/backup
+
+# =========================
+# ALL Directory
+#   python cache
 #   spyder project
 # =========================
-backup
+__pycache__
 .spyproject
+
 # =========================
 !requirements.txt
 !.gitignore
