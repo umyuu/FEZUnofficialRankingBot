@@ -13,7 +13,7 @@ logger = getLogger('myapp.tweetbot')
 
 class download(object):
     def __init__(self, config):
-        self.data = config['WORK_FOLDER']['UPLOAD']
+        self.dataDir = config['WORK_DIRECTORY']['UPLOAD']
         self.user_agent = config['DOWNLOAD']['USER_AGENT'];
         self.file_list = config['DOWNLOAD']['FILE_LIST']
         self.file_list_encoding = config['DOWNLOAD']['FILE_LIST_ENCODING']
@@ -83,13 +83,13 @@ class download(object):
         r = requests.get(address, headers=headers)
         contentType = r.headers['content-type']
         logger.info('content-type:{0},decode:{1}'.format(contentType, self.getSuffix(contentType)))
-        with tempfile.NamedTemporaryFile(dir=self.data, delete=False) as temp:
+        with tempfile.NamedTemporaryFile(dir=self.dataDir, delete=False) as temp:
             temp.write(r.content)
             temp_file_name = temp.name
             if len(basename) == 0:
                 logger.warning('create_filename:{0}'.format(os.path.basename(temp.name)))
                 basename = os.path.basename(temp_file_name) + self.getSuffix(contentType)
-            p = Path(self.data, basename)
+            p = Path(self.dataDir, basename)
             p = self.sequential(p)
             
         os.replace(temp_file_name, str(p))

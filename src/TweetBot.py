@@ -24,6 +24,9 @@ def loadConfig(path, encoding='utf-8-sig'):
     return c
 
 config = loadConfig('../resource/setting.ini')
+os.makedirs(config['WORK_DIRECTORY']['UPLOAD'], exist_ok=True)
+os.makedirs(config['WORK_DIRECTORY']['BACKUP'], exist_ok=True)
+
 twitter_auth = loadConfig(config['AUTH']['TWITTER'])
 #Set Twitter Apps Auth Keys
 twitter_auth_keys = dict()
@@ -36,10 +39,10 @@ class tweetbot(object):
         self.api = None;
         self.__download = download.download(config)
         self.__country = country.country(config)
-        self.upload = config['WORK_FOLDER']['UPLOAD']
-        self.images = config['WORK_FOLDER']['images']
+        self.uploadDir = config['WORK_DIRECTORY']['UPLOAD']
+        self.backupDir = config['WORK_DIRECTORY']['BACKUP']
         self.dtNow = datetime.now()
-        self.upload_file_suffixes = config['WORK_FOLDER']['SUFFIXES'].split('|')
+        self.upload_file_suffixes = config['WORK_DIRECTORY']['SUFFIXES'].split('|')
         self.upload_max_file_size = int(config['UPLOAD']['MAX_FILESIZE'])
         self.tweet_format = config['TWEET']['FORMAT']
         self.tweet_datefmt = config['TWEET']['DATEFMT']
@@ -62,7 +65,7 @@ class tweetbot(object):
             @yield media
         """
         for ext in self.upload_file_suffixes:
-            for media in glob.iglob(os.path.join(self.upload, ext)):
+            for media in glob.iglob(os.path.join(self.uploadDir, ext)):
                 # upload fileSize limit
                 size = os.path.getsize(media)
                 if size > self.upload_max_file_size:
@@ -113,7 +116,7 @@ class tweetbot(object):
              dst:[images\YYYYmmddHHMM_]FileName.extensions
         """
         try:
-            newFile = os.path.join(self.images, self.getFilePrefix() + os.path.basename(file))
+            newFile = os.path.join(self.backupDir, self.getFilePrefix() + os.path.basename(file))
             os.replace(file, newFile)
             logger.info('backup:{0}'.format(newFile))
         except Exception as ex:
