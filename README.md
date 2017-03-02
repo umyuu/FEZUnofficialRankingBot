@@ -31,6 +31,8 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
 
 3. Python Run Script.
 
+     `cd src`
+     
      `python TweetBot.py -ck [consumer_key] -cs [consumer_secret] -at [access_token] -ats [access_token_secret]`
 
 ## Dependencies
