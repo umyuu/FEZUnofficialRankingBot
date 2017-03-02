@@ -1,6 +1,7 @@
 # FEZ Unofficial Ranking Bot [GitHub](https://github.com/umyuu/FEZUnofficialRankingBot)
 FEZ 非公式な国家総力戦ランキングTwitterボット
 
+ランキング画像をダウンロードして1位/2位の国名とポイントをツイート
 ## Install
 1. [download a ZIP](https://github.com/umyuu/FEZUnofficialRankingBot/archive/master.zip) file.
 2. Dependencies installs.
@@ -22,6 +23,7 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
          download  Model file to install Tesseract-OCR Directory. Tesseract-OCR\tessdata\
 
          defalut Directory. C:\Program Files (x86)\Tesseract-OCR\tessdata
+
 ## Setup
 1. Twitter Auth Settings.
  1. [Create New App Keys.](https://apps.twitter.com)
