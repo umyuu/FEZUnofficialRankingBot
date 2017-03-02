@@ -2,14 +2,12 @@
 FEZ 非公式な国家総力戦ランキングTwitterボット
 
 ## Install
-[download a ZIP](https://github.com/umyuu/FEZUnofficialRankingBot/archive/master.zip) file.
-
-## Setup
-1. Dependencies installs.
- 1. requirements install.
+1. [download a ZIP](https://github.com/umyuu/FEZUnofficialRankingBot/archive/master.zip) file.
+2. Dependencies installs.
+ 1. [requirements install.](requirements.txt)
 
         `pip install -r requirements.txt`
- 2. opencv install. 
+ 2. opencv3 install. 
 
          `conda install --channel https://conda.anaconda.org/menpo opencv3`
     
@@ -24,8 +22,8 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
          download  Model file to install Tesseract-OCR Directory. Tesseract-OCR\tessdata\
 
          defalut Directory. C:\Program Files (x86)\Tesseract-OCR\tessdata
-
-2. Twitter Auth Settings.
+## Setup
+1. Twitter Auth Settings.
  1. [Create New App Keys.](https://apps.twitter.com)
  2. create twitter.ini file.
  
@@ -36,7 +34,7 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
      2. Please edit and save twitter.ini with texteditor.
      
         consumer_key, consumer_secret, access_token, access_token_secret
-3. Python Run Script.
+2. Python Run Script.
 
      `cd src`
      
