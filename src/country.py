@@ -111,7 +111,7 @@ class country(object):
 
 def main():
     config = configparser.ConfigParser()
-    with open('../setting.ini', 'r', encoding='utf-8-sig') as f:
+    with open('../resource/setting.ini', 'r', encoding='utf-8-sig') as f:
         config.read_file(f)
     c = country(config)
     # benchMark
