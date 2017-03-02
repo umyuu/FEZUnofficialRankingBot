@@ -26,7 +26,7 @@ def loadConfig(path, encoding='utf-8-sig'):
 config = loadConfig('../setting.ini')
 twitter_auth = None
 try:
-    twitter_auth = loadConfig('../twitter_auth.ini')
+    twitter_auth = loadConfig('../auth/twitter_auth.ini')
     auth_params = ['CONSUMER_KEY','CONSUMER_SECRET','ACCESS_TOKEN','ACCESS_TOKEN_SECRET']
     for p in auth_params:
         if len(twitter_auth['AUTH'][p]) == 0:
