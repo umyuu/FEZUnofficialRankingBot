@@ -23,7 +23,7 @@ def loadConfig(path, encoding='utf-8-sig'):
         c.read_file(f)
     return c
 
-config = loadConfig('../setting.ini')
+config = loadConfig('../resource/setting.ini')
 twitter_auth = None
 try:
     twitter_auth = loadConfig('../auth/twitter_auth.ini')
