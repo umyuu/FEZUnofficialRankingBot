@@ -85,7 +85,7 @@ def main():
     parser = argparse.ArgumentParser(prog='adaptiveThreshold',
                                      description='AdaptiveThreshold Simulator')
     parser.add_argument('--version', action='version', version='%(prog)s 0.0.3')
-    parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
+    parser.add_argument('--image', '-in', default='../resource/Netzawar.png')
     parser.add_argument('--delay', '-d', default='100')
     args = parser.parse_args()
     

@@ -206,7 +206,7 @@ def main():
     parser = argparse.ArgumentParser(prog='hsvmask',
                                      description='HSV ColorMask Simulator')
     parser.add_argument('--version', action='version', version='%(prog)s {0}'.format(APP_VERSION))
-    parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
+    parser.add_argument('--image', '-in', default='../resource/Netzawar.png')
     args = parser.parse_args()
     print('args:{0}'.format(args))
     with Application() as app:

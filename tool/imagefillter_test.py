@@ -89,7 +89,7 @@ def main():
     parser = argparse.ArgumentParser(prog='ImageFilter',
                                      description='ImageFilter Simulator')
     parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
-    parser.add_argument('--image', '-in', default='../dat/Netzawar.png')
+    parser.add_argument('--image', '-in', default='../resource/Netzawar.png')
     args = parser.parse_args()
     print('args:{0}'.format(args))
     
