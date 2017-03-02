@@ -12,6 +12,7 @@
 *.lnk
 *.png
 *.prof
+twitter.auth
 # =========================
 # Directory
 #   backup
