@@ -10,7 +10,7 @@
 *.txt
 *.bat
 *.lnk
-*.png
+/*.png
 *.prof
 # =========================
 # Directory
