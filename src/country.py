@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
 class country(object):
     def __init__(self, config):
-        self.hints = config['WORK_FOLDER']['HINTS']
+        self.hints = config['WORK_DIRECTORY']['HINTS']
         d = dict()
         names = config['COUNTRY']['NAMES'].split('|')
         for ele in names:
