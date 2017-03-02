@@ -3,7 +3,7 @@
 import pyocr
 import pyocr.builders
 from PIL import Image
-class DocumentBase(object):
+class DocumentCore(object):
     def __init__(self, document):
         self.document = document
     
@@ -19,8 +19,7 @@ class OCRDocument(object):
         d = dict()
         d['name'] = self.document[index]
         d['score'] = self.document[index + 5]
-        return d
-
+        return d   
 class OCRText(object):
     def __init__(self, document):
         self.document = document
