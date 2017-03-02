@@ -12,7 +12,7 @@ import download
 import country
 
 config = configparser.ConfigParser()
-with open('./setting.ini', 'r', encoding='utf-8-sig') as f:
+with open('../setting.ini', 'r', encoding='utf-8-sig') as f:
     config.read_file(f)
 # console output
 logger = getLogger('myapp.tweetbot')

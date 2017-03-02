@@ -121,13 +121,13 @@ class country(object):
 
 def main():
     config = configparser.ConfigParser()
-    with open('./setting.ini', 'r', encoding='utf-8-sig') as f:
+    with open('../setting.ini', 'r', encoding='utf-8-sig') as f:
         config.read_file(f)
     c = country(config)
     # benchMark
-    ele = ['./backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
-        #    './backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
-        #     './backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
+    ele = ['../backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
+        #    '../backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
+        #     '../backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
         ] * 2
     for l in ele:
         logger.info(l)
