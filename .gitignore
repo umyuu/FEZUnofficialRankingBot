@@ -12,7 +12,6 @@
 *.lnk
 *.png
 *.prof
-twitter.auth
 # =========================
 # Directory
 #   backup
@@ -25,3 +24,4 @@ __pycache__
 # =========================
 !requirements.txt
 !.gitignore
+twitter.auth
