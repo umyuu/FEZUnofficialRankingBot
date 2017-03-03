@@ -7,9 +7,9 @@
 #   png
 # cProfile output
 # =========================
-*.txt
-*.bat
-*.lnk
+/*.txt
+/*.bat
+/*.lnk
 /*.png
 *.prof
 
