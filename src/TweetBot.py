@@ -5,9 +5,9 @@ import argparse
 from datetime import datetime
 import os
 import glob
-# library
+#
 import twitter
-# Myapp library
+#
 import download
 import country
 

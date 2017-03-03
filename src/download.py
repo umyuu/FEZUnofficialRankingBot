@@ -6,7 +6,7 @@ import tempfile
 import re
 from pathlib import Path
 import functools
-# library
+#
 import requests
 
 logger = getLogger('myapp.tweetbot')

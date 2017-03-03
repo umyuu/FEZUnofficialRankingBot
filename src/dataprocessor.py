@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from enum import Enum, unique
-# library
+#
 import cv2
-# Myapp library
+#
 from hsvcolor import HSVcolor
 from iimagefillter import GrayScaleFilter, AdaptiveThresholdFilter, IImageFilter, ImageStream
 

@@ -5,11 +5,10 @@ import os
 import tempfile
 import glob
 import functools
-
 from pathlib import Path
-# library
+#
 import cv2
-# Myapp library
+#
 from classifier import Classifier
 from ocrengine import OCREngine
 from dataprocessor import DataProcessor, ImageType
