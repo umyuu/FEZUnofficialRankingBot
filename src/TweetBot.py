@@ -23,18 +23,8 @@ def loadConfig(path, encoding='utf-8-sig'):
         c.read_file(f)
     return c
 
-config = loadConfig('../resource/setting.ini')
-os.makedirs(config['WORK_DIRECTORY']['UPLOAD'], exist_ok=True)
-os.makedirs(config['WORK_DIRECTORY']['BACKUP'], exist_ok=True)
-
-twitter_auth = loadConfig(config['AUTH']['TWITTER'])
-#Set Twitter Apps Auth Keys
-twitter_auth_keys = dict()
-for key_name in ['CONSUMER_KEY', 'CONSUMER_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET']:
-    twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
-
 class tweetbot(object):
-    def __init__(self, args):
+    def __init__(self, config, args):
         self.args = args;
         self.api = None;
         self.__download = download.download(config)
@@ -134,7 +124,18 @@ def main():
     
     logger.info('START')
     args = parser.parse_args()
-    bot = tweetbot(twitter_auth_keys)
+    
+    config = loadConfig('../resource/setting.ini')
+    os.makedirs(config['WORK_DIRECTORY']['UPLOAD'], exist_ok=True)
+    os.makedirs(config['WORK_DIRECTORY']['BACKUP'], exist_ok=True)
+
+    twitter_auth = loadConfig(config['AUTH']['TWITTER'])
+    #Set Twitter Apps Auth Keys
+    twitter_auth_keys = dict()
+    for key_name in ['CONSUMER_KEY', 'CONSUMER_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET']:
+        twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
+    
+    bot = tweetbot(config, twitter_auth_keys)
     bot.download.request()
     for media in bot.getImage():
         logger.info('tweet media:{0}'.format(media))
