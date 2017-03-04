@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-    run script tweetbot.py 
+    run script tweetbot.py
 """
 import os
+import sys
+import platform
 import subprocess
 
 class RCD(object):
@@ -33,7 +35,8 @@ class Alarm(object):
         """
             windows command timeout /T
         """
-        subprocess.call('timeout /T {0}'.format(self.timeout))
+        if platform.system() == 'Windows':
+            subprocess.call('timeout /T {0}'.format(self.timeout))
         return self
 
 if __name__ == "__main__":
@@ -41,7 +44,9 @@ if __name__ == "__main__":
         os.chdir(os.path.join(os.getcwd(), 'src'))
         Alarm(15).wait()
         try:
-            subprocess.call('python tweetbot.py')
+            ARGUMENT = ['python', 'tweetbot.py']
+            ARGUMENT.extend(sys.argv[1:])
+            subprocess.call(ARGUMENT)
         except KeyboardInterrupt as ex:
             print(ex)
         Alarm(60).wait()

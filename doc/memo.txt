@@ -26,12 +26,11 @@
 │ └ test_example…  … test suite.
 │
 ├ tool/            … A little tool.
-├ □tweet.bat       … Run Script (os Windows)
 ├ DownloadList.txt … HTTP GET File List.
 ├ LICENSE          … Source code License Text.
 ├ README.md        … GitHub README.md
-└ requirements.txt … use pip -r Text.
-
+├ requirements.txt … use pip -r Text.
+└ tweet.py         … Script Run.
 
 ------------------------------------------------------------
 □Program Flow.
