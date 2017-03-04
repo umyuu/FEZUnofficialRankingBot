@@ -64,7 +64,7 @@ class CoreApp(tk.Frame):
         self.master.title(title)
     def __enter__(self):
         return self
-    def __exit__(self, exception_type, exception_value	, traceback):
+    def __exit__(self, exception_type, exception_value, traceback):
         self.onApplicationExit()
 class Application(CoreApp):
     def __init__(self, master=None):
