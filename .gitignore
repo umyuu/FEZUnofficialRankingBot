@@ -30,3 +30,4 @@ __pycache__
 # =========================
 !requirements.txt
 !.gitignore
+!□tweet.bat
