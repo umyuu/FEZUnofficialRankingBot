@@ -2,6 +2,7 @@
 import sys
 import os
 
-testPath = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-if not (testPath in sys.path):
-    sys.path.insert(0, testPath)
+basePath = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+for path in [basePath , os.path.join(basePath, 'src')]:
+    if not (path in sys.path):
+        sys.path.insert(0, path)
