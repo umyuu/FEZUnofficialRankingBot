@@ -38,9 +38,7 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
         consumer_key, consumer_secret, access_token, access_token_secret
 2. Python Run Script.
 
-     `cd src`
-     
-     `python TweetBot.py`
+    `python tweet.py`
 
 ## Dependencies
 - python 3.5+
