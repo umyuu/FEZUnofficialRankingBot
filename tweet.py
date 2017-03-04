@@ -6,6 +6,7 @@ import os
 import sys
 import platform
 import subprocess
+import shutil
 
 class RCD(object):
     """
@@ -39,7 +40,40 @@ class Alarm(object):
             subprocess.call('timeout /T {0}'.format(self.timeout))
         return self
 
+class Settings(object):
+    def __init__(self):
+        self.baseDir = './resource'
+        self.filename = 'twitter.ini'
+        self.src = os.path.join(self.baseDir, 'sample', self.filename)
+        self.dst = os.path.join(self.baseDir, 'auth', self.filename)
+    def isCheckSize(self):
+        return os.path.getsize(self.dst) >= 150
+    def initialize(self):
+        if not self.copy():
+            return
+        self.confirm()
+    def copy(self):
+        if not os.path.isfile(self.dst):
+            shutil.copy(self.src, self.dst)
+            return True
+        if self.isCheckSize():
+            return False
+        return True
+    def confirm(self):
+        message = 'Please edit\n file:{0}'.format(self.dst)
+        print(message)
+        while True:
+            key = input('(Y/N)>').upper()
+            if key != 'Y':
+                continue
+            if not self.isCheckSize():
+                print(message)
+                continue
+            break
+
 if __name__ == "__main__":
+    s = Settings()
+    s.initialize()
     with RCD():
         os.chdir(os.path.join(os.getcwd(), 'src'))
         Alarm(15).wait()
