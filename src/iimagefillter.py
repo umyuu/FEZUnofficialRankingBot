@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
-# library
+#
 import cv2
 
 class IImageFilter(metaclass=ABCMeta):

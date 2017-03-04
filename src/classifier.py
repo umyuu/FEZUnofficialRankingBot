@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from collections import OrderedDict
-# library
+#
 import cv2
 
 class Classifier(object):

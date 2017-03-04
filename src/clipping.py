@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-# library
+#
 import os
 import cv2
 from pathlib import Path
-# Myapp library
+#
 from dataprocessor import DataProcessor, ImageType
 
 class Clipping(object):
