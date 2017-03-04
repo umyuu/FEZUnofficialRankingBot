@@ -41,39 +41,55 @@ class Alarm(object):
         return self
 
 class Settings(object):
+    """
+        twitter.ini filecopy & edit confirm
+    """
     def __init__(self):
-        self.baseDir = './resource'
+        self.basedir = './resource'
         self.filename = 'twitter.ini'
-        self.src = os.path.join(self.baseDir, 'sample', self.filename)
-        self.dst = os.path.join(self.baseDir, 'auth', self.filename)
-    def isCheckSize(self):
+        self.src = os.path.join(self.basedir, 'sample', self.filename)
+        self.dst = os.path.join(self.basedir, 'auth', self.filename)
+    def ischecksize(self):
+        """
+            twitter.ini sample file size 120.
+        """
         return os.path.getsize(self.dst) >= 150
     def initialize(self):
+        """
+            copy & confirm
+        """
         if not self.copy():
             return
         self.confirm()
     def copy(self):
+        """
+            sample file copy.
+            exits file size check.
+        """
         if not os.path.isfile(self.dst):
             shutil.copy(self.src, self.dst)
             return True
-        if self.isCheckSize():
+        if self.ischecksize():
             return False
         return True
     def confirm(self):
+        """
+            edit confirm.
+        """
         message = 'Please edit\n file:{0}'.format(self.dst)
         print(message)
         while True:
             key = input('(Y/N)>').upper()
-            if key != 'Y':
+            if not key.startswith('Y'):
                 continue
-            if not self.isCheckSize():
+            if not self.ischecksize():
                 print(message)
                 continue
             break
 
 if __name__ == "__main__":
-    s = Settings()
-    s.initialize()
+    S = Settings()
+    S.initialize()
     with RCD():
         os.chdir(os.path.join(os.getcwd(), 'src'))
         Alarm(15).wait()
