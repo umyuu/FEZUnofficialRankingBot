@@ -1,4 +1,6 @@
+------------------------------------------------------------
 □Directory Deploy
+------------------------------------------------------------
 ./
 ├ doc/             … document
 │  └ MEMO.txt     … It is a file that is open now.
@@ -14,19 +16,25 @@
 ├ resource/        … configs
 │  ├ auth/
 │  │  └ twitter.ini  … twitter auth 
-│  ├ sample/          … sample auth file
-│  │  └ twitter.ini
-│  └ setting.ini  … 
+│  ├ sample/         
+│  │  └ twitter.ini … sample twitter auth file.
+│  └ setting.ini  … main setting.
 │
 ├ src/             … source code.
-├ test/            … unittest code. (The contents of the Directory is empty)
+├ test/            … unittest. (pytest use)
+│ ├ conftest.py    … pytest setting files.
+│ └ test_example…  … test suite.
+│
 ├ tool/            … A little tool.
 ├ DownloadList.txt … HTTP GET File List.
 ├ LICENSE          … Source code License Text.
 ├ README.md        … GitHub README.md
 └ requirements.txt … use pip -r Text.
 
+
+------------------------------------------------------------
 □Program Flow.
+------------------------------------------------------------
 1, FileDownload.
     i, DownloadList.txt contents HTTP GET to images/upload.
 2, TWEET.
