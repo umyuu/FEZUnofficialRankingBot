@@ -26,19 +26,18 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
 
 ## Setup
 1. Twitter Auth Settings.
- 1. [Create New App Keys.](https://apps.twitter.com)
- 2. create twitter.ini file.
- 
-     1. sample filecopy.
-     
-        `copy resource\sample\twitter.ini resource\auth`
-     
-     2. Please edit and save twitter.ini with texteditor.
-     
-        consumer_key, consumer_secret, access_token, access_token_secret
+
+    [Create New App Keys.](https://apps.twitter.com)
+
 2. Python Run Script.
 
-    `python tweet.py`
+   `python tweet.py`
+
+     1. resource\auth\twitter.ini Not Found.
+
+        Please edit and save file with texteditor.
+
+          `consumer_key, consumer_secret, access_token, access_token_secret`
 
 ## Dependencies
 - python 3.5+

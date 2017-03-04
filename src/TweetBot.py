@@ -38,6 +38,7 @@ class tweetbot(object):
         self.tweet_datefmt = config['TWEET']['DATEFMT']
         self.tweet_screen_name = config['TWEET']['SCREEN_NAME']
         self.tweet_limit = int(config['TWEET']['LIMIT'])
+        self.isTweet = True
     @property
     def download(self):
         return self.__download
@@ -79,9 +80,7 @@ class tweetbot(object):
             for i, contry in enumerate([ranks.rank1, ranks.rank2], start=1):
                 text += str(i) + '位:{name} {score} point\n'.format_map(contry)
             
-            isTweet = False
-            isTweet = True
-            if isTweet:
+            if self.isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
                 logger.info('tweet')
@@ -122,7 +121,7 @@ def main():
     parser.add_argument('--version', action='version', version='%(prog)s 0.0.2')
     parser.add_argument('--debug', default=True)
     
-    logger.info('START')
+    logger.info('Program START')
     args = parser.parse_args()
     
     config = loadConfig('../resource/setting.ini')
@@ -136,13 +135,14 @@ def main():
         twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
     
     bot = tweetbot(config, twitter_auth_keys)
+    #bot.isTweet = False
     bot.download.request()
     for media in bot.getImage():
         logger.info('tweet media:{0}'.format(media))
         bot.tweet(media)
         #bot.deletetweet()
         bot.backup(media)
-        logger.info('END')
+    logger.info('Program END')
     
 if __name__ == "__main__":
     main()
