@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger, StreamHandler, DEBUG
-# library
+#
 import pyocr
 import pyocr.builders
 from PIL import Image

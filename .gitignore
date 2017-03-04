@@ -14,18 +14,19 @@
 *.prof
 
 # =========================
-# Current Directory
+# Current Directory.
 # =========================
 /backup
 
 # =========================
-# ALL Directory
+# ALL Directory.
 #   python cache
 #   spyder project
+#   pytest cache
 # =========================
 __pycache__
 .spyproject
-
+.cache
 # =========================
 !requirements.txt
 !.gitignore
