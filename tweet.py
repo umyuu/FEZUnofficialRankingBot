@@ -8,7 +8,7 @@ import platform
 import subprocess
 import shutil
 
-class RCD(object):
+class RestoreCD(object):
     """
         with statement.
         implements Restore　Current Diretory.
@@ -90,7 +90,7 @@ class Settings(object):
 if __name__ == "__main__":
     S = Settings()
     S.initialize()
-    with RCD():
+    with RestoreCD():
         os.chdir(os.path.join(os.getcwd(), 'src'))
         Alarm(15).wait()
         try:
