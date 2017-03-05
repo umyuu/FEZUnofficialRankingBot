@@ -95,7 +95,7 @@ class country(object):
              temp_file_name = temp.name
              logger.info(temp_file_name)
              cv2.imwrite(temp_file_name, batch)
-        
+        # todo: temp_file_name delete file
         return ocr.recognize(temp_file_name)
 
 def main():
