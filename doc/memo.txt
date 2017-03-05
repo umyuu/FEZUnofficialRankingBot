@@ -18,6 +18,7 @@
 │  │  └ twitter.ini  … twitter auth 
 │  ├ sample/         
 │  │  └ twitter.ini … sample twitter auth file.
+│  ├ ocr.json     … ocr translate rule. 
 │  └ setting.ini  … main setting.
 │
 ├ src/             … source code.

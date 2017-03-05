@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger, StreamHandler, DEBUG
-import configparser
 import os
 import tempfile
 import glob
@@ -9,6 +8,7 @@ from pathlib import Path
 #
 import cv2
 #
+import serializer
 from classifier import Classifier
 from ocrengine import OCREngine
 from dataprocessor import DataProcessor, ImageType
@@ -96,22 +96,10 @@ class country(object):
              logger.info(temp_file_name)
              cv2.imwrite(temp_file_name, batch)
         
-        document = ocr.recognize(temp_file_name)
-        document.dump()
-
-        return document
-    def getNumber(self, src):
-        (keypoints, descriptors) = self.__cachedetect(src, ImageType.NUMBER)
-        if keypoints is None:
-            return None
-        d3 = self.numberclassifier.predict(descriptors, top_n=100)
-        #logger.info(d3)
-        return d3
+        return ocr.recognize(temp_file_name)
 
 def main():
-    config = configparser.ConfigParser()
-    with open('../resource/setting.ini', 'r', encoding='utf-8-sig') as f:
-        config.read_file(f)
+    config = serializer.load_ini('../resource/setting.ini')
     c = country(config)
     # benchMark
     ele = ['../backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
@@ -120,7 +108,7 @@ def main():
         ] * 2
     for l in ele:
         logger.info(l)
-        ranks = c.getCountry(l)
-        logger.info(ranks)
+        ranking = c.getCountry(l)
+        logger.info(ranking)
 if __name__ == "__main__":
     main()

@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+import os
+#
 import pytest
-
-from src import TweetBot
+#
+import serializer
 
 class TestClass(object):
     def test_loadSettingFile(self):
-        config = TweetBot.loadConfig('../resource/setting.ini')
-        twitter_auth = TweetBot.loadConfig(config['AUTH']['TWITTER'])
-
+        basepath = '../resource/'
+        config = serializer.load_ini(os.path.join(basepath, 'setting.ini'))
+        serializer.load_ini(config['AUTH']['TWITTER'])
+        serializer.load_json(os.path.join(basepath, 'ocr.json'))
 if __name__ == '__main__':
     pytest.main("--capture=sys")
