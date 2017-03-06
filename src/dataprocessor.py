@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
+from logging import getLogger
 from enum import Enum, unique
+from pathlib import Path
+import tempfile
 #
 import cv2
 #
 from hsvcolor import HSVcolor
 from iimagefillter import GrayScaleFilter, AdaptiveThresholdFilter, IImageFilter, ImageStream
+
+logger = getLogger('myapp.tweetbot')
 
 @unique
 class ImageType(Enum):
@@ -121,3 +126,14 @@ class DataProcessor(object):
         stream.addFilter(AdaptiveThresholdFilter())
         stream.addFilter(AppImageFilter(self.image_type, self.hsv))
         return stream.tofiltered()
+    def save_tempfile(self, binary):
+        """
+            save temporary image file.
+        """
+        baseName = Path(self.name)
+        temp_file_name = ''
+        with tempfile.NamedTemporaryFile(delete=False, suffix=baseName.suffix) as temp:
+             temp_file_name = temp.name
+             logger.info(temp_file_name)
+             cv2.imwrite(temp_file_name, binary)
+        return temp_file_name
