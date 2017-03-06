@@ -12,7 +12,7 @@ import twitter
 #
 import serializer
 import download
-import country
+import ranking
 
 # console output
 logger = getLogger('myapp.tweetbot')
@@ -30,7 +30,7 @@ class TweetBot(object):
         self.args = args
         self.api = None
         self.__download = download.Download(config)
-        self.__country = country.country(config)
+        self.__ranking = ranking.Ranking(config)
         self.uploadDir = config['WORK_DIRECTORY']['UPLOAD']
         self.backupDir = config['WORK_DIRECTORY']['BACKUP']
         self.dtnow = datetime.now()
@@ -53,8 +53,8 @@ class TweetBot(object):
     def download(self):
         return self.__download
     @property
-    def country(self):
-        return self.__country
+    def ranking(self):
+        return self.__ranking
     def twitter_init(self):
         """
             twitter api constractor.
@@ -84,7 +84,7 @@ class TweetBot(object):
             @params media uploadFile
         """
         try:
-            ranking = self.country.getCountry(media)
+            ranking = self.ranking.getResult(media)
             if ranking is None:
                 logger.warning('OCR Error')
                 return
