@@ -3,7 +3,6 @@
     tweetbot main code.
 """
 from logging import getLogger, StreamHandler, DEBUG
-import configparser
 import argparse
 from datetime import datetime
 import os
@@ -38,6 +37,13 @@ class tweetbot(object):
         self.tweet_screen_name = config['TWEET']['SCREEN_NAME']
         self.tweet_limit = int(config['TWEET']['LIMIT'])
         self.isTweet = True
+        self.initialize()
+    def initialize(self):
+        """
+            create working directory.
+        """
+        os.makedirs(self.uploadDir, exist_ok=True)
+        os.makedirs(self.backupDir, exist_ok=True)
     @property
     def download(self):
         return self.__download
@@ -127,9 +133,6 @@ def main():
     args = parser.parse_args()
     
     config = serializer.load_ini('../resource/setting.ini')
-    os.makedirs(config['WORK_DIRECTORY']['UPLOAD'], exist_ok=True)
-    os.makedirs(config['WORK_DIRECTORY']['BACKUP'], exist_ok=True)
-
     twitter_auth = serializer.load_ini(config['AUTH']['TWITTER'])
     #Set Twitter Apps Auth Keys
     twitter_auth_keys = dict()
@@ -137,7 +140,7 @@ def main():
         twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
 
     bot = tweetbot(config, twitter_auth_keys)
-    #bot.isTweet = False
+    bot.isTweet = False
     bot.download.request()
     for media in bot.getImage():
         logger.info('tweet media:%s', media)

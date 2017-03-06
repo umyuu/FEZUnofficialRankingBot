@@ -7,27 +7,43 @@
 """
 import json
 import configparser
+import csv
 
 def load_json(filename, encoding='utf-8-sig'):
     """
-        filed load json data
+        load json data
         @params filename load path.
                 encoding file encoding
-        @return json data
+        @return data
     """
     json_data = dict()
-    with open(filename, encoding=encoding) as file:
+    with open(filename, 'r', encoding=encoding) as file:
         json_data = json.load(file)
     return json_data
 
 def load_ini(filename, encoding='utf-8-sig'):
     """
-        load configure.
+        load ini data.
         @params filename load path.
                 encoding file encoding.
-        @return ini data
+        @return data
     """
     config = configparser.ConfigParser()
     with open(filename, 'r', encoding=encoding) as file:
         config.read_file(file)
     return config
+
+def load_csv(filename, encoding='utf-8-sig'):
+    """
+        load csv data.
+        @params filename load path.
+                encoding file encoding.
+        @return data
+    """
+    csv_data = []
+    with open(filename, 'r', encoding=encoding) as file:
+        reader = csv.reader(file)
+        #header = next(reader)
+        for row in reader:
+            csv_data.append(row)
+    return csv_data
