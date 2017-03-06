@@ -19,7 +19,7 @@
 │  ├ sample/         
 │  │  └ twitter.ini … sample twitter auth file.
 │  ├ ocr.json     … ocr translate rule. 
-│  └ setting.ini  … main setting.
+│  └ setting.json  … application setting file.
 │
 ├ src/             … source code.
 ├ test/            … unittest. (pytest use)

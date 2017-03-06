@@ -20,15 +20,9 @@ if __name__ == "__main__":
     logger.setLevel(DEBUG)
     logger.addHandler(handler)
 
-class country(object):
+class Ranking(object):
     def __init__(self, config):
         self.hints = config['WORK_DIRECTORY']['HINTS']
-        d = dict()
-        names = config['COUNTRY']['NAMES'].split('|')
-        for ele in names:
-            c = ele.split(":")
-            d[c[0]] = c[1]
-        self.names = d
         self.detector = cv2.AKAZE_create()
         self.classifier = Classifier()
         self.numberclassifier = Classifier()
@@ -75,9 +69,9 @@ class country(object):
         else:
             cv2.imwrite('./binary_{0}'.format(os.path.basename(media)), batch)
         return self.detector.detectAndCompute(batch, None)
-    def getCountry(self, src):
+    def getResult(self, src):
         """
-            @return country list
+            @return OCRDocument
         """
         #(keypoints, descriptors) = self.__cachedetect(src, ImageType.RAW)
         #if keypoints is None:
@@ -102,8 +96,8 @@ class country(object):
         return doucument
 
 def main():
-    config = serializer.load_ini('../resource/setting.ini')
-    c = country(config)
+    config = serializer.load_json('../resource/setting.json')
+    r = Ranking(config)
     # benchMark
     ele = ['../backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
         #    '../backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
@@ -111,7 +105,7 @@ def main():
         ] * 2
     for l in ele:
         logger.info(l)
-        ranking = c.getCountry(l)
+        ranking = r.getResult(l)
         logger.info(ranking)
 if __name__ == "__main__":
     main()

@@ -38,11 +38,11 @@ class CanvesFillFilter(IImageFilter):
         super().__init__('CanvesFillFilter')
     def filtered(self, stream):
         height, width = stream.shape[:2]
-        cv2.rectangle(stream, (0, min(self.widthLimit, height)), (width,height), (0,0,0), -1)
+        cv2.rectangle(stream, (0, min(self.widthLimit, height)), (width, height), (0 , 0, 0), -1)
         return stream
 
 class ImageStream(object):
-    __slots__ = ['filters','data']
+    __slots__ = ['filters', 'data']
     def __init__(self):
         self.filters = []
         self.data = None

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+    download.py
+"""
 from logging import getLogger
 import os
 import sys
@@ -11,12 +14,18 @@ import requests
 
 logger = getLogger('myapp.tweetbot')
 
-class download(object):
+class Download(object):
+    """
+        Download　Links.
+            DownloadList.txt
+        use requests#get
+    """
     def __init__(self, config):
         self.dataDir = config['WORK_DIRECTORY']['UPLOAD']
-        self.user_agent = config['DOWNLOAD']['USER_AGENT'];
-        self.file_list = config['DOWNLOAD']['FILE_LIST']
-        self.file_list_encoding = config['DOWNLOAD']['FILE_LIST_ENCODING']
+        self.user_agent = config['DOWNLOAD']['USER_AGENT']
+        file_list = config['DOWNLOAD']['FILE_LIST']
+        self.file_list = file_list['NAME']
+        self.file_list_encoding = file_list['ENCODING']
         self.comp = re.compile(r'/(\w+);?')
         self.htmllink = None
     def requestList(self):
@@ -31,7 +40,7 @@ class download(object):
                     continue
                 if self.htmllink is not None:
                     link = self.htmllink
-                    self.htmllink = None;
+                    self.htmllink = None
                     yield link
                 yield text
     @functools.lru_cache(maxsize=4)
@@ -60,7 +69,7 @@ class download(object):
             self.get(address, headers)
 
         if count == 0:
-            logger.warning('input:{0} Empty'.format(self.file_list))
+            logger.warning('input:%s Empty', self.file_list)
     def sequential(self, file):
         """
             exsample)exists file
@@ -69,7 +78,7 @@ class download(object):
                 exsample(2).png
                 exsample(n).png
         """
-        i = 0;
+        i = 0
         basePath = file
         while file.exists():
             i += 1
@@ -78,18 +87,23 @@ class download(object):
                 break
         return file
     def get(self, address, headers):
-        logger.info('download:{0}'.format(address))
+        """
+            HTTP GET
+            @params address request addres
+                    headers http-headers
+        """
+        logger.info('download:%s', address)
         basename = os.path.basename(address)
         r = requests.get(address, headers=headers)
         contentType = r.headers['content-type']
-        logger.info('content-type:{0},decode:{1}'.format(contentType, self.getSuffix(contentType)))
+        logger.info('content-type:%s,decode:%s', contentType, self.getSuffix(contentType))
         with tempfile.NamedTemporaryFile(dir=self.dataDir, delete=False) as temp:
             temp.write(r.content)
             temp_file_name = temp.name
             if len(basename) == 0:
-                logger.warning('create_filename:{0}'.format(os.path.basename(temp.name)))
+                logger.warning('create_filename:%s', os.path.basename(temp.name))
                 basename = os.path.basename(temp_file_name) + self.getSuffix(contentType)
             p = Path(self.dataDir, basename)
             p = self.sequential(p)
-            
+
         os.replace(temp_file_name, str(p))

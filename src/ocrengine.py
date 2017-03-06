@@ -6,7 +6,6 @@ import pyocr.builders
 from PIL import Image
 #
 import serializer
-from sklearn.naive_bayes import MultinomialNB
 
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
@@ -16,6 +15,11 @@ if __name__ == "__main__":
     logger.addHandler(handler)
 
 class OCRDocument(object):
+    """
+        data convert.
+        in:OCREngine#recognize data
+        out:application require data
+    """
     def __init__(self):
         self.__ranking = []
         self.__raw = []
@@ -96,10 +100,14 @@ class OCREngine(object):
             builder = pyocr.builders.LineBoxBuilder(tesseract_layout=7)
         return self.tool.image_to_string(file, lang=lang, builder=builder)
     def recognize(self, file):
+        """
+            @params file string or image
+            @return OCRDocument
+        """
         if isinstance(file, str):
             with Image.open(file) as image:
                 return self.recognize(image)
-        
+
         doc = OCRDocument()
         doc.parse(self.image_to_string(file))
         return doc
@@ -109,24 +117,6 @@ def main():
     temp_file_name = '../base_binary.png'
     doc = ocr.recognize(temp_file_name)
     doc.dump()
-    names = []
-    for n in doc.raw:
-        names.append(str(n['name']))
-       
-        
-    logger.info(names)
-    data = serializer.load_csv('../resource/corpus.txt')
-    x_train = []
-    y_train = []
-    for text in data:
-        x_train.append(text[1])
-        y_train.append(text[0])
-    print(data)
-    print(x_train)
-    print(y_train)
-    clf = MultinomialNB(alpha=0.1)
-    #clf.fit(x_train, y_train)
-    
-    #document.dump()
+
 if __name__ == "__main__":
     main()

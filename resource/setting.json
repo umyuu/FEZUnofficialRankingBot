@@ -1,0 +1,30 @@
+{
+    "COMMENT" : "⚡",
+    "AUTH": {
+        "TWITTER": "../resource/auth/twitter.ini"
+    },
+    "WORK_DIRECTORY": {
+        "HINTS": "../resource/",
+        "SUFFIXES": "*.png|*.jpg",
+        "BACKUP": "../images/backup/",
+        "UPLOAD": "../images/upload/"
+    },
+    "DOWNLOAD": {
+        "FILE_LIST": {
+            "NAME" : "../DownloadList.txt",
+            "ENCODING" : "utf-8-sig"
+        },
+        "USER_AGENT": "Mozilla/5.0 (compatible; bot/0.1; +https://twitter.com/fez_ranking_bot)"
+    },
+    "UPLOAD": {
+        "MAX_FILESIZE": 104448
+    },
+    "TWEET": {
+        "POST" : {
+            "DATEFMT": "%%m/%%d %%H:%%M",
+            "FORMAT": "FEZ 国家総力戦 Ranking"
+        },
+        "SCREEN_NAME": "fez_ranking_bot",
+        "LIMIT": 1
+    }
+}

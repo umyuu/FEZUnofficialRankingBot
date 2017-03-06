@@ -12,7 +12,7 @@ import twitter
 #
 import serializer
 import download
-import country
+import ranking
 
 # console output
 logger = getLogger('myapp.tweetbot')
@@ -21,21 +21,26 @@ handler.setLevel(DEBUG)
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
-class tweetbot(object):
+class TweetBot(object):
+    """
+        tweetbot main code.
+        
+    """
     def __init__(self, config, args):
         self.args = args
         self.api = None
-        self.__download = download.download(config)
-        self.__country = country.country(config)
+        self.__download = download.Download(config)
+        self.__ranking = ranking.Ranking(config)
         self.uploadDir = config['WORK_DIRECTORY']['UPLOAD']
         self.backupDir = config['WORK_DIRECTORY']['BACKUP']
         self.dtnow = datetime.now()
         self.upload_file_suffixes = config['WORK_DIRECTORY']['SUFFIXES'].split('|')
-        self.upload_max_file_size = int(config['UPLOAD']['MAX_FILESIZE'])
-        self.tweet_format = config['TWEET']['FORMAT']
-        self.tweet_datefmt = config['TWEET']['DATEFMT']
-        self.tweet_screen_name = config['TWEET']['SCREEN_NAME']
-        self.tweet_limit = int(config['TWEET']['LIMIT'])
+        self.upload_max_file_size = config['UPLOAD']['MAX_FILESIZE']
+        node = config['TWEET']
+        self.tweet_format = node['POST']['FORMAT']
+        self.tweet_datefmt = node['POST']['DATEFMT']
+        self.tweet_screen_name = node['SCREEN_NAME']
+        self.tweet_limit = node['LIMIT']
         self.isTweet = True
         self.initialize()
     def initialize(self):
@@ -48,8 +53,8 @@ class tweetbot(object):
     def download(self):
         return self.__download
     @property
-    def country(self):
-        return self.__country
+    def ranking(self):
+        return self.__ranking
     def twitter_init(self):
         """
             twitter api constractor.
@@ -68,7 +73,7 @@ class tweetbot(object):
                 # upload fileSize limit
                 size = os.path.getsize(media)
                 if size > self.upload_max_file_size:
-                    logger.warning('skip:{0},size:{1},limit:{2}'.format(media, size, self.upload_max_file_size))
+                    logger.warning('skip:%s,size:%s,limit:%s', media, size, self.upload_max_file_size)
                     continue
                 # Todo:check image file
                 yield media
@@ -79,7 +84,7 @@ class tweetbot(object):
             @params media uploadFile
         """
         try:
-            ranking = self.country.getCountry(media)
+            ranking = self.ranking.getResult(media)
             if ranking is None:
                 logger.warning('OCR Error')
                 return
@@ -115,7 +120,7 @@ class tweetbot(object):
         try:
             newfile = os.path.join(self.backupDir, self.getFilePrefix() + os.path.basename(file))
             os.replace(file, newfile)
-            logger.info('backup:{0}'.format(newfile))
+            logger.info('backup:%s', newfile)
         except Exception as ex:
             logger.exception(ex)
 
@@ -131,15 +136,15 @@ def main():
 
     logger.info('Program START')
     args = parser.parse_args()
-    
-    config = serializer.load_ini('../resource/setting.ini')
+
+    config = serializer.load_json('../resource/setting.json')
     twitter_auth = serializer.load_ini(config['AUTH']['TWITTER'])
     #Set Twitter Apps Auth Keys
     twitter_auth_keys = dict()
     for key_name in ['CONSUMER_KEY', 'CONSUMER_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET']:
         twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
 
-    bot = tweetbot(config, twitter_auth_keys)
+    bot = TweetBot(config, twitter_auth_keys)
     bot.isTweet = False
     bot.download.request()
     for media in bot.getImage():
