@@ -79,10 +79,10 @@ class country(object):
         """
             @return country list
         """
-        (keypoints, descriptors) = self.__cachedetect(src, ImageType.RAW)
-        if keypoints is None:
-            return None
-        d = self.classifier.predict(descriptors)
+        #(keypoints, descriptors) = self.__cachedetect(src, ImageType.RAW)
+        #if keypoints is None:
+        #    return None
+        #d = self.classifier.predict(descriptors)
         
         pro = DataProcessor(src, ImageType.RAW)
         if pro.prepare() is None:
@@ -95,8 +95,11 @@ class country(object):
              temp_file_name = temp.name
              logger.info(temp_file_name)
              cv2.imwrite(temp_file_name, batch)
-        # todo: temp_file_name delete file
-        return ocr.recognize(temp_file_name)
+        
+        doucument = ocr.recognize(temp_file_name)
+        # todo: ocr corpus classifier
+        os.remove(temp_file_name)
+        return doucument
 
 def main():
     config = serializer.load_ini('../resource/setting.ini')
