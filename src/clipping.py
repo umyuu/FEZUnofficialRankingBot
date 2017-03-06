@@ -21,19 +21,19 @@ class Clipping(object):
                 1,頂点数が3未満
                 2,面積が50未満
         """
-        cv2.imwrite('./test/binary_color{0}'.format(os.path.basename(self.media)), self.color)
-        cv2.imwrite('./test/binary_{0}'.format(os.path.basename(self.media)), self.binary)
+        cv2.imwrite('./temp/binary_color{0}'.format(os.path.basename(self.media)), self.color)
+        cv2.imwrite('./temp/binary_{0}'.format(os.path.basename(self.media)), self.binary)
         image, contours, hierarchy = cv2.findContours(self.binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         rect = []
         for c in contours:
-            approx = cv2.approxPolyDP(c,1,True)
+            approx = cv2.approxPolyDP(c, 1, True)
             if len(approx) < 3:
                 continue
             area = cv2.contourArea(approx)
             if area < 50:
                 continue
             if self.drawClipSource:
-                cv2.drawContours(self.color, [c], -1, (0,255,0), 3)
+                cv2.drawContours(self.color, [c], -1, (0, 255, 0), 3)
                 pass
             rect.append(cv2.boundingRect(approx))
 
@@ -48,9 +48,9 @@ class Clipping(object):
             w, h = value[2], value[3]
             p1 = (x, y)
             p2 = (x+w, y+h)
-            cv2.rectangle(self.color, p1, p2, (0,255,0), 2)
+            cv2.rectangle(self.color, p1, p2, (0, 255, 0), 2)
             roi = self.color[y:y+h,x:x+w]
             #roi = roi.shape[:2]
             #image = cv2.resize(self.color[y:y+h,x:x+w],(32,32))
             image = roi
-            cv2.imwrite('./test/{0}_{1}_{2}{3}'.format(srcfilename, i, value, srcPath.suffix), image)
+            cv2.imwrite('./temp/{0}_{1}_{2}{3}'.format(srcfilename, i, value, srcPath.suffix), image)
