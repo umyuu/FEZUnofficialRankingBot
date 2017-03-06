@@ -21,11 +21,15 @@ handler.setLevel(DEBUG)
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
-class tweetbot(object):
+class TweetBot(object):
+    """
+        tweetbot main code.
+        
+    """
     def __init__(self, config, args):
         self.args = args
         self.api = None
-        self.__download = download.download(config)
+        self.__download = download.Download(config)
         self.__country = country.country(config)
         self.uploadDir = config['WORK_DIRECTORY']['UPLOAD']
         self.backupDir = config['WORK_DIRECTORY']['BACKUP']
@@ -69,7 +73,7 @@ class tweetbot(object):
                 # upload fileSize limit
                 size = os.path.getsize(media)
                 if size > self.upload_max_file_size:
-                    logger.warning('skip:{0},size:{1},limit:{2}'.format(media, size, self.upload_max_file_size))
+                    logger.warning('skip:%s,size:%s,limit:%s', media, size, self.upload_max_file_size)
                     continue
                 # Todo:check image file
                 yield media
@@ -116,7 +120,7 @@ class tweetbot(object):
         try:
             newfile = os.path.join(self.backupDir, self.getFilePrefix() + os.path.basename(file))
             os.replace(file, newfile)
-            logger.info('backup:{0}'.format(newfile))
+            logger.info('backup:%s', newfile)
         except Exception as ex:
             logger.exception(ex)
 
@@ -132,7 +136,7 @@ def main():
 
     logger.info('Program START')
     args = parser.parse_args()
-    
+
     config = serializer.load_json('../resource/setting.json')
     twitter_auth = serializer.load_ini(config['AUTH']['TWITTER'])
     #Set Twitter Apps Auth Keys
@@ -140,7 +144,7 @@ def main():
     for key_name in ['CONSUMER_KEY', 'CONSUMER_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET']:
         twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
 
-    bot = tweetbot(config, twitter_auth_keys)
+    bot = TweetBot(config, twitter_auth_keys)
     bot.isTweet = False
     bot.download.request()
     for media in bot.getImage():
