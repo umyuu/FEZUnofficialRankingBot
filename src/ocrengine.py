@@ -6,7 +6,6 @@ import pyocr.builders
 from PIL import Image
 #
 import serializer
-from sklearn.naive_bayes import MultinomialNB
 
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
@@ -109,24 +108,6 @@ def main():
     temp_file_name = '../base_binary.png'
     doc = ocr.recognize(temp_file_name)
     doc.dump()
-    names = []
-    for n in doc.raw:
-        names.append(str(n['name']))
-       
-        
-    logger.info(names)
-    data = serializer.load_csv('../resource/corpus.txt')
-    x_train = []
-    y_train = []
-    for text in data:
-        x_train.append(text[1])
-        y_train.append(text[0])
-    print(data)
-    print(x_train)
-    print(y_train)
-    clf = MultinomialNB(alpha=0.1)
-    #clf.fit(x_train, y_train)
-    
-    #document.dump()
+
 if __name__ == "__main__":
     main()
