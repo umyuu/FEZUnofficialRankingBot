@@ -31,11 +31,11 @@ class tweetbot(object):
         self.backupDir = config['WORK_DIRECTORY']['BACKUP']
         self.dtnow = datetime.now()
         self.upload_file_suffixes = config['WORK_DIRECTORY']['SUFFIXES'].split('|')
-        self.upload_max_file_size = int(config['UPLOAD']['MAX_FILESIZE'])
+        self.upload_max_file_size = config['UPLOAD']['MAX_FILESIZE']
         self.tweet_format = config['TWEET']['FORMAT']
         self.tweet_datefmt = config['TWEET']['DATEFMT']
         self.tweet_screen_name = config['TWEET']['SCREEN_NAME']
-        self.tweet_limit = int(config['TWEET']['LIMIT'])
+        self.tweet_limit = config['TWEET']['LIMIT']
         self.isTweet = True
         self.initialize()
     def initialize(self):
@@ -132,7 +132,8 @@ def main():
     logger.info('Program START')
     args = parser.parse_args()
     
-    config = serializer.load_ini('../resource/setting.ini')
+    #config = serializer.load_ini('../resource/setting.ini')
+    config = serializer.load_json('../resource/setting.json')
     twitter_auth = serializer.load_ini(config['AUTH']['TWITTER'])
     #Set Twitter Apps Auth Keys
     twitter_auth_keys = dict()

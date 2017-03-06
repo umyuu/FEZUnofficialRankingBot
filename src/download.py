@@ -15,8 +15,9 @@ class download(object):
     def __init__(self, config):
         self.dataDir = config['WORK_DIRECTORY']['UPLOAD']
         self.user_agent = config['DOWNLOAD']['USER_AGENT'];
-        self.file_list = config['DOWNLOAD']['FILE_LIST']
-        self.file_list_encoding = config['DOWNLOAD']['FILE_LIST_ENCODING']
+        file_list = config['DOWNLOAD']['FILE_LIST']
+        self.file_list = file_list['NAME']
+        self.file_list_encoding = file_list['ENCODING']
         self.comp = re.compile(r'/(\w+);?')
         self.htmllink = None
     def requestList(self):
