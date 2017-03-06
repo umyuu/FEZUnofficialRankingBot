@@ -102,7 +102,7 @@ class country(object):
         return doucument
 
 def main():
-    config = serializer.load_ini('../resource/setting.ini')
+    config = serializer.load_json('../resource/setting.json')
     c = country(config)
     # benchMark
     ele = ['../backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
