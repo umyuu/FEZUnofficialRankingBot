@@ -15,6 +15,11 @@ if __name__ == "__main__":
     logger.addHandler(handler)
 
 class OCRDocument(object):
+    """
+        data convert.
+        in:OCREngine#recognize data
+        out:application require data
+    """
     def __init__(self):
         self.__ranking = []
         self.__raw = []
@@ -95,10 +100,14 @@ class OCREngine(object):
             builder = pyocr.builders.LineBoxBuilder(tesseract_layout=7)
         return self.tool.image_to_string(file, lang=lang, builder=builder)
     def recognize(self, file):
+        """
+            @params file string or image
+            @return OCRDocument
+        """
         if isinstance(file, str):
             with Image.open(file) as image:
                 return self.recognize(image)
-        
+
         doc = OCRDocument()
         doc.parse(self.image_to_string(file))
         return doc
