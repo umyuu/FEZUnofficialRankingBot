@@ -19,9 +19,6 @@
     "UPLOAD": {
         "MAX_FILESIZE": 104448
     },
-    "COUNTRY": {
-        "NAMES": "Netzawar.png:ネツ|Casedria.png:カセ|Geburand.png:ゲブ|Hordine.png:ホル|Ielsord.png:エル"
-    },
     "TWEET": {
         "POST" : {
             "DATEFMT": "%%m/%%d %%H:%%M",

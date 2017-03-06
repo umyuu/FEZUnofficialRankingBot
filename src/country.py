@@ -23,12 +23,6 @@ if __name__ == "__main__":
 class country(object):
     def __init__(self, config):
         self.hints = config['WORK_DIRECTORY']['HINTS']
-        d = dict()
-        names = config['COUNTRY']['NAMES'].split('|')
-        for ele in names:
-            c = ele.split(":")
-            d[c[0]] = c[1]
-        self.names = d
         self.detector = cv2.AKAZE_create()
         self.classifier = Classifier()
         self.numberclassifier = Classifier()
