@@ -81,6 +81,7 @@ class TweetBot(object):
                 size = os.path.getsize(media)
                 if size > self.upload_max_file_size:
                     logger.warning('skip:%s,size:%s,limit:%s', media, size, self.upload_max_file_size)
+                    self.backup(media)
                     continue
                 # Todo:check image file
                 yield media
