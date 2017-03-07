@@ -53,9 +53,15 @@ class TweetBot(object):
         os.makedirs(self.backupDir, exist_ok=True)
     @property
     def download(self):
+        """
+            @return {Download}
+        """
         return self.__download
     @property
     def ranking(self):
+        """
+            @return {Ranking}
+        """
         return self.__ranking
     def twitter_init(self):
         """
@@ -70,7 +76,7 @@ class TweetBot(object):
             auth = None
     def getImage(self):
         """
-            @yield media
+            @yield {string} media
         """
         for ext in self.upload_file_suffixes:
             for media in glob.iglob(os.path.join(self.uploadDir, ext)):
@@ -84,7 +90,7 @@ class TweetBot(object):
                 yield media
     def tweet(self, media):
         """
-            @params media uploadFile
+            @param {string} media uploadFile
         """
         try:
             ranks = self.ranking.getResult(media)
@@ -118,7 +124,7 @@ class TweetBot(object):
     def backup(self, file):
         """
            moveTo
-             src:@params file
+             src:@param {string} file
              dst:[images\YYYY-mm-dd_HHMM_]FileName.extensions
         """
         try:

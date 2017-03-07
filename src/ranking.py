@@ -5,6 +5,7 @@ from datetime import datetime
 #
 import serializer
 from ocrengine import OCREngine
+from naivebayes import NaiveBayes
 from dataprocessor import DataProcessor, ImageType
 
 logger = getLogger('myapp.tweetbot')
@@ -17,9 +18,11 @@ if __name__ == "__main__":
 class Ranking(object):
     def __init__(self, config):
         self.ocr = OCREngine()
+        self.naivebayes = NaiveBayes()
     def getResult(self, src):
         """
-            @return OCRDocument
+            @param {string} src
+            @return {OCRDocument} doucument
         """
         pro = DataProcessor(src, ImageType.RAW)
         if pro.prepare() is None:
@@ -29,14 +32,17 @@ class Ranking(object):
         temp_file_name = pro.save_tempfile(batch)
         
         doucument = self.ocr.recognize(temp_file_name)
-        # todo: ocr corpus classifier
         os.remove(temp_file_name)
         with serializer.open_stream('../temp/corpus.txt', mode='a') as file:
             header = '#' + datetime.now().strftime('%F %T.%f')[:-3] + '\n'
             file.write(header)
             file.write('\n'.join(doucument.names()))
             file.write('\n')
-        
+        # ocr corpus data -> NaiveBayes classifier
+        # ranking name swap
+        #for i, name in enumerate(self.naivebayes.predict_all(doucument.names(), doucument.countries)):
+        #    doucument.ranking[i]['name'] = name
+
         return doucument
 
 def main():
@@ -49,7 +55,7 @@ def main():
         ] * 2
     for l in ele:
         logger.info(l)
-        ranking = r.getResult(l)
-        logger.info(ranking)
+        doucument = r.getResult(l)
+        logger.info(doucument.ranking)
 if __name__ == "__main__":
     main()

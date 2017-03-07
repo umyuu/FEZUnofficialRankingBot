@@ -39,8 +39,10 @@ class Clipping(object):
 
         rect = sorted(rect, key=lambda x:(x[1], x[0]))
         self.splitImage(rect)
-        return ''
     def splitImage(self, rect):
+        """
+            @params {list} rect
+        """
         srcPath = Path(self.media)
         srcfilename = os.path.basename(srcPath.stem)
         for i, value  in enumerate(rect):
