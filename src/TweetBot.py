@@ -27,18 +27,15 @@ class TweetBot(object):
         tweetbot main code.
     """
     def __init__(self, config):
-        twitter_auth = serializer.load_ini(config['AUTH']['TWITTER'])
-        #Set Twitter Apps Auth Keys
-        twitter_auth_keys = dict()
-        for key_name in ['CONSUMER_KEY', 'CONSUMER_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET']:
-            twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
-        self.args = twitter_auth_keys
         self.api = None
+        self.dtnow = datetime.now()
+        self.fillspace = 0
+        self.isTweet = True
+        self.auth_twitter = config['AUTH']['TWITTER']
         self.__download = download.Download(config)
         self.__ranking = ranking.Ranking(config)
         self.uploadDir = config['WORK_DIRECTORY']['UPLOAD']
         self.backupDir = config['WORK_DIRECTORY']['BACKUP']
-        self.dtnow = datetime.now()
         self.upload_file_suffixes = config['WORK_DIRECTORY']['SUFFIXES']
         self.upload_max_file_size = config['UPLOAD']['MAX_FILESIZE']
         node = config['TWEET']
@@ -47,8 +44,6 @@ class TweetBot(object):
         self.tweet_screen_name = node['SCREEN_NAME']
         self.tweet_limit = node['LIMIT']
         self.backup_file_prefix = config['BACKUP']['FILE']['PREFIX']
-        self.isTweet = True
-        self.fillspace = 0
         self.initialize()
     def initialize(self):
         """
@@ -67,10 +62,12 @@ class TweetBot(object):
             twitter api constractor.
         """
         if self.api is None:
-            self.api = twitter.Api(consumer_key=self.args['CONSUMER_KEY'],
-                                   consumer_secret=self.args['CONSUMER_SECRET'],
-                                   access_token_key=self.args['ACCESS_TOKEN'],
-                                   access_token_secret=self.args['ACCESS_TOKEN_SECRET'])
+            auth = serializer.load_ini(self.auth_twitter)['AUTH']
+            self.api = twitter.Api(consumer_key=auth['CONSUMER_KEY'],
+                                   consumer_secret=auth['CONSUMER_SECRET'],
+                                   access_token_key=auth['ACCESS_TOKEN'],
+                                   access_token_secret=auth['ACCESS_TOKEN_SECRET'])
+            auth = None
     def getImage(self):
         """
             @yield media
