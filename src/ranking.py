@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger, StreamHandler, DEBUG
 import os
+from datetime import datetime
 #
 import serializer
 from ocrengine import OCREngine
@@ -30,6 +31,12 @@ class Ranking(object):
         doucument = self.ocr.recognize(temp_file_name)
         # todo: ocr corpus classifier
         os.remove(temp_file_name)
+        with serializer.open_stream('../temp/corpus.txt', mode='a') as file:
+            header = '#' + datetime.now().strftime('%F %T.%f')[:-3] + '\n'
+            file.write(header)
+            file.write('\n'.join(doucument.names()))
+            file.write('\n')
+        
         return doucument
 
 def main():

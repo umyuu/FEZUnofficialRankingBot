@@ -11,17 +11,21 @@
 │  │   ├ YYYYMMDD_example2.png 
 │  │   └ ...
 │  │ 
-│  └ upload/      … script working directory
+│  └ upload/      … download/upload working directory
 │
-├ resource/        … configs
+├ resource/        … static resource.
 │  ├ auth/
 │  │  └ twitter.ini  … twitter auth 
 │  ├ sample/         
 │  │  └ twitter.ini … sample twitter auth file.
+│  ├ corpus         … naivebayes corpus data
+│  ├ labels         … naivebayes corpus labels
 │  ├ ocr.json     … ocr translate rule. 
-│  └ setting.json  … application setting file.
+│  └ setting.json  … Script setting file.
 │
 ├ src/             … source code.
+│ ├ TweetBot.py    … ＜＜　main code > >
+│ └ ...
 ├ test/            … unittest. (pytest use)
 │ ├ conftest.py    … pytest setting files.
 │ └ test_example…  … test suite.
@@ -30,16 +34,11 @@
 ├ DownloadList.txt … HTTP GET File List.
 ├ LICENSE          … Source code License Text.
 ├ README.md        … GitHub README.md
-├ requirements.txt … use pip -r Text.
-└ tweet.py         … Script Run.
-
+├ requirements.txt … use pip install -r requirements.txt
+├ tweet.py         … Script Run.
+└ profiling.bat    … My Script profile bat.
 ------------------------------------------------------------
-□Program Flow.
+□Program.
 ------------------------------------------------------------
-1, FileDownload.
-    i, DownloadList.txt contents HTTP GET to images/upload.
-2, TWEET.
-    i, OCR images/upload Directory.
-   ii, TWEET.
-3, Backup Image.
-    i, images/upload to images/backup
+main code.
+./src/TweetBot.py

@@ -51,3 +51,5 @@ def load_csv(filename, encoding='utf-8-sig', skip_header=1):
     return csv_data
 def load_np(filename, delimiter='\t', dtype=np.float, skip_header=1):
     return np.genfromtxt(filename, delimiter=delimiter, dtype=dtype, skip_header=skip_header)
+def open_stream(filename, mode='w',encoding='utf-8-sig'):
+    return open(filename, mode, encoding=encoding)

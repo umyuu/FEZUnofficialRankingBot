@@ -4,6 +4,7 @@
     naivebayes classifier
 """
 from logging import getLogger, StreamHandler, DEBUG
+import itertools
 #
 import numpy as np
 from sklearn.naive_bayes import MultinomialNB
@@ -22,20 +23,12 @@ if __name__ == "__main__":
 class NaiveBayes(object):
     def __init__(self, vectorizer):
         self.__vectorizer = vectorizer
-        self.data = serializer.load_csv('../resource/corpus.txt')
-        self.labels = serializer.load_np('../resource/labels.txt', dtype=np.uint8)
+        corpus = serializer.load_csv('../resource/corpus.txt')
+        corpus_flat = list(itertools.chain.from_iterable(corpus))
+        train = vectorizer.fit_transform(np.array(corpus_flat))
+        labels = serializer.load_np('../resource/labels.txt', dtype=np.uint8)
         self.model = MultinomialNB(alpha=0.1)
-        train = []
-        for row in self.data:
-            train.append(row[0])
-        docs = np.array(train)
-        print(docs)
-        vecs = vectorizer.fit_transform(docs)
-        
-        self.model.fit(vecs, self.labels)
-        
-        logger.info(self.data)
-        logger.info(self.labels)
+        self.model.fit(train, labels)
     @property
     def vectorizer(self):
         return self.__vectorizer
