@@ -46,6 +46,7 @@ class TweetBot(object):
         self.tweet_datefmt = node['POST']['DATEFMT']
         self.tweet_screen_name = node['SCREEN_NAME']
         self.tweet_limit = node['LIMIT']
+        self.backup_file_prefix = config['BACKUP']['FILE']['PREFIX']
         self.isTweet = True
         self.fillspace = 0
         self.initialize()
@@ -83,8 +84,6 @@ class TweetBot(object):
                     continue
                 # Todo:check image file
                 yield media
-    def getFilePrefix(self, prefix='%Y%m%d%H%M_'):
-        return self.dtnow.strftime(prefix)
     def tweet(self, media):
         """
             @params media uploadFile
@@ -92,10 +91,9 @@ class TweetBot(object):
         try:
             ranks = self.ranking.getResult(media)
             if ranks is None:
-                logger.warning('OCR Error')
                 return
             self.twitter_init()
-            text = self.getFilePrefix(self.tweet_datefmt)
+            text = self.dtnow.strftime(self.tweet_datefmt)
             self.fillspace = self.fillspace % 2 + 1
             text += ('{:<{fill}}').format('', fill=self.fillspace)
             text += '\n{0}\n'.format(self.tweet_format)
@@ -125,10 +123,10 @@ class TweetBot(object):
         """
            moveTo
              src:@params file
-             dst:[images\YYYYmmddHHMM_]FileName.extensions
+             dst:[images\YYYY-mm-dd_HHMM_]FileName.extensions
         """
         try:
-            newfile = os.path.join(self.backupDir, self.getFilePrefix() + os.path.basename(file))
+            newfile = os.path.join(self.backupDir, self.dtnow.strftime(self.backup_file_prefix) + os.path.basename(file))
             os.replace(file, newfile)
             logger.info('backup:%s', newfile)
         except Exception as ex:
@@ -137,7 +135,15 @@ class TweetBot(object):
 
 def main():
     """
-        parse
+        1, FileDownload.
+            i, ./DownloadList.txt contents HTTP GET to images/upload.
+        2, TWEET.
+            i, OCR. ranking#getResult
+                images/upload Directory.
+            ii, TWEET.
+                api#PostUpdate
+        3, Upload image to Backup.
+            i, images/upload to images/backup
     """
     parser = argparse.ArgumentParser(prog='tweetbot',
                                      description='FEZ Unofficial Total War Ranking TwitterBot')
@@ -145,7 +151,7 @@ def main():
     parser.add_argument('--debug', default=True)
 
     logger.info('Program START')
-    args = parser.parse_args()
+    parser.parse_args()
 
     config = serializer.load_json('../resource/setting.json')
     bot = TweetBot(config)
