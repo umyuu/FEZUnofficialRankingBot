@@ -21,7 +21,7 @@
     },
     "TWEET": {
         "POST" : {
-            "DATEFMT": "%%m/%%d %%H:%%M",
+            "DATEFMT": "%m/%d %H:%M",
             "FORMAT": "FEZ 国家総力戦 Ranking"
         },
         "SCREEN_NAME": "fez_ranking_bot",
