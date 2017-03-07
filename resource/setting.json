@@ -5,7 +5,7 @@
     },
     "WORK_DIRECTORY": {
         "HINTS": "../resource/",
-        "SUFFIXES": "*.png|*.jpg",
+        "SUFFIXES": ["*.png", "*.jpg"],
         "BACKUP": "../images/backup/",
         "UPLOAD": "../images/upload/"
     },

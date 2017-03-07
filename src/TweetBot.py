@@ -24,7 +24,7 @@ logger.addHandler(handler)
 
 class TweetBot(object):
     """
-        tweetbot main code.        
+        tweetbot main code.
     """
     def __init__(self, config):
         twitter_auth = serializer.load_ini(config['AUTH']['TWITTER'])
@@ -39,7 +39,7 @@ class TweetBot(object):
         self.uploadDir = config['WORK_DIRECTORY']['UPLOAD']
         self.backupDir = config['WORK_DIRECTORY']['BACKUP']
         self.dtnow = datetime.now()
-        self.upload_file_suffixes = config['WORK_DIRECTORY']['SUFFIXES'].split('|')
+        self.upload_file_suffixes = config['WORK_DIRECTORY']['SUFFIXES']
         self.upload_max_file_size = config['UPLOAD']['MAX_FILESIZE']
         node = config['TWEET']
         self.tweet_format = node['POST']['FORMAT']
@@ -99,8 +99,6 @@ class TweetBot(object):
             text += '\n{0}\n'.format(self.tweet_format)
             for i, contry in enumerate(ranks.ranking[:2], start=1):
                 text += str(i) + '位:{name} {score} point\n'.format_map(contry)
-
-
             if self.isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
@@ -132,7 +130,6 @@ class TweetBot(object):
         except Exception as ex:
             logger.exception(ex)
 
-
 def main():
     """
         1, FileDownload.
@@ -155,7 +152,7 @@ def main():
 
     config = serializer.load_json('../resource/setting.json')
     bot = TweetBot(config)
-    #bot.isTweet = False
+    bot.isTweet = False
     bot.download.request()
     for media in bot.getImage():
         logger.info('tweet media:%s', media)
