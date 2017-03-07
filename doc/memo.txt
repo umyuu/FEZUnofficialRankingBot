@@ -21,7 +21,7 @@
 │  ├ corpus         … naivebayes corpus data
 │  ├ labels         … naivebayes corpus labels
 │  ├ ocr.json     … ocr translate rule. 
-│  └ setting.json  … application setting file.
+│  └ setting.json  … Script setting file.
 │
 ├ src/             … source code.
 │ ├ TweetBot.py    … ＜＜　main code > >
@@ -35,8 +35,8 @@
 ├ LICENSE          … Source code License Text.
 ├ README.md        … GitHub README.md
 ├ requirements.txt … use pip -r Text.
-└ tweet.py         … Script Run.
-
+├ tweet.py         … Script Run.
+└ profiling.bat    … My Script profile bat.
 ------------------------------------------------------------
 □Program.
 ------------------------------------------------------------
