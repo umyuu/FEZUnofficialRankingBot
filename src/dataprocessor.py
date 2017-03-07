@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
+from logging import getLogger
 from enum import Enum, unique
+from pathlib import Path
+import tempfile
 #
 import cv2
 #
 from hsvcolor import HSVcolor
 from iimagefillter import GrayScaleFilter, AdaptiveThresholdFilter, IImageFilter, ImageStream
+# pylint: disable=C0103
+logger = getLogger('myapp.tweetbot')
 
 @unique
 class ImageType(Enum):
     RAW = 1
-    NUMBER = 2
-    HINTS = 4
     PLAN = 8
-    HINT_RAW = RAW | HINTS
-    HINT_NUMBER = NUMBER | HINTS
 class ROIFilter(IImageFilter):
     def __init__(self):
         super().__init__('BaseFilter')
@@ -41,12 +42,10 @@ class AppImageFilter(IImageFilter):
         binary = cv2.bitwise_and(binary, binary, mask=white)
         if self.image_type == ImageType.PLAN:
             height, width = stream.shape[:2]
-            cv2.rectangle(binary, (0, 0), (min(1000, width), height), (0,0,0), -1)
-            return binary
-        
+            cv2.rectangle(binary, (0, 0), (min(1000, width), height), (0, 0, 0), -1)
+            return binary        
         lower, upper = HSVcolor(0, 0, 0), HSVcolor(30, 66, 255)
         binary = cv2.bitwise_and(binary, self.__inRange(self.hsv, lower, upper))
-        
         #fez country color mask pattern
         #binary = self.bitwise_not(binary, self._contryMask['netzawar'])
         #binary = self.bitwise_not(binary, self._contryMask['geburand'])
@@ -94,13 +93,6 @@ class DataProcessor(object):
         c = cv2.imread(filename)
         if c is None:
             raise FileNotFoundError(self.name)
-        if self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER:
-            """
-                small size image.
-                    AKAZE#detectAndCompute at keypoints of 0.
-                Ensure image scall zooming
-            """
-            zoom = 10
         self.color = cv2.resize(c, (c.shape[1]*zoom, c.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
         return self.color
     def batch(self):
@@ -112,8 +104,6 @@ class DataProcessor(object):
                 step4:fill min(500, height)
             @return binary image
         """
-        if self.image_type == ImageType.NUMBER or self.image_type == ImageType.HINT_NUMBER:
-            return self.color
         stream = ImageStream()
         stream.data = self.color
         #stream.addFilter(ROIFilter())
@@ -121,3 +111,14 @@ class DataProcessor(object):
         stream.addFilter(AdaptiveThresholdFilter())
         stream.addFilter(AppImageFilter(self.image_type, self.hsv))
         return stream.tofiltered()
+    def save_tempfile(self, binary):
+        """
+            save temporary image file.
+        """
+        baseName = Path(self.name)
+        temp_file_name = ''
+        with tempfile.NamedTemporaryFile(delete=False, suffix=baseName.suffix) as temp:
+            temp_file_name = temp.name
+            logger.info(temp_file_name)
+            cv2.imwrite(temp_file_name, binary)
+        return temp_file_name

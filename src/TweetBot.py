@@ -9,11 +9,12 @@ import os
 import glob
 #
 import twitter
-#
+# pylint: disable=E0401
 import serializer
 import download
 import ranking
-
+# pylint: enable=E0401
+# pylint: disable=C0103
 # console output
 logger = getLogger('myapp.tweetbot')
 handler = StreamHandler()
@@ -23,11 +24,15 @@ logger.addHandler(handler)
 
 class TweetBot(object):
     """
-        tweetbot main code.
-        
+        tweetbot main code.        
     """
-    def __init__(self, config, args):
-        self.args = args
+    def __init__(self, config):
+        twitter_auth = serializer.load_ini(config['AUTH']['TWITTER'])
+        #Set Twitter Apps Auth Keys
+        twitter_auth_keys = dict()
+        for key_name in ['CONSUMER_KEY', 'CONSUMER_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET']:
+            twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
+        self.args = twitter_auth_keys
         self.api = None
         self.__download = download.Download(config)
         self.__ranking = ranking.Ranking(config)
@@ -42,6 +47,7 @@ class TweetBot(object):
         self.tweet_screen_name = node['SCREEN_NAME']
         self.tweet_limit = node['LIMIT']
         self.isTweet = True
+        self.fillspace = 0
         self.initialize()
     def initialize(self):
         """
@@ -84,14 +90,18 @@ class TweetBot(object):
             @params media uploadFile
         """
         try:
-            ranking = self.ranking.getResult(media)
-            if ranking is None:
+            ranks = self.ranking.getResult(media)
+            if ranks is None:
                 logger.warning('OCR Error')
                 return
             self.twitter_init()
-            text = '{0}\n{1}\n'.format(self.getFilePrefix(self.tweet_datefmt), self.tweet_format)
-            for i, contry in enumerate(ranking.ranking[:2], start=1):
+            text = self.getFilePrefix(self.tweet_datefmt)
+            self.fillspace = self.fillspace % 2 + 1
+            text += ('{:<{fill}}').format('', fill=self.fillspace)
+            text += '\n{0}\n'.format(self.tweet_format)
+            for i, contry in enumerate(ranks.ranking[:2], start=1):
                 text += str(i) + '位:{name} {score} point\n'.format_map(contry)
+
 
             if self.isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
@@ -108,7 +118,7 @@ class TweetBot(object):
             self.twitter_init()
             for s in self.api.GetUserTimeline(screen_name=self.tweet_screen_name, count=self.tweet_limit):
                 self.api.DestroyStatus(s.id)
-                logger.info('delete:{0},posted:{1}'.format(s.text, s.created_at))
+                logger.info('delete:%s,posted:%s', s.text, s.created_at)
         except Exception as ex:
             logger.exception(ex)
     def backup(self, file):
@@ -138,14 +148,8 @@ def main():
     args = parser.parse_args()
 
     config = serializer.load_json('../resource/setting.json')
-    twitter_auth = serializer.load_ini(config['AUTH']['TWITTER'])
-    #Set Twitter Apps Auth Keys
-    twitter_auth_keys = dict()
-    for key_name in ['CONSUMER_KEY', 'CONSUMER_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET']:
-        twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
-
-    bot = TweetBot(config, twitter_auth_keys)
-    bot.isTweet = False
+    bot = TweetBot(config)
+    #bot.isTweet = False
     bot.download.request()
     for media in bot.getImage():
         logger.info('tweet media:%s', media)
