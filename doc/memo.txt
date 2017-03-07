@@ -34,7 +34,7 @@
 ├ DownloadList.txt … HTTP GET File List.
 ├ LICENSE          … Source code License Text.
 ├ README.md        … GitHub README.md
-├ requirements.txt … use pip -r Text.
+├ requirements.txt … use pip install -r requirements.txt
 ├ tweet.py         … Script Run.
 └ profiling.bat    … My Script profile bat.
 ------------------------------------------------------------
