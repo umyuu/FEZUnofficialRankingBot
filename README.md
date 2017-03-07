@@ -44,6 +44,7 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
 - python-twitter
 - opencv
 - numpy
+- scikit.learn
 - Pillow
 - pyocr
 - Tesseract-OCR
