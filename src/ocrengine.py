@@ -23,7 +23,9 @@ class OCRDocument(object):
     def __init__(self):
         self.__ranking = []
         self.__raw = []
-        self.translate = serializer.load_json('../resource/ocr.json')['translate']
+        json_data = serializer.load_json('../resource/ocr.json')
+        self.translate = json_data['translate']
+        self.__countries = json_data['translate']['country']
     @property
     def ranking(self):
         """
@@ -55,11 +57,19 @@ class OCRDocument(object):
             self.__raw.append(content)
         return result
     @property
+    def countries(self):
+        return self.__countries
+    @property
     def raw(self):
         """
             ocr text raw
         """
         return self.__raw
+    def names(self):
+        result = []
+        for n in self.raw:
+            result.append(str(n['name']))
+        return result
     def dump(self):
         """
             developers method.

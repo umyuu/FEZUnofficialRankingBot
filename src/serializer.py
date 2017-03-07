@@ -2,11 +2,13 @@
 """
     serializer.py
     load file type.
-        json / ini / csv
+        json / ini / csv / numpy
 """
 import json
 import configparser
 import csv
+#
+import numpy as np
 
 def load_json(filename, encoding='utf-8-sig'):
     """
@@ -47,3 +49,5 @@ def load_csv(filename, encoding='utf-8-sig', skip_header=1):
         for row in reader:
             csv_data.append(row)
     return csv_data
+def load_np(filename, delimiter='\t', dtype=np.float, skip_header=1):
+    return np.genfromtxt(filename, delimiter=delimiter, dtype=dtype, skip_header=skip_header)
