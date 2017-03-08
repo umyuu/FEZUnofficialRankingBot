@@ -43,6 +43,7 @@ class Download(object):
                     link = self.htmllink
                     self.htmllink = None
                     yield link
+                    continue
                 yield text
     @functools.lru_cache(maxsize=4)
     def getSuffix(self, contentType, suffix='.html'):
