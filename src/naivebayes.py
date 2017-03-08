@@ -13,7 +13,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import cross_val_score
 from janome.tokenizer import Tokenizer
 #
-import serializer
+from serializer import Serializer
 from ocrengine import OCREngine
 
 # pylint: disable=C0103
@@ -70,7 +70,7 @@ class NaiveBayes(object):
            #vectorizer = TfidfVectorizer(use_idf=True)
            vectorizer = CountVectorizer()
         self.__vectorizer = vectorizer
-        corpus = serializer.load_csv('../resource/corpus.txt')
+        corpus = Serializer.load_csv('../resource/corpus.txt')
         corpus_flat = list(itertools.chain.from_iterable(corpus))
         """
             □code
@@ -94,7 +94,7 @@ class NaiveBayes(object):
         self.features = self.vectorizer.fit_transform(CorpusTokenizer(corpus_flat).read())
         logger.debug(self.vectorizer.get_feature_names())
         logger.debug(self.features.toarray())
-        self.labels = serializer.load_np('../resource/labels.txt', dtype=np.uint8)
+        self.labels = Serializer.load_np('../resource/labels.txt', dtype=np.uint8)
         self.model = MultinomialNB(alpha=0.1)
         self.model.fit(self.features, self.labels)
     @property

@@ -10,7 +10,7 @@ import glob
 #
 import twitter
 # pylint: disable=E0401
-import serializer
+from serializer import Serializer
 import download
 import ranking
 # pylint: enable=E0401
@@ -68,7 +68,7 @@ class TweetBot(object):
             twitter api constractor.
         """
         if self.api is None:
-            auth = serializer.load_ini(self.auth_twitter)['AUTH']
+            auth = Serializer.load_ini(self.auth_twitter)['AUTH']
             self.api = twitter.Api(consumer_key=auth['CONSUMER_KEY'],
                                    consumer_secret=auth['CONSUMER_SECRET'],
                                    access_token_key=auth['ACCESS_TOKEN'],
@@ -154,9 +154,9 @@ def main():
     logger.info('Program START')
     parser.parse_args()
 
-    config = serializer.load_json('../resource/setting.json')
+    config = Serializer.load_json('../resource/setting.json')
     bot = TweetBot(config)
-    #bot.isTweet = False
+    bot.isTweet = False
     bot.download.request()
     for media in bot.getImage():
         logger.info('tweet media:%s', media)

@@ -4,6 +4,7 @@
 """
 from logging import getLogger
 import os
+from io import BytesIO
 import sys
 import tempfile
 import re
@@ -22,7 +23,7 @@ class Download(object):
     """
     def __init__(self, config):
         self.dataDir = config['WORK_DIRECTORY']['UPLOAD']
-        self.user_agent = config['DOWNLOAD']['USER_AGENT']
+        self.http_headers = {'User-Agent': config['DOWNLOAD']['USER_AGENT']}
         file_list = config['DOWNLOAD']['FILE_LIST']
         self.file_list = file_list['NAME']
         self.file_list_encoding = file_list['ENCODING']
@@ -46,6 +47,10 @@ class Download(object):
     @functools.lru_cache(maxsize=4)
     def getSuffix(self, contentType, suffix='.html'):
         """
+            @param {string} contentType
+                   {string} suffix
+            @return suffix
+            exsample)
             ContentType -> suffix
             in:text/html; charset=utf-8         out:.html
             in:image/png                        out:.png
@@ -62,12 +67,21 @@ class Download(object):
            internet -- (Get) --> local
         """
         count = 0
-        headers = {'User-Agent': self.user_agent}
         for address in self.requestList():
             count += 1
             #if contentType.startswith('image'):
-            self.get(address, headers)
+            basename = os.path.basename(address)
+            buffer, contentType = self.get(address)
+            with tempfile.NamedTemporaryFile(dir=self.dataDir, delete=False) as temp:
+                temp.write(buffer.getvalue())
+                temp_file_name = temp.name
+                if len(basename) == 0:
+                    logger.warning('create_filename:%s', os.path.basename(temp.name))
+                    basename = os.path.basename(temp_file_name) + self.getSuffix(contentType)
+                p = Path(self.dataDir, basename)
+                p = self.sequential(p)
 
+            os.replace(temp_file_name, str(p))
         if count == 0:
             logger.warning('input:%s Empty', self.file_list)
     def sequential(self, file):
@@ -86,24 +100,14 @@ class Download(object):
             if sys.maxsize == i:
                 break
         return file
-    def get(self, address, headers):
+    def get(self, address):
         """
             HTTP GET
-            @params address request addres
-                    headers http-headers
+            @param  {string}address request addres
+            @return {io.BytesIO}
         """
         logger.info('download:%s', address)
-        basename = os.path.basename(address)
-        r = requests.get(address, headers=headers)
+        r = requests.get(address, headers=self.http_headers)
         contentType = r.headers['content-type']
         logger.info('content-type:%s,decode:%s', contentType, self.getSuffix(contentType))
-        with tempfile.NamedTemporaryFile(dir=self.dataDir, delete=False) as temp:
-            temp.write(r.content)
-            temp_file_name = temp.name
-            if len(basename) == 0:
-                logger.warning('create_filename:%s', os.path.basename(temp.name))
-                basename = os.path.basename(temp_file_name) + self.getSuffix(contentType)
-            p = Path(self.dataDir, basename)
-            p = self.sequential(p)
-
-        os.replace(temp_file_name, str(p))
+        return BytesIO(r.content), contentType

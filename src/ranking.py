@@ -3,7 +3,7 @@ from logging import getLogger, StreamHandler, DEBUG
 import os
 from datetime import datetime
 #
-import serializer
+from serializer import Serializer
 from ocrengine import OCREngine
 from naivebayes import NaiveBayes
 from dataprocessor import DataProcessor, ImageType
@@ -33,7 +33,7 @@ class Ranking(object):
         
         doucument = self.ocr.recognize(temp_file_name)
         os.remove(temp_file_name)
-        with serializer.open_stream('../temp/corpus.txt', mode='a') as file:
+        with Serializer.open_stream('../temp/corpus.txt', mode='a') as file:
             header = '#' + datetime.now().strftime('%F %T.%f')[:-3] + '\n'
             file.write(header)
             file.write('\n'.join(doucument.names()))
@@ -46,7 +46,7 @@ class Ranking(object):
         return doucument
 
 def main():
-    config = serializer.load_json('../resource/setting.json')
+    config = Serializer.load_json('../resource/setting.json')
     r = Ranking(config)
     # benchMark
     ele = ['../backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',

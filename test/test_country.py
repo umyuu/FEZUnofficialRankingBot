@@ -7,22 +7,22 @@ import numpy as np
 import conftest
 # pylint: enable=W0611
 
-import serializer
+from serializer import Serializer
 from naivebayes import NaiveBayes
 
 # pylint: disable=C0103
 class TestClass(object):
     def test_loadSettingFile(self):
         basepath = '../resource/'
-        config = serializer.load_json(os.path.join(basepath, 'setting.json'))
-        serializer.load_ini(config['AUTH']['TWITTER'])
-        serializer.load_json(os.path.join(basepath, 'ocr.json'))
-        serializer.load_csv(os.path.join(basepath, 'corpus.txt'))
-        serializer.load_np(os.path.join(basepath, 'labels.txt'), dtype=np.uint8)
+        config = Serializer.load_json(os.path.join(basepath, 'setting.json'))
+        Serializer.load_ini(config['AUTH']['TWITTER'])
+        Serializer.load_json(os.path.join(basepath, 'ocr.json'))
+        Serializer.load_csv(os.path.join(basepath, 'corpus.txt'))
+        Serializer.load_np(os.path.join(basepath, 'labels.txt'), dtype=np.uint8)
     def test_naivebayes_compare(self):
         basepath = '../resource/'
         naivebayes = NaiveBayes()
-        json_data = serializer.load_json(os.path.join(basepath, 'ocr.json'))
+        json_data = Serializer.load_json(os.path.join(basepath, 'ocr.json'))
         x_list = ['ネツァワル王国','カセドリア連合王国','ゲブランド帝国','ホルデイン王国','エルソード王国']
         out = naivebayes.predict_all(x_list, json_data['translate']['country'])
         for i, y in enumerate(out):

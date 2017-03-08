@@ -5,8 +5,8 @@ import pyocr
 import pyocr.builders
 from PIL import Image
 #
-import serializer
-
+from serializer import Serializer
+#
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
     handler = StreamHandler()
@@ -23,7 +23,7 @@ class OCRDocument(object):
     def __init__(self):
         self.__ranking = []
         self.__raw = []
-        json_data = serializer.load_json('../resource/ocr.json')
+        json_data = Serializer.load_json('../resource/ocr.json')
         self.translate = json_data['translate']
         self.__countries = json_data['translate']['country']
     @property
