@@ -89,10 +89,11 @@ def main():
         name = doc.countries[str(predict)]
         logger.info('%s -> 推定: %s', predict_data[i], name)
     out_d = naivebayes.predict_all(doc.names(), doc.countries)
-    print(out_d)
+    logger.info(out_d)
     naivebayes.cross_validation()
     
-    ddd = naivebayes.predict('ネッアワル王国')
-    print(ddd)
+    predict = naivebayes.predict('ネッアワル王国')[0]
+    
+    logger.info(doc.countries[str(predict)])
 if __name__ == "__main__":
     main()
