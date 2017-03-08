@@ -40,9 +40,9 @@ class Ranking(object):
             file.write('\n')
         # ocr corpus data -> NaiveBayes classifier
         # ranking name swap
-        #for i, name in enumerate(self.naivebayes.predict_all(doucument.names(), doucument.countries)):
-        #    doucument.ranking[i]['name'] = name
-
+        for i, name in enumerate(self.naivebayes.predict_all(doucument.names(), doucument.countries)):
+            doucument.ranking[i]['name'] = name
+        doucument.dump()
         return doucument
 
 def main():

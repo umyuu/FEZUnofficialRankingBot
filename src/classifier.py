@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
+import warnings
 from collections import OrderedDict
 #
 import cv2
-
+warnings.warn("deprecated\nnew:NaiveBayes", DeprecationWarning)
 class Classifier(object):
     """
         note:implemets Classifier#match
