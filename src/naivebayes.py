@@ -25,27 +25,29 @@ if __name__ == "__main__":
     logger.addHandler(handler)
 
 class CorpusTokenizer(object):
-    def __init__(self, corpus):
+    def __init__(self, corpus, skip_header=0):
         """
             @param {list} corpus
         """
         assert len(corpus) != 0
+        self.skip_header = skip_header    
         self.corpus = corpus
         self.t = Tokenizer()
     def read(self):
         """
             list{string} token | space | token
-            @return {list.<list{string}>} result
+            @yield {list.<list{string}>}
         """
-        result = []
-        for word in self.corpus:
+        for i, word in enumerate(self.corpus):
+            if i < self.skip_header:
+                yield word
+                continue
             tokens = []
             for token in self.token_split(word):
                 if not str(token.part_of_speech).startswith('名詞'):
                     pass
                 tokens.append(token.surface)
-            result.append(" ".join(tokens))
-        return result
+            yield " ".join(tokens)
     def token_split(self, word):
         """
             tokenize iterator
@@ -91,7 +93,7 @@ class NaiveBayes(object):
              row 0: [0 0 0 0 0 1 0 0 0 0 1 0]
              column 5,10: ネツァワル,王国
         """
-        self.features = self.vectorizer.fit_transform(CorpusTokenizer(corpus_flat).read())
+        self.features = self.vectorizer.fit_transform(CorpusTokenizer(corpus_flat, skip_header=5).read())
         logger.debug(self.vectorizer.get_feature_names())
         logger.debug(self.features.toarray())
         self.labels = Serializer.load_np('../resource/labels.txt', dtype=np.uint8)
@@ -153,9 +155,9 @@ def main():
     x_list = ['ホルデイン王国','力セドー丿ア連合王国','ゲブ「ラン ド帝国']
     out = naivebayes.predict_all(x_list, doc.countries)
     logger.info('out:%s', out)
-    x_list = ['ホルデイン王国','力セドー丿ア連合王国','ゲブ「ラン ド帝国']
-
-            
+    ct = CorpusTokenizer([""], skip_header=3)
+    for aaa in ct.read():
+        logger.info('aaa' + aaa)
     logger.info('out:%s', out)
     #naivebayes.cross_validation()
 if __name__ == "__main__":
