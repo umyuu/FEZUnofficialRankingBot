@@ -1,3 +1,6 @@
 ﻿# comment ⚡
-https://i.gyazo.com/103c0dd3bf4857be0be8361ef01a4cb9.png
-
+https://raw.githubusercontent.com/umyuu/FEZUnofficialRankingBot/master/resource/Casedria.png
+https://raw.githubusercontent.com/umyuu/FEZUnofficialRankingBot/master/resource/Geburand.png
+https://raw.githubusercontent.com/umyuu/FEZUnofficialRankingBot/master/resource/Hordine.png
+https://raw.githubusercontent.com/umyuu/FEZUnofficialRankingBot/master/resource/Ielsord.png
+https://raw.githubusercontent.com/umyuu/FEZUnofficialRankingBot/master/resource/Netzawar.png
