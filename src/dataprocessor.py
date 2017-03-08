@@ -54,6 +54,7 @@ class AppImageFilter(IImageFilter):
         #binary = self.bitwise_not(binary, self._contryMask['hordine'])
         # image out range fill
         height, width = stream.shape[:2]
+        # todo setting.json
         start_x = 260
         start_y = 360
         end_x = 920
@@ -87,6 +88,7 @@ class DataProcessor(object):
     def prepare(self):
         """
             @return color image
+            @exception FileNotFoundError
         """
         filename = self.name
         zoom = 2
@@ -98,11 +100,9 @@ class DataProcessor(object):
     def batch(self):
         """
             masking)
-                step1:white color
-                step2:color -> grayscale -> adaptiveThreshold -> binary
-                step3:country color
-                step4:fill min(500, height)
-            @return binary image
+                step1:color -> grayscale -> adaptiveThreshold
+                step2:AppImageFilter#filtered
+            @return {binary} image
         """
         stream = ImageStream()
         stream.data = self.color
@@ -114,6 +114,8 @@ class DataProcessor(object):
     def save_tempfile(self, binary):
         """
             save temporary image file.
+            @param {binary} binary image
+            @return {string} TemporaryFileName
         """
         baseName = Path(self.name)
         temp_file_name = ''

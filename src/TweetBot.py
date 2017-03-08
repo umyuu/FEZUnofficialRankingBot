@@ -24,22 +24,19 @@ logger.addHandler(handler)
 
 class TweetBot(object):
     """
-        tweetbot main code.        
+        tweetbot main code.
     """
     def __init__(self, config):
-        twitter_auth = serializer.load_ini(config['AUTH']['TWITTER'])
-        #Set Twitter Apps Auth Keys
-        twitter_auth_keys = dict()
-        for key_name in ['CONSUMER_KEY', 'CONSUMER_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET']:
-            twitter_auth_keys[key_name] = twitter_auth['AUTH'][key_name]
-        self.args = twitter_auth_keys
         self.api = None
+        self.dtnow = datetime.now()
+        self.fillspace = 0
+        self.isTweet = True
+        self.auth_twitter = config['AUTH']['TWITTER']
         self.__download = download.Download(config)
         self.__ranking = ranking.Ranking(config)
         self.uploadDir = config['WORK_DIRECTORY']['UPLOAD']
         self.backupDir = config['WORK_DIRECTORY']['BACKUP']
-        self.dtnow = datetime.now()
-        self.upload_file_suffixes = config['WORK_DIRECTORY']['SUFFIXES'].split('|')
+        self.upload_file_suffixes = config['WORK_DIRECTORY']['SUFFIXES']
         self.upload_max_file_size = config['UPLOAD']['MAX_FILESIZE']
         node = config['TWEET']
         self.tweet_format = node['POST']['FORMAT']
@@ -47,8 +44,6 @@ class TweetBot(object):
         self.tweet_screen_name = node['SCREEN_NAME']
         self.tweet_limit = node['LIMIT']
         self.backup_file_prefix = config['BACKUP']['FILE']['PREFIX']
-        self.isTweet = True
-        self.fillspace = 0
         self.initialize()
     def initialize(self):
         """
@@ -58,22 +53,30 @@ class TweetBot(object):
         os.makedirs(self.backupDir, exist_ok=True)
     @property
     def download(self):
+        """
+            @return {Download}
+        """
         return self.__download
     @property
     def ranking(self):
+        """
+            @return {Ranking}
+        """
         return self.__ranking
     def twitter_init(self):
         """
             twitter api constractor.
         """
         if self.api is None:
-            self.api = twitter.Api(consumer_key=self.args['CONSUMER_KEY'],
-                                   consumer_secret=self.args['CONSUMER_SECRET'],
-                                   access_token_key=self.args['ACCESS_TOKEN'],
-                                   access_token_secret=self.args['ACCESS_TOKEN_SECRET'])
+            auth = serializer.load_ini(self.auth_twitter)['AUTH']
+            self.api = twitter.Api(consumer_key=auth['CONSUMER_KEY'],
+                                   consumer_secret=auth['CONSUMER_SECRET'],
+                                   access_token_key=auth['ACCESS_TOKEN'],
+                                   access_token_secret=auth['ACCESS_TOKEN_SECRET'])
+            auth = None
     def getImage(self):
         """
-            @yield media
+            @yield {string} media
         """
         for ext in self.upload_file_suffixes:
             for media in glob.iglob(os.path.join(self.uploadDir, ext)):
@@ -81,12 +84,13 @@ class TweetBot(object):
                 size = os.path.getsize(media)
                 if size > self.upload_max_file_size:
                     logger.warning('skip:%s,size:%s,limit:%s', media, size, self.upload_max_file_size)
+                    self.backup(media)
                     continue
                 # Todo:check image file
                 yield media
     def tweet(self, media):
         """
-            @params media uploadFile
+            @param {string} media uploadFile
         """
         try:
             ranks = self.ranking.getResult(media)
@@ -99,8 +103,6 @@ class TweetBot(object):
             text += '\n{0}\n'.format(self.tweet_format)
             for i, contry in enumerate(ranks.ranking[:2], start=1):
                 text += str(i) + '位:{name} {score} point\n'.format_map(contry)
-
-
             if self.isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
@@ -122,7 +124,7 @@ class TweetBot(object):
     def backup(self, file):
         """
            moveTo
-             src:@params file
+             src:@param {string} file
              dst:[images\YYYY-mm-dd_HHMM_]FileName.extensions
         """
         try:
@@ -131,7 +133,6 @@ class TweetBot(object):
             logger.info('backup:%s', newfile)
         except Exception as ex:
             logger.exception(ex)
-
 
 def main():
     """
@@ -147,7 +148,7 @@ def main():
     """
     parser = argparse.ArgumentParser(prog='tweetbot',
                                      description='FEZ Unofficial Total War Ranking TwitterBot')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.3')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.4')
     parser.add_argument('--debug', default=True)
 
     logger.info('Program START')

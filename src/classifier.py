@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
+import warnings
 from collections import OrderedDict
 #
 import cv2
-
+warnings.warn("deprecated\nnew:NaiveBayes", DeprecationWarning)
 class Classifier(object):
     """
         note:implemets Classifier#match
@@ -15,8 +16,8 @@ class Classifier(object):
         self.labels = None
     def fit(self, features, labels):
         """
-            @params features descriptors[]
-                    labels target label[]
+            @param {descriptors[]} features 
+                   {label[]} target labels
         """
         if (self.features is None):
             self.features = features
@@ -26,9 +27,10 @@ class Classifier(object):
         self.labels.extend(labels)
     def predict(self, descriptors, top_n=None):
         """
-            @params descriptors image descriptors
-                    top_n　　　　　　top n
-            @return keys        label
+            @params {descriptors} descriptors image descriptors
+                    {int}         top_n　　 top n
+            @return {dict}
+                    keys        label
                     value       sum(distance)
                     order by    value
         """

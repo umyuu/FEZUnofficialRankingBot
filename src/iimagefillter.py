@@ -9,8 +9,8 @@ class IImageFilter(metaclass=ABCMeta):
     @abstractmethod
     def filtered(self, stream):
         """
-            @params stream source stream
-            @return filtered stream
+            @param {object} stream source stream
+            @return {object} filtered stream
         """
         return stream
 class EmptyFilter(IImageFilter):
@@ -47,23 +47,34 @@ class ImageStream(object):
         self.filters = []
         self.data = None
     def addFilter(self, f):
+        """
+            @param {IImageFilter} f
+            @return self
+        """
         if not isinstance(f, IImageFilter):
             assert False, 'NotImplemented'
         if not (f in self.filters):
             self.filters.append(f)
         return self
     def removeFilter(self, f):
+        """
+            @param {IImageFilter} f
+            @return self
+        """
         if not isinstance(f, IImageFilter):
             assert False, 'NotImplemented'
         if f in self.filters:
             self.filters.remove(f)
         return self
     def clearFilter(self):
+        """
+            @return self
+        """
         self.filters = []
         return self
     def tofiltered(self):
         """
-            @return filtered stream
+            @return {object} filtered stream
         """
         for f in self.filters:
             self.data = f.filtered(self.data)
@@ -73,6 +84,6 @@ class ImageStream(object):
     def fire_onfiltered(self, sender):
         """
             filtered event
-            @params sender IImageFilter implemts class
+            @param {IImageFilter} sender
         """
         pass

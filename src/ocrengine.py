@@ -29,21 +29,21 @@ class OCRDocument(object):
     @property
     def ranking(self):
         """
-            ocr text ranking
+            @return {list} ocr text ranking
         """
         return self.__ranking
     def indexByContents(self, index, contents):
         """
             ocr filed pair
-            @retunr name score
+            @return {dict} name score
         """
-        return {"name":contents[index], "score":contents[index + 5]}
+        return {"name":str(contents[index]), "score":str(contents[index + 5])}
     def parse(self, documents):
         """
             OCR data.
                 parse & pickup
-            @params documents image_to_string result data
-            @return rawData
+            @param documents image_to_string result data
+            @return {list} rawData
         """
         result = []
         for i, document in enumerate(documents):
@@ -58,14 +58,20 @@ class OCRDocument(object):
         return result
     @property
     def countries(self):
+        """
+            @return {dict} __countries
+        """
         return self.__countries
     @property
     def raw(self):
         """
-            ocr text raw
+            @return {list} ocr text raw
         """
         return self.__raw
     def names(self):
+        """
+            @return {list} ocr names
+        """
         result = []
         for n in self.raw:
             result.append(str(n['name']))
@@ -111,8 +117,8 @@ class OCREngine(object):
         return self.tool.image_to_string(file, lang=lang, builder=builder)
     def recognize(self, file):
         """
-            @params file string or image
-            @return OCRDocument
+            @params {string},{image} file
+            @return {OCRDocument}
         """
         if isinstance(file, str):
             with Image.open(file) as image:
