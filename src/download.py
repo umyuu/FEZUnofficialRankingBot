@@ -72,7 +72,7 @@ class Download(object):
             #if contentType.startswith('image'):
             basename = os.path.basename(address)
             buffer, contentType = self.get(address)
-            with tempfile.NamedTemporaryFile(dir=self.dataDir, delete=False) as temp:
+            with tempfile.NamedTemporaryFile(delete=False) as temp:
                 temp.write(buffer.getvalue())
                 temp_file_name = temp.name
                 if len(basename) == 0:
@@ -86,6 +86,8 @@ class Download(object):
             logger.warning('input:%s Empty', self.file_list)
     def sequential(self, file):
         """
+            @param {pathlib.Path} file
+            @return {pathlib.Path}
             exsample)exists file
                 exsample.png
                 exsample(1).png
