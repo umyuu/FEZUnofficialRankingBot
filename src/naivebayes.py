@@ -26,6 +26,9 @@ if __name__ == "__main__":
 
 class CorpusTokenizer(object):
     def __init__(self, corpus):
+        """
+            @param {list} corpus
+        """
         assert len(corpus) != 0
         self.corpus = corpus
         self.t = Tokenizer()
@@ -76,17 +79,17 @@ class NaiveBayes(object):
             □output
                 ['エル', 'カセドリア', 'ゲブランド', 'ソード', 'ネツ', 'ネツァワル', 'ホルデイン', 'ルソ', 'ワル', '帝国', '王国', '連合']
                 [[0 0 0 0 0 1 0 0 0 0 1 0]
-                 [0 0 0 0 1 0 0 0 1 0 1 0]
- 　　　　　　　　　　　　　　 [0 1 0 0 0 0 0 0 0 0 1 1]
- 　　　　　　　　　　　　　　　[0 0 1 0 0 0 0 0 0 1 0 0]
- 　　　　　　　　　　　　　　　[0 0 0 0 0 0 1 0 0 0 1 0]
- 　　　　　　　　　　　　　　　[1 0 0 1 0 0 0 0 0 0 1 0]
- 　　　　　　　　　　　　　　　[0 0 0 0 0 0 0 1 0 0 1 0]]
+                [0 0 0 0 1 0 0 0 1 0 1 0]
+                [0 1 0 0 0 0 0 0 0 0 1 1]
+                [0 0 1 0 0 0 0 0 0 1 0 0]
+                [0 0 0 0 0 0 1 0 0 0 1 0]
+                [1 0 0 1 0 0 0 0 0 0 1 0]
+                [0 0 0 0 0 0 0 1 0 0 1 0]]
             
             □exsample
-             label:1 -> ネツァワル王国
-             row:0 [0 0 0 0 0 1 0 0 0 0 1 0]
-             column: 5 ネツァワル, 10 王国
+             label 1: ネツァワル王国
+             row 0: [0 0 0 0 0 1 0 0 0 0 1 0]
+             column 5,10: ネツァワル,王国
         """
         self.features = self.vectorizer.fit_transform(CorpusTokenizer(corpus_flat).read())
         logger.debug(self.vectorizer.get_feature_names())
@@ -112,20 +115,20 @@ class NaiveBayes(object):
 
         logger.debug(self.model.predict_proba(x))
         return self.model.predict(x)
-    def predict_all(self, predicts, pair):
+    def predict_all(self, x_list, pair):
         """
             mapping
-            @param {list} predicts
+            @param {list} x_list
                    {dict} pair
             @return {list} value
         """
         result = []
-        for x in predicts:
+        for x in x_list:
             predict = self.predict(x)[0]
             value = pair[str(predict)] 
             result.append(value)
             logger.debug('%s -> 推定: %s', x, value)
-        assert len(result) == len(predicts)
+        assert len(result) == len(x_list)
         return result    
     def cross_validation(self):
         """
@@ -147,9 +150,13 @@ def main():
     naivebayes = NaiveBayes()
     out = naivebayes.predict_all(x_list, doc.countries)
     logger.info('out:%s', out)
-    #out = naivebayes.predict_all(['ホルデイン王国','力セドー丿ア連合王国','ゲブ「ラン ド帝国'], doc.countries)
-    #logger.info('out:%s', out)
-    
+    x_list = ['ホルデイン王国','力セドー丿ア連合王国','ゲブ「ラン ド帝国']
+    out = naivebayes.predict_all(x_list, doc.countries)
+    logger.info('out:%s', out)
+    x_list = ['ホルデイン王国','力セドー丿ア連合王国','ゲブ「ラン ド帝国']
+
+            
+    logger.info('out:%s', out)
     #naivebayes.cross_validation()
 if __name__ == "__main__":
     main()
