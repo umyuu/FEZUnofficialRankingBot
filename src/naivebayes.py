@@ -25,21 +25,23 @@ if __name__ == "__main__":
     logger.addHandler(handler)
 
 class CorpusTokenizer(object):
-    def __init__(self, corpus, skip_header=0):
+    def __init__(self, corpus, skip_tokenize=0):
         """
             @param {list} corpus
+                   {int}  skip_tokenize tokenize skiped yield result word
         """
         assert len(corpus) != 0
-        self.skip_header = skip_header    
+        self.skip_tokenize = skip_tokenize    
         self.corpus = corpus
         self.t = Tokenizer()
     def read(self):
         """
-            list{string} token | space | token
-            @yield {list.<list{string}>}
+            list.<string>
+                result := token | space | token
+            @yield {list.<string>}
         """
         for i, word in enumerate(self.corpus):
-            if i < self.skip_header:
+            if i < self.skip_tokenize:
                 yield word
                 continue
             tokens = []
@@ -93,7 +95,7 @@ class NaiveBayes(object):
              row 0: [0 0 0 0 0 1 0 0 0 0 1 0]
              column 5,10: ネツァワル,王国
         """
-        self.features = self.vectorizer.fit_transform(CorpusTokenizer(corpus_flat, skip_header=5).read())
+        self.features = self.vectorizer.fit_transform(CorpusTokenizer(corpus_flat, skip_tokenize=5).read())
         logger.debug(self.vectorizer.get_feature_names())
         logger.debug(self.features.toarray())
         self.labels = Serializer.load_np('../resource/labels.txt', dtype=np.uint8)
@@ -154,10 +156,6 @@ def main():
     logger.info('out:%s', out)
     x_list = ['ホルデイン王国','力セドー丿ア連合王国','ゲブ「ラン ド帝国']
     out = naivebayes.predict_all(x_list, doc.countries)
-    logger.info('out:%s', out)
-    ct = CorpusTokenizer([""], skip_header=3)
-    for aaa in ct.read():
-        logger.info('aaa' + aaa)
     logger.info('out:%s', out)
     #naivebayes.cross_validation()
 if __name__ == "__main__":
