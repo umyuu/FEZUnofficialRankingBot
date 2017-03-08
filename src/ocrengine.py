@@ -35,9 +35,15 @@ class OCRDocument(object):
     def indexByContents(self, index, contents):
         """
             ocr filed pair
+            
             @return {dict} name score
         """
-        return {"name":str(contents[index]), "score":str(contents[index + 5])}
+        # \d+.\d+ [point] => \d+.\d+
+        # exsample) input           => output
+        #           228993.70 point => 228993.70
+        score = str(contents[index + 5])
+        score = score[:score.rfind(' ')]
+        return {"name":str(contents[index]), "score":score}
     def parse(self, documents):
         """
             OCR data.
