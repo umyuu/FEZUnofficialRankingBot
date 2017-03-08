@@ -46,7 +46,7 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
 - scikit.learn
 - Pillow
 - pyocr
-- mecab-python3
+- janome
 - Tesseract-OCR
 
 ## Source code License
