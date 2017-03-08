@@ -2,9 +2,10 @@
 from logging import getLogger
 from enum import Enum, unique
 from pathlib import Path
-import tempfile
+from io import BytesIO
 #
 import cv2
+import numpy as np
 #
 from hsvcolor import HSVcolor
 from iimagefillter import GrayScaleFilter, AdaptiveThresholdFilter, IImageFilter, ImageStream
@@ -106,21 +107,16 @@ class DataProcessor(object):
         """
         stream = ImageStream()
         stream.data = self.color
-        #stream.addFilter(ROIFilter())
         stream.addFilter(GrayScaleFilter())
         stream.addFilter(AdaptiveThresholdFilter())
         stream.addFilter(AppImageFilter(self.image_type, self.hsv))
         return stream.tofiltered()
-    def save_tempfile(self, binary):
+    def tobinary(self, binary):
         """
-            save temporary image file.
-            @param {binary} binary image
-            @return {string} TemporaryFileName
+            convert cv2.binary => Memory
+            @param {cv2.binary} image
+            @return {io.BytesIO} Memory
         """
         baseName = Path(self.name)
-        temp_file_name = ''
-        with tempfile.NamedTemporaryFile(delete=False, suffix=baseName.suffix) as temp:
-            temp_file_name = temp.name
-            logger.info(temp_file_name)
-            cv2.imwrite(temp_file_name, binary)
-        return temp_file_name
+        ret, buf = cv2.imencode(baseName.suffix, binary)
+        return BytesIO(np.array(buf).tostring())
