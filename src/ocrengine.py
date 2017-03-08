@@ -108,6 +108,9 @@ class OCREngine(object):
         self.lang = 'jpn'
     def image_to_string(self, file, lang=None, builder=None):
         """
+            @param {PIL.Image} file
+                   {string}    lang
+                   {pyocr.builder} builder
             call pyocr#image_to_string
         """
         if lang is None:
@@ -117,7 +120,7 @@ class OCREngine(object):
         return self.tool.image_to_string(file, lang=lang, builder=builder)
     def recognize(self, file):
         """
-            @params {string},{image} file
+            @params {string},{PIL.Image} file
             @return {OCRDocument}
         """
         if isinstance(file, str):
