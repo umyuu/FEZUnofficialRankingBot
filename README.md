@@ -43,10 +43,10 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
 - python 3.5+
 - python-twitter
 - opencv
-- numpy
 - scikit.learn
 - Pillow
 - pyocr
+- mecab-python3
 - Tesseract-OCR
 
 ## Source code License
