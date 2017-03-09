@@ -8,8 +8,7 @@ import itertools
 #
 import numpy as np
 from sklearn.naive_bayes import MultinomialNB
-#from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import cross_val_score
 from janome.tokenizer import Tokenizer
 #
@@ -69,36 +68,19 @@ class NaiveBayes(object):
         □predict
             token => vectorizer#transform => model#predict
     """
-    def __init__(self, vectorizer=None):
-        if vectorizer is None:
-           #vectorizer = TfidfVectorizer(use_idf=True)
-           vectorizer = CountVectorizer()
-        self.__vectorizer = vectorizer
+    def __init__(self):
+        self.__vectorizer = TfidfVectorizer(use_idf=True)
         corpus = Serializer.load_csv('../resource/corpus.txt')
-        corpus_flat = list(itertools.chain.from_iterable(corpus))
-        """
-            □code
-              logger.info(self.vectorizer.get_feature_names())
-              logger.info(self.features.toarray())
-            □output
-                ['エル', 'カセドリア', 'ゲブランド', 'ソード', 'ネツ', 'ネツァワル', 'ホルデイン', 'ルソ', 'ワル', '帝国', '王国', '連合']
-                [[0 0 0 0 0 1 0 0 0 0 1 0]
-                [0 0 0 0 1 0 0 0 1 0 1 0]
-                [0 1 0 0 0 0 0 0 0 0 1 1]
-                [0 0 1 0 0 0 0 0 0 1 0 0]
-                [0 0 0 0 0 0 1 0 0 0 1 0]
-                [1 0 0 1 0 0 0 0 0 0 1 0]
-                [0 0 0 0 0 0 0 1 0 0 1 0]]
-            
-            □exsample
-             label 1: ネツァワル王国
-             row 0: [0 0 0 0 0 1 0 0 0 0 1 0]
-             column 5,10: ネツァワル,王国
-        """
-        self.features = self.vectorizer.fit_transform(CorpusTokenizer(corpus_flat, skip_tokenize=5).read())
+        data = []
+        target = []
+        for row in corpus:
+            data.append(str(row[0]))
+            target.append(int(row[1]))
+        self.features = self.vectorizer.fit_transform(CorpusTokenizer(data, skip_tokenize=5).read())
+        self.labels = np.array(target, dtype=np.uint8, ndmin=1)
+        # vectorizer debug code
         logger.debug(self.vectorizer.get_feature_names())
         logger.debug(self.features.toarray())
-        self.labels = Serializer.load_np('../resource/labels.txt', dtype=np.uint8)
         self.model = MultinomialNB(alpha=0.1)
         self.model.fit(self.features, self.labels)
     @property
@@ -139,7 +121,7 @@ class NaiveBayes(object):
             model cross validation check
         """
         raise DeprecationWarning()
-        scores = cross_val_score(MultinomialNB(alpha=0.1), self.features, self.labels, cv=1)
+        scores = cross_val_score(MultinomialNB(alpha=0.1), self.features, self.labels, cv=2)
         logger.info('cross_validation:%s', np.mean(scores))
         # scores 0.171428571429
 def main():
