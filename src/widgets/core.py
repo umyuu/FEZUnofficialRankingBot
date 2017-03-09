@@ -8,6 +8,7 @@ class ApplicationCore(tk.Frame):
     """
     def __init__(self, master=None):
         super().__init__(master)
+        self.isdestroyed = False
         self.focus_set()
         self.bind_all('<Control-Shift-KeyPress-Q>', self.onApplicationExit)
     def onApplicationExit(self, event=None):
@@ -17,8 +18,12 @@ class ApplicationCore(tk.Frame):
             note:
             spyder IDE Run Script app hangup
             github doc\\images\\IDE_spyder_setting.jpg
+            window#closeButton
+            can't invoke "destroy" command: application has been destroyed
         """
-        self.quit()
+        if not self.isdestroyed:
+            self.isdestroyed = True
+            self.master.destroy()
     def run(self):
         """
              start messageloop
