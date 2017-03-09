@@ -68,7 +68,7 @@ class NaiveBayes(object):
         □predict
             token => vectorizer#transform => model#predict
     """
-    def __init__(self):
+    def __init__(self, skip_tokenize=5):
         self.__vectorizer = TfidfVectorizer(use_idf=True)
         corpus = Serializer.load_csv('../resource/corpus.tsv')
         data = []
