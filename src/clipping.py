@@ -6,6 +6,7 @@ from pathlib import Path
 #
 from dataprocessor import DataProcessor, ImageType
 
+
 class Clipping(object):
     def __init__(self, media, target=None):
         self.media = media
@@ -15,14 +16,16 @@ class Clipping(object):
         self.binary = pro.batch()
         self.color = pro.color
         self.drawClipSource = True
+        self.imageout_dir = '../temp/trash'
+        os.makedirs(self.imageout_dir, exist_ok=True)
     def number(self):
         """
             fillter
                 1,頂点数が3未満
                 2,面積が50未満
         """
-        cv2.imwrite('./temp/binary_color{0}'.format(os.path.basename(self.media)), self.color)
-        cv2.imwrite('./temp/binary_{0}'.format(os.path.basename(self.media)), self.binary)
+        cv2.imwrite('{0}/binary_color{1}'.format(self.imageout_dir, os.path.basename(self.media)), self.color)
+        cv2.imwrite('{0}/binary_{1}'.format(self.imageout_dir, os.path.basename(self.media)), self.binary)
         image, contours, hierarchy = cv2.findContours(self.binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         rect = []
         for c in contours:
@@ -55,4 +58,12 @@ class Clipping(object):
             #roi = roi.shape[:2]
             #image = cv2.resize(self.color[y:y+h,x:x+w],(32,32))
             image = roi
-            cv2.imwrite('./temp/{0}_{1}_{2}{3}'.format(srcfilename, i, value, srcPath.suffix), image)
+            cv2.imwrite('{0}/{1}_{2}_{3}{4}'.format(self.imageout_dir, srcfilename, i, value, srcPath.suffix), image)
+
+def main():
+    temp_file_name = '../base_binary.png'
+    clip = Clipping(temp_file_name)
+    clip.number()
+    print('END')
+if __name__ == "__main__":
+    main()
