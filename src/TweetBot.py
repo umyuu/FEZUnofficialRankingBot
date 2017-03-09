@@ -148,7 +148,7 @@ def main():
     """
     parser = argparse.ArgumentParser(prog='tweetbot',
                                      description='FEZ Unofficial Total War Ranking TwitterBot')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.4')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.5')
     parser.add_argument('--debug', default=True)
 
     logger.info('Program START')
@@ -156,7 +156,7 @@ def main():
 
     config = Serializer.load_json('../resource/setting.json')
     bot = TweetBot(config)
-    bot.isTweet = False
+    #bot.isTweet = False
     bot.download.request()
     for media in bot.getImage():
         logger.info('tweet media:%s', media)

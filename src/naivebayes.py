@@ -79,8 +79,8 @@ class NaiveBayes(object):
         self.features = self.vectorizer.fit_transform(CorpusTokenizer(data, skip_tokenize=5).read())
         self.labels = np.array(target, dtype=np.uint8, ndmin=1)
         # vectorizer debug code
-        logger.debug(self.vectorizer.get_feature_names())
-        logger.debug(self.features.toarray())
+        #logger.debug(self.vectorizer.get_feature_names())
+        #logger.debug(self.features.toarray())
         self.model = MultinomialNB(alpha=0.1)
         self.model.fit(self.features, self.labels)
     @property
