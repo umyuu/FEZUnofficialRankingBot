@@ -89,15 +89,8 @@ class DataProcessor(object):
             return binary        
         lower, upper = HSVcolor(0, 0, 0), HSVcolor(30, 66, 255)
         binary = cv2.bitwise_and(binary, self.__inRange(self.hsv, lower, upper))
-        #fez country color mask pattern
-        #binary = self.bitwise_not(binary, self._contryMask['netzawar'])
-        #binary = self.bitwise_not(binary, self._contryMask['geburand'])
-        #binary = self.bitwise_not(binary, self._contryMask['ielsord'])
-        #binary = self.bitwise_not(binary, self._contryMask['casedria'])
-        #binary = self.bitwise_not(binary, self._contryMask['hordine'])
         # image out range fill
         height, width = stream.shape[:2]
-        # todo setting.json
         clip_rect = Serializer.load_json('../resource/ocr.json')['clipping']
         start_x, start_y = clip_rect['start']
         end_x, end_y = clip_rect['end']
