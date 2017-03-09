@@ -82,11 +82,7 @@ class DataProcessor(object):
         
         # white color
         white = self.__getWhiteMasking(self.hsv)
-        binary = cv2.bitwise_and(binary, binary, mask=white)
-        if self.image_type == ImageType.PLAN:
-            height, width = stream.shape[:2]
-            cv2.rectangle(binary, (0, 0), (min(1000, width), height), (0, 0, 0), -1)
-            return binary        
+        binary = cv2.bitwise_and(binary, binary, mask=white) 
         lower, upper = HSVcolor(0, 0, 0), HSVcolor(30, 66, 255)
         binary = cv2.bitwise_and(binary, self.__inRange(self.hsv, lower, upper))
         # image out range fill
