@@ -36,7 +36,7 @@ class Serializer(object):
             data.read_file(file)
         return data
     @staticmethod
-    def load_csv(filename, encoding='utf-8-sig', skip_header=1):
+    def load_csv(filename, delimiter='\t', encoding='utf-8-sig', skip_header=1):
         """
             load csv data.
                 limit csv.field_size_limit()
@@ -46,7 +46,7 @@ class Serializer(object):
         """
         csv_data = []
         with open(filename, 'r', encoding=encoding) as file:
-            reader = csv.reader(file)
+            reader = csv.reader(file, delimiter=delimiter)
             for i in range(skip_header):
                 next(reader)
             for row in reader:
