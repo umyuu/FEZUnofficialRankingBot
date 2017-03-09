@@ -1,89 +1,38 @@
 # -*- coding: utf-8 -*-
-from abc import ABCMeta, abstractmethod
-#
-import cv2
-
-class IImageFilter(metaclass=ABCMeta):
-    def __init__(self, name='IImageFilter'):
-        self.name = name
-    @abstractmethod
-    def filtered(self, stream):
-        """
-            @param {object} stream source stream
-            @return {object} filtered stream
-        """
-        return stream
-class EmptyFilter(IImageFilter):
-    def __init__(self):
-        super().__init__('EmptyFilter')
-    def filtered(self, stream):
-        return stream
-class GrayScaleFilter(IImageFilter):
-    def __init__(self):
-        super().__init__('GrayScaleFilter')
-    def filtered(self, stream):
-        result = cv2.cvtColor(stream, cv2.COLOR_BGR2GRAY)
-        return result
-
-class AdaptiveThresholdFilter(IImageFilter):
-    def __init__(self):
-        super().__init__('AdaptiveThresholdFilter')
-    def filtered(self, stream):
-        result = cv2.adaptiveThreshold(stream
-                    , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
-        return result
-
-class CanvesFillFilter(IImageFilter):
-    def __init__(self):
-        super().__init__('CanvesFillFilter')
-    def filtered(self, stream):
-        height, width = stream.shape[:2]
-        cv2.rectangle(stream, (0, min(self.widthLimit, height)), (width, height), (0 , 0, 0), -1)
-        return stream
+# pylint: disable=C0103
 
 class ImageStream(object):
-    __slots__ = ['filters', 'data']
-    def __init__(self):
+    def __init__(self, setup=None, task=None, teardown=None):
         self.filters = []
-        self.data = None
-    def addFilter(self, f):
+        if setup is None:
+            setup = self.EmptyFilter
+        if task is None:
+            task = self.EmptyFilter
+        if teardown is None:
+            teardown = self.EmptyFilter
+        self.filters.append(setup)
+        self.filters.append(task)
+        self.filters.append(teardown)
+    def EmptyFilter(self, sender, args):
         """
-            @param {IImageFilter} f
-            @return self
+            EmptyFilter
+               stream => result
+            usage ImageStream(task=ImageStream().EmptyFilter)
+            @param {object}sender
+                   {object},{None}args event args
+            @return {object}
         """
-        if not isinstance(f, IImageFilter):
-            assert False, 'NotImplemented'
-        if not (f in self.filters):
-            self.filters.append(f)
-        return self
-    def removeFilter(self, f):
+        return sender
+    def transform(self, data, args=None):
         """
-            @param {IImageFilter} f
-            @return self
+            call
+                preprocessor => task => finish
+            @param {object}data stream
+                   {object},{None}ev event args
+            @return {object}
         """
-        if not isinstance(f, IImageFilter):
-            assert False, 'NotImplemented'
-        if f in self.filters:
-            self.filters.remove(f)
-        return self
-    def clearFilter(self):
-        """
-            @return self
-        """
-        self.filters = []
-        return self
-    def tofiltered(self):
-        """
-            @return {object} filtered stream
-        """
-        for f in self.filters:
-            self.data = f.filtered(self.data)
-            assert self.data is not None, 'filtered result None'
-            self.fire_onfiltered(f)
-        return self.data
-    def fire_onfiltered(self, sender):
-        """
-            filtered event
-            @param {IImageFilter} sender
-        """
-        pass
+        assert data is not None, 'data has Non'
+        for caller in self.filters:
+            data = caller(data, args)
+            assert data is not None, '{0} has no return value'.format(str(caller))
+        return data
