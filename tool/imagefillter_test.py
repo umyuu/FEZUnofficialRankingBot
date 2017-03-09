@@ -9,31 +9,35 @@ class ImageStream(object):
         ImageStream stream transform
     """
     def __init__(self, preprocessor=None, task=None, finish=None):
+        self.filters = []
         if preprocessor is None:
-            preprocessor = self.Empty
+            preprocessor = self.EmptyFilter
         if task is None:
-            task = self.Empty
+            task = self.EmptyFilter
         if finish is None:
-            finish = self.Empty
-        self.preprocessor = preprocessor
-        self.task = task
-        self.finish = finish
-    def Empty(self, stream):
+            finish = self.EmptyFilter
+        self.filters.append(preprocessor)
+        self.filters.append(task)
+        self.filters.append(finish)
+    def EmptyFilter(self, sender, args):
         """
-            stream => result
-            @param {stream}  stream
-            @return {stream} stream
+            EmptyFilter
+               stream => result
+            usage ImageStream(task=ImageStream().EmptyFilter)
+            @param {object}sender
+                   {object},{None}args event args
+            @return {object}
         """
-        return stream
-    def transform(self, data):
+        return sender
+    def transform(self, data, args=None):
         """
             call
                 preprocessor => task => finish
-            @param {stream}  data
-            @return {stream} dara
+            @param {dict}data stream & param
+            @return {dict}
         """
-        for t in [self.preprocessor, self.task, self.finish]:
-            data = t(data)
+        for caller in self.filters:
+            data = caller(data, args)
             cv2.imshow('image:', data)
             cv2.waitKey(3000)
         return data
@@ -41,35 +45,33 @@ class Processor(object):
     """
         ImageStream caller Processor method.
     """
-    def prepare(self, stream):
+    def prepare(self, sender, ev):
         """
             filtered prepare
-            @param {stream}  stream
-            @return {stream} prepared stream
+            @param {dict}sender  stream & param
         """
-        assert stream is not None
-        return stream
-    def task(self, stream):
+        result = sender
+        assert result is not None
+        return result
+    def task(self, sender, ev):
         """
             filtered task
-            @param {stream}  stream
-            @return {stream} filtered
+            @param {dict}sender  stream & param
         """
-        result = stream
-        result = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+        result = cv2.cvtColor(sender, cv2.COLOR_BGR2GRAY)
         result = cv2.adaptiveThreshold(result
                     , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
         return result
-    def finish(self, stream):
+    def finish(self, sender, ev):
         """
             filtered finish
-            @param {stream}  stream
-            @return {stream} finish stream
+            @param {dict}sender    stream & param
         """
-        height, width = stream.shape[:2]
+        result = sender
+        height, width = result.shape[:2]
         widthLimit = 400
-        cv2.rectangle(stream, (0, min(widthLimit, height)), (width, height), (0, 0, 0), -1)
-        return stream
+        cv2.rectangle(result, (0, min(widthLimit, height)), (width, height), (0, 0, 0), -1)
+        return result
 def main():
     parser = argparse.ArgumentParser(prog='ImageFilter',
                                      description='ImageFilter Simulator')
