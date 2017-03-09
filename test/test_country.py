@@ -38,7 +38,6 @@ class TestClass(object):
             if t > 5:
                 raise Exception(t)
             target.append(t)
-        naivebayes.vectorizer.fit_transform(CorpusTokenizer(data, skip_tokenize=5).read())
         np.array(target, dtype=np.uint8, ndmin=1)
         
 if __name__ == '__main__':

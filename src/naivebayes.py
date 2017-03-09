@@ -4,9 +4,9 @@
     naivebayes classifier
 """
 from logging import getLogger, StreamHandler, DEBUG
-import itertools
 #
 import numpy as np
+from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import cross_val_score
@@ -23,72 +23,63 @@ if __name__ == "__main__":
     logger.setLevel(DEBUG)
     logger.addHandler(handler)
 
-class CorpusTokenizer(object):
-    def __init__(self, corpus, skip_tokenize=0):
-        """
-            @param {list} corpus
-                   {int}  skip_tokenize tokenize skiped yield result word
-        """
-        assert len(corpus) != 0
-        self.skip_tokenize = skip_tokenize    
-        self.corpus = corpus
-        self.t = Tokenizer()
-    def read(self):
-        """
-            list.<string>
-                result := token | space | token
-            @yield {list.<string>}
-        """
-        for i, word in enumerate(self.corpus):
-            if i < self.skip_tokenize:
-                yield word
-                continue
-            tokens = []
-            for token in self.token_split(word):
-                if not str(token.part_of_speech).startswith('名詞'):
-                    pass
-                tokens.append(token.surface)
-            yield " ".join(tokens)
-    def token_split(self, word):
-        """
-            tokenize iterator
-            @param {string} word
-            @yield {token} token
-        """
-        for token in self.t.tokenize(word):
-            yield token
 class NaiveBayes(object):
     """
         NaiveBayes Classifier.
         use sklearn.naive_bayes.MultinomialNB
         << preprocessing >>
-            corpus => {list}words => {Word segmentation}token
+            corpus => NaiveBayes#tokenizer
+            NaiveBayes#tokenizer := word => {Word segmentation}token
         □model　training
             token => vectorizer#fit_transform => model#fit
         □predict
             token => vectorizer#transform => model#predict
     """
     def __init__(self, skip_tokenize=5):
-        self.__vectorizer = TfidfVectorizer(use_idf=True)
+        self.skip_tokenize = skip_tokenize
+        self.skip_count = 0
+        self.t = Tokenizer()
+        self.pipeline = Pipeline([
+                ('vectorizer', TfidfVectorizer(use_idf=True, tokenizer=self.tokenizer)),
+                ('classifier', MultinomialNB(0.1))])
         corpus = Serializer.load_csv('../resource/corpus.tsv')
-        data = []
+        self.data = []
         target = []
         for row in corpus:
-            data.append(str(row[0]))
+            self.data.append(str(row[0]))
             target.append(int(row[1]))
-        self.features = self.vectorizer.fit_transform(CorpusTokenizer(data, skip_tokenize=5).read())
         self.labels = np.array(target, dtype=np.uint8, ndmin=1)
-        # vectorizer debug code
+        self.pipeline.fit(self.data, self.labels)
         #logger.debug(self.vectorizer.get_feature_names())
-        #logger.debug(self.features.toarray())
-        self.model = MultinomialNB(alpha=0.1)
-        self.model.fit(self.features, self.labels)
+    def tokenizer(self, word):
+        """
+            caller fit_transform / transform
+            @param {string} word
+            @yield {list.<string>}
+                    result := token | space | token
+        """
+        if self.skip_count < self.skip_tokenize:
+            self.skip_count += 1
+            yield word
+            return
+        tokens = []
+        for token in self.t.tokenize(word):
+            if not str(token.part_of_speech).startswith('名詞'):
+                pass
+            tokens.append(token.surface)
+        yield " ".join(tokens)
+    @property
+    def model(self):
+        """
+            @return {Classifier}
+        """
+        return self.pipeline.named_steps['classifier']
     @property
     def vectorizer(self):
         """
             @return {Vectorizer}
         """
-        return self.__vectorizer
+        return self.pipeline.named_steps['vectorizer']
     def predict(self, x):
         """
             predict params x
@@ -96,10 +87,10 @@ class NaiveBayes(object):
             @return result
         """
         if isinstance(x, str):
-            v = self.vectorizer.transform(CorpusTokenizer([x]).read())
+            v = self.vectorizer.transform([x])
             return self.predict(v)
 
-        logger.debug(self.model.predict_proba(x))
+        #logger.debug(self.model.predict_proba(x))
         return self.model.predict(x)
     def predict_all(self, x_list, pair):
         """
@@ -110,8 +101,8 @@ class NaiveBayes(object):
         """
         result = []
         for x in x_list:
-            predict = self.predict(x)[0]
-            value = pair[str(predict)] 
+            predicted = self.predict(x)[0]
+            value = pair[str(predicted)] 
             result.append(value)
             logger.debug('%s -> 推定: %s', x, value)
         assert len(result) == len(x_list)
@@ -120,10 +111,11 @@ class NaiveBayes(object):
         """
             model cross validation check
         """
-        raise DeprecationWarning()
-        scores = cross_val_score(MultinomialNB(alpha=0.1), self.features, self.labels, cv=2)
+        #raise DeprecationWarning()
+        x_train = self.vectorizer.fit_transform(self.data)
+        scores = cross_val_score(self.model, x_train, self.labels, cv=5)
         logger.info('cross_validation:%s', np.mean(scores))
-        # scores 0.171428571429
+        # scores 0.779300699301
 def main():
     ocr = OCREngine()
     temp_file_name = '../base_binary.png'
@@ -139,6 +131,6 @@ def main():
     x_list = ['ホルデイン王国','力セドー丿ア連合王国','ゲブ「ラン ド帝国']
     out = naivebayes.predict_all(x_list, doc.countries)
     logger.info('out:%s', out)
-    #naivebayes.cross_validation()
+    naivebayes.cross_validation()
 if __name__ == "__main__":
     main()
