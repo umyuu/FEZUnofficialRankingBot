@@ -70,7 +70,7 @@ class NaiveBayes(object):
     """
     def __init__(self):
         self.__vectorizer = TfidfVectorizer(use_idf=True)
-        corpus = Serializer.load_csv('../resource/corpus.txt')
+        corpus = Serializer.load_csv('../resource/corpus.tsv')
         data = []
         target = []
         for row in corpus:
