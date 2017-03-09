@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
+# pylint: disable=C0103
 class HSVcolor(object):
     """
         hsv color code class

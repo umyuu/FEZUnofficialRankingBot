@@ -5,8 +5,8 @@ import pyocr
 import pyocr.builders
 from PIL import Image
 #
-import serializer
-
+from serializer import Serializer
+#
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
     handler = StreamHandler()
@@ -23,7 +23,7 @@ class OCRDocument(object):
     def __init__(self):
         self.__ranking = []
         self.__raw = []
-        json_data = serializer.load_json('../resource/ocr.json')
+        json_data = Serializer.load_json('../resource/ocr.json')
         self.translate = json_data['translate']
         self.__countries = json_data['translate']['country']
     @property
@@ -35,9 +35,15 @@ class OCRDocument(object):
     def indexByContents(self, index, contents):
         """
             ocr filed pair
+            
             @return {dict} name score
         """
-        return {"name":str(contents[index]), "score":str(contents[index + 5])}
+        # \d+.\d+ [point] => \d+.\d+
+        # exsample) input           => output
+        #           228993.70 point => 228993.70
+        score = str(contents[index + 5])
+        score = score[:score.rfind(' ')]
+        return {"name":str(contents[index]), "score":score}
     def parse(self, documents):
         """
             OCR data.
@@ -108,6 +114,9 @@ class OCREngine(object):
         self.lang = 'jpn'
     def image_to_string(self, file, lang=None, builder=None):
         """
+            @param {PIL.Image} file
+                   {string}    lang
+                   {pyocr.builder} builder
             call pyocr#image_to_string
         """
         if lang is None:
@@ -117,7 +126,7 @@ class OCREngine(object):
         return self.tool.image_to_string(file, lang=lang, builder=builder)
     def recognize(self, file):
         """
-            @params {string},{image} file
+            @params {string},{PIL.Image} file
             @return {OCRDocument}
         """
         if isinstance(file, str):

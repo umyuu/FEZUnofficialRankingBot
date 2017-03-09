@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger, StreamHandler, DEBUG
 import os
+import tempfile
+from io import BytesIO
 from datetime import datetime
 #
-import serializer
+from serializer import Serializer
 from ocrengine import OCREngine
 from naivebayes import NaiveBayes
 from dataprocessor import DataProcessor, ImageType
@@ -28,12 +30,15 @@ class Ranking(object):
         if pro.prepare() is None:
             logger.error('image error:{0}'.format(src))
             return None
-        batch = pro.batch()
-        temp_file_name = pro.save_tempfile(batch)
-        
+        buffer = pro.tobinary(pro.batch())
+        temp_file_name = ''
+        with tempfile.NamedTemporaryFile(delete=False) as temp:
+            temp.write(buffer.getvalue())
+            temp_file_name = temp.name
+            logger.info(temp_file_name)
         doucument = self.ocr.recognize(temp_file_name)
         os.remove(temp_file_name)
-        with serializer.open_stream('../temp/corpus.txt', mode='a') as file:
+        with Serializer.open_stream('../temp/corpus.txt', mode='a') as file:
             header = '#' + datetime.now().strftime('%F %T.%f')[:-3] + '\n'
             file.write(header)
             file.write('\n'.join(doucument.names()))
@@ -46,13 +51,13 @@ class Ranking(object):
         return doucument
 
 def main():
-    config = serializer.load_json('../resource/setting.json')
+    config = Serializer.load_json('../resource/setting.json')
     r = Ranking(config)
     # benchMark
     ele = ['../backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
-        #    '../backup/test/201702191909_ac08ccbbb04f2a1feeb4f8aaa08ae008.png',
+            '../images/backup/2017-03-09_0525_Ielsord.png',
         #     '../backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
-        ] * 2
+        ] * 1
     for l in ele:
         logger.info(l)
         doucument = r.getResult(l)
