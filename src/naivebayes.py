@@ -87,10 +87,9 @@ class NaiveBayes(object):
             @return result
         """
         if isinstance(x, str):
-            v = self.vectorizer.transform([x])
-            return self.predict(v)
+            x = self.vectorizer.transform([x])
 
-        #logger.debug(self.model.predict_proba(x))
+        logger.debug(self.model.predict_proba(x))
         return self.model.predict(x)
     def predict_all(self, x_list, pair):
         """
