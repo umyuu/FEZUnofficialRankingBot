@@ -63,8 +63,8 @@ class DataProcessor(object):
         return result
     def base_filtered(self, sender, ev):
         result = cv2.cvtColor(sender, cv2.COLOR_BGR2GRAY)
-        result = cv2.adaptiveThreshold(result
-                    , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
+        result = cv2.adaptiveThreshold(result, 255,
+                                       cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
         cv2.imwrite('../temp/binary_color{0}'.format(os.path.basename(self.media)), sender)
         return result
     def clipping_filtered(self, sender, ev):
