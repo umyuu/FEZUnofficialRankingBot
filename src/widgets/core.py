@@ -2,7 +2,7 @@
 import tkinter as tk
 
 # pylint: disable=C0103
-class Core(tk.Frame):
+class ApplicationCore(tk.Frame):
     """
         widget core
     """
