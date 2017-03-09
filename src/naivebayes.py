@@ -101,11 +101,11 @@ class NaiveBayes(object):
         result = []
         for x in x_list:
             predicted = self.predict(x)[0]
-            value = pair[str(predicted)] 
+            value = pair[str(predicted)]
             result.append(value)
             logger.debug('%s -> 推定: %s', x, value)
         assert len(result) == len(x_list)
-        return result    
+        return result
     def cross_validation(self):
         """
             model cross validation check
@@ -127,7 +127,7 @@ def main():
     naivebayes = NaiveBayes()
     out = naivebayes.predict_all(x_list, doc.countries)
     logger.info('out:%s', out)
-    x_list = ['ホルデイン王国','力セドー丿ア連合王国','ゲブ「ラン ド帝国']
+    x_list = ['ホルデイン王国', '力セドー丿ア連合王国', 'ゲブ「ラン ド帝国']
     out = naivebayes.predict_all(x_list, doc.countries)
     logger.info('out:%s', out)
     naivebayes.cross_validation()
