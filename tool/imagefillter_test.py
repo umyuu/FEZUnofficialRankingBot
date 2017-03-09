@@ -8,17 +8,17 @@ class ImageStream(object):
     """
         ImageStream stream transform
     """
-    def __init__(self, preprocessor=None, task=None, finish=None):
+    def __init__(self, setup=None, task=None, teardown=None):
         self.filters = []
-        if preprocessor is None:
-            preprocessor = self.EmptyFilter
+        if setup is None:
+            setup = self.EmptyFilter
         if task is None:
             task = self.EmptyFilter
-        if finish is None:
-            finish = self.EmptyFilter
-        self.filters.append(preprocessor)
+        if teardown is None:
+            teardown = self.EmptyFilter
+        self.filters.append(setup)
         self.filters.append(task)
-        self.filters.append(finish)
+        self.filters.append(teardown)
     def EmptyFilter(self, sender, args):
         """
             EmptyFilter
@@ -81,7 +81,7 @@ def main():
     print('args:{0}'.format(args))
 
     p = Processor()
-    stream = ImageStream(preprocessor=p.prepare, task=p.task, finish=p.finish)
+    stream = ImageStream(setup=p.prepare, task=p.task, teardown=p.finish)
     data = cv2.imread(args.image)
     #
     stream.transform(data)
