@@ -18,8 +18,7 @@
 │  │  └ twitter.ini  … twitter auth 
 │  ├ sample/         
 │  │  └ twitter.ini … sample twitter auth file.
-│  ├ corpus         … naivebayes corpus data
-│  ├ labels         … naivebayes corpus labels
+│  ├ corpus.tsv     … naivebayes corpus data & label.
 │  ├ ocr.json     … ocr translate rule. 
 │  └ setting.json  … Script setting file.
 │

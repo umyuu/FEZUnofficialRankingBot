@@ -73,13 +73,14 @@ class Download(object):
             #if contentType.startswith('image'):
             basename = os.path.basename(address)
             buffer, contentType = self.get(address)
-            with tempfile.NamedTemporaryFile(delete=False) as temp:
+            suffix = self.getSuffix(contentType)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
                 temp.write(buffer.getvalue())
                 temp_file_name = temp.name
                 if len(basename) == 0:
                     logger.warning('create_filename:%s', os.path.basename(temp.name))
-                    basename = os.path.basename(temp_file_name) + self.getSuffix(contentType)
-                p = Path(self.dataDir, basename)
+                    basename = os.path.basename(temp_file_name)
+                p = Path(self.dataDir, basename).with_suffix(suffix)
                 p = self.sequential(p)
 
             os.replace(temp_file_name, str(p))

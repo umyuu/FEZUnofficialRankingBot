@@ -17,7 +17,7 @@ class TestClass(object):
         config = Serializer.load_json(os.path.join(basepath, 'setting.json'))
         Serializer.load_ini(config['AUTH']['TWITTER'])
         Serializer.load_json(os.path.join(basepath, 'ocr.json'))
-        Serializer.load_csv(os.path.join(basepath, 'corpus.txt'))
+        Serializer.load_csv(os.path.join(basepath, 'corpus.tsv'))
     def test_naivebayes_compare(self):
         basepath = '../resource/'
         naivebayes = NaiveBayes()
@@ -29,7 +29,7 @@ class TestClass(object):
                 raise Exception('compare x:{0},predict:{1}'.format(x_list[i], y))
     def test_naivebayes_labeling(self):
         naivebayes = NaiveBayes()
-        corpus = Serializer.load_csv('../resource/corpus.txt')
+        corpus = Serializer.load_csv('../resource/corpus.tsv')
         data = []
         target = []
         for row in corpus:
@@ -38,7 +38,6 @@ class TestClass(object):
             if t > 5:
                 raise Exception(t)
             target.append(t)
-        naivebayes.vectorizer.fit_transform(CorpusTokenizer(data, skip_tokenize=5).read())
         np.array(target, dtype=np.uint8, ndmin=1)
         
 if __name__ == '__main__':

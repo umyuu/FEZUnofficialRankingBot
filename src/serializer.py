@@ -41,7 +41,9 @@ class Serializer(object):
             load csv data.
                 limit csv.field_size_limit()
             @param {string} filename
+                   {string} delimiter
                    {string} encoding file encoding
+                   {int} skip_header
             @return {list} data
         """
         csv_data = []

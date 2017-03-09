@@ -7,6 +7,7 @@ import sys
 import platform
 import subprocess
 import shutil
+# pylint: disable=C0103
 
 class RestoreCD(object):
     """
@@ -88,8 +89,8 @@ class Settings(object):
             break
 
 if __name__ == "__main__":
-    S = Settings()
-    S.initialize()
+    s = Settings()
+    s.initialize()
     with RestoreCD():
         os.chdir(os.path.join(os.getcwd(), 'src'))
         Alarm(15).wait()

@@ -7,6 +7,7 @@ from io import BytesIO
 import cv2
 import numpy as np
 #
+from serializer import Serializer
 from hsvcolor import HSVcolor
 from iimagefillter import GrayScaleFilter, AdaptiveThresholdFilter, IImageFilter, ImageStream
 # pylint: disable=C0103
@@ -16,15 +17,6 @@ logger = getLogger('myapp.tweetbot')
 class ImageType(Enum):
     RAW = 1
     PLAN = 8
-class ROIFilter(IImageFilter):
-    def __init__(self):
-        super().__init__('BaseFilter')
-    def filtered(self, stream):
-        start_x = 240
-        start_y = 350
-        end_x = 920
-        end_y = 1500
-        return stream[start_y:end_x, start_x:end_y]
 class AppImageFilter(IImageFilter):
     def __init__(self, image_type, hsv):
         super().__init__('AppImageFilter')
@@ -56,10 +48,9 @@ class AppImageFilter(IImageFilter):
         # image out range fill
         height, width = stream.shape[:2]
         # todo setting.json
-        start_x = 260
-        start_y = 360
-        end_x = 920
-        end_y = 1500
+        clip_rect = Serializer.load_json('../resource/ocr.json')['clipping']
+        start_x, start_y = clip_rect['start']
+        end_x, end_y = clip_rect['end']
         binary = binary[start_y:end_x, start_x:end_y]
         return binary
     def bitwise_not(self, binary, mask_range):
