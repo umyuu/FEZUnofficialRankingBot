@@ -89,24 +89,6 @@ class Download(object):
             p = FileUtils.sequential(p)
 
         os.replace(temp_file_name, str(p))
-    def sequential(self, file):
-        """
-            @param {pathlib.Path} file
-            @return {pathlib.Path}
-            exsample)exists file
-                exsample.png
-                exsample(1).png
-                exsample(2).png
-                exsample(n).png
-        """
-        i = 0
-        basePath = file
-        while file.exists():
-            i += 1
-            file = file.with_name('{0}({1}){2}'.format(basePath.stem, i, basePath.suffix))
-            if sys.maxsize == i:
-                break
-        return file
     def get(self, address, timeout):
         """
             HTTP GET
