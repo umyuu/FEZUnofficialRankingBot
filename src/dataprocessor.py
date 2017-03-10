@@ -22,8 +22,8 @@ class DataProcessor(object):
     """
         DataProcessor is image convert
     """
-    def __init__(self, name, image_type, save_image=False):
-        self.__name = name
+    def __init__(self, media, image_type, save_image=False):
+        self.__media = media
         self.image_type = image_type
         self.color = None
         self.__hsv = None
@@ -36,11 +36,8 @@ class DataProcessor(object):
         # image => ocr image.
         self.filter = ImageStream(setup=param['setup'], task=param['task'])
     @property
-    def name(self):
-        return self.__name
-    @property
     def media(self):
-        return self.__name
+        return self.__media
     @property
     def hsv(self):
         if self.__hsv is None:
@@ -48,7 +45,7 @@ class DataProcessor(object):
         return self.__hsv
     def prepare(self):
         """
-            @return color image
+            @return {color} image
             @exception FileNotFoundError
         """
         filename = self.media
