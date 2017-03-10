@@ -44,9 +44,11 @@ class ImageData(object):
             result = self.bitwise_not(lower, upper)
         else:
             assert False
+        # callback
         self.event.onChanged_Image(result)
     def setEventListener(self, event):
         self.event = event
+        return self
 class HSVcolor(object):
     __slots__ = ['h','s','v']
     def __init__(self, h=0, s=0, v=0):
@@ -87,7 +89,7 @@ class Application(ApplicationCore):
     def __init__(self, master=None):
         super().__init__(master)
         self.data = None
-        self.frame_inputimage = None
+
         self.createMenu()
         self.createWidgets()
         
@@ -164,11 +166,10 @@ class Application(ApplicationCore):
     def createPythonCode(self):
         pass
     def createInputImageWindow(self):
-        if self.frame_inputimage is None:
-           self.frame_inputimage = tk.Toplevel()
-           self.frame_inputimage.lbl_input = tk.Label(self.frame_inputimage)
-           self.frame_inputimage.lbl_input.pack()
-        
+        self.frame_inputimage = tk.Toplevel()
+        self.frame_inputimage.lbl_input = tk.Label(self.frame_inputimage)
+        self.setLabelImage(self.frame_inputimage.lbl_input, self.data.canvas)
+        self.frame_inputimage.lbl_input.pack()
     def hsvParamsReset(self):
         self.lower_h.set(0)
         self.lower_s.set(0)
@@ -195,14 +196,10 @@ class Application(ApplicationCore):
     def loadImage(self, src):
         self.data = ImageData(src)
         self.data.setEventListener(self)
-        imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
-        self.lbl_input.imgtk = imgtk
-        self.lbl_input.configure(image= imgtk)
+        self.setLabelImage(self.lbl_input, src)
         self.__stateChanged()
     def onChanged_Image(self, src):
-        imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
-        self.lbl_output.imgtk = imgtk
-        self.lbl_output.configure(image= imgtk)
+        self.setLabelImage(self.lbl_output, src)
         #print('END:{0}'.format(datetime.now()))
     def __stateChanged(self):
         #print('STA:{0}'.format(datetime.now()))
@@ -210,7 +207,11 @@ class Application(ApplicationCore):
         upper = HSVcolor(self.upper_h.get(), self.upper_s.get(), self.upper_v.get())
         v = self.rbnOperation.get()
         self.data.bitOperation(v, lower, upper)
-
+    def setLabelImage(self, label, src):
+        assert label is not None
+        imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
+        label.imgtk = imgtk
+        label.configure(image= imgtk)
 def main():
     APP_VERSION =  (0, 0, 4)
     parser = argparse.ArgumentParser(prog='hsvmask',
