@@ -21,12 +21,12 @@ class Ranking(object):
     def __init__(self, config):
         self.ocr = OCREngine()
         self.naivebayes = NaiveBayes()
-    def getResult(self, src):
+    def getResult(self, src, save_image=False):
         """
             @param {string} src
             @return {OCRDocument} doucument
         """
-        pro = DataProcessor(src, ImageType.RAW)
+        pro = DataProcessor(src, ImageType.RAW, save_image=save_image)
         if pro.prepare() is None:
             logger.error('image error:{0}'.format(src))
             return None
@@ -58,9 +58,9 @@ def main():
             '../images/backup/2017-03-09_0525_Ielsord.png',
         #     '../backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
         ] * 1
-    for l in ele:
-        logger.info(l)
-        doucument = r.getResult(l)
+    for media in ele:
+        logger.info(media)
+        doucument = r.getResult(media, True)
         logger.info(doucument.ranking)
 if __name__ == "__main__":
     main()

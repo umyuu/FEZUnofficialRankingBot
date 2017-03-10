@@ -19,14 +19,22 @@ class ImageType(Enum):
     RAW = 1
     PLAN = 8
 class DataProcessor(object):
-    def __init__(self, name, image_type):
+    def __init__(self, name, image_type, save_image=False):
         self.__name = name
         self.image_type = image_type
         self.color = None
         self.__hsv = None
-        self.filter = ImageStream(setup=self.base_filtered, task=self.filtered)
-        if image_type == ImageType.PLAN:
-            self.filter = ImageStream(setup=self.base_filtered, task=self.clipping_filtered)
+        self.save_image = save_image
+        param = {'setup':self.base_filtered}
+        if image_type == ImageType.RAW:
+            param['task'] = self.filtered
+        else:
+            param['task'] = self.clipping_filtered
+        if save_image:
+            param['teardown'] = self.save_filtered_image
+        else:
+            param['teardown'] = None
+        self.filter = ImageStream(setup=param['setup'], task=param['task'], teardown=param['teardown'])
     @property
     def name(self):
         return self.__name
@@ -57,10 +65,11 @@ class DataProcessor(object):
                 step2:AppImageFilter#filtered
             @return {binary} image
         """
-        
         result = self.filter.transform(self.color)
-        cv2.imwrite('../temp/binary_color111{0}'.format(os.path.basename(self.media)), result)
         return result
+    def save_filtered_image(self, sender, ev):
+        cv2.imwrite('../temp/ocr_{0}'.format(os.path.basename(self.media)), sender)
+        return sender
     def base_filtered(self, sender, ev):
         result = cv2.cvtColor(sender, cv2.COLOR_BGR2GRAY)
         result = cv2.adaptiveThreshold(result, 255,
