@@ -140,13 +140,8 @@ class Application(ApplicationCore):
         
         self.hsvParamsReset()
 
-        self.frame_input_image = tk.LabelFrame(self, text='input')
-        self.frame_input_image.grid(row=1, column=0)
-        self.lbl_input = tk.Label(self.frame_input_image)
-        self.lbl_input.pack()
-        
         self.frame_output_image = tk.LabelFrame(self, text='output')
-        self.frame_output_image.grid(row=1, column=1)
+        self.frame_output_image.grid(row=1, column=0)
         self.lbl_output = tk.Label(self.frame_output_image)
         self.lbl_output.pack()
     def createMenu(self):
@@ -159,17 +154,19 @@ class Application(ApplicationCore):
         menubar.add_cascade(label="File(F)", menu=filemenu, underline=5)
         visualmenu = tk.Menu(menubar)
         menubar.add_cascade(label="Visual(V)", menu=visualmenu, underline=7)
-        visualmenu.add_command(label="Input Image(I)...", under=12, command=self.createInputImageWindow)
+        visualmenu.add_command(label="Input Image(I)...", under=12, command=self.createWindow_InputImage)
         visualmenu.add_command(label="Python Code(C)", under=12, command=self.createPythonCode)
         visualmenu.add_separator()
         visualmenu.add_command(label="Reset params(R)", under=0, command=self.hsvParamsReset)
     def createPythonCode(self):
         pass
-    def createInputImageWindow(self):
-        self.frame_inputimage = tk.Toplevel()
-        self.frame_inputimage.lbl_input = tk.Label(self.frame_inputimage)
-        self.setLabelImage(self.frame_inputimage.lbl_input, self.data.canvas)
-        self.frame_inputimage.lbl_input.pack()
+    def createWindow_InputImage(self):
+        toplevel = tk.LabelFrame(tk.Toplevel(), text='input')
+        self.inputimageWindow = toplevel
+        toplevel.pack()
+        toplevel.lbl_input = tk.Label(toplevel)
+        self.setLabelImage(toplevel.lbl_input, self.data.canvas)
+        toplevel.lbl_input.pack()
     def hsvParamsReset(self):
         self.lower_h.set(0)
         self.lower_s.set(0)
@@ -177,7 +174,6 @@ class Application(ApplicationCore):
         self.upper_h.set(180)
         self.upper_s.set(255)
         self.upper_v.set(255)
-    
     def openFile(self):
         name = askopenfilename(initialdir=os.getcwd())
         if len(name) == 0:
@@ -196,7 +192,6 @@ class Application(ApplicationCore):
     def loadImage(self, src):
         self.data = ImageData(src)
         self.data.setEventListener(self)
-        self.setLabelImage(self.lbl_input, src)
         self.__stateChanged()
     def onChanged_Image(self, src):
         self.setLabelImage(self.lbl_output, src)
