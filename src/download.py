@@ -5,7 +5,6 @@
 from logging import getLogger
 import os
 from io import BytesIO
-import sys
 import tempfile
 import re
 from pathlib import Path
