@@ -35,7 +35,7 @@ class Download(object):
         self.http_headers = {'User-Agent': config['DOWNLOAD']['USER_AGENT']}
         self.comp = re.compile(r'/(\w+);?')
         self.htmllink = None
-    def requestList(self):
+    def getURLs(self):
         """
             @yield URL
         """
@@ -76,7 +76,7 @@ class Download(object):
         """
         count = 0
         with self.get_Executor() as executor:
-            future_to_url = {executor.submit(self.get, url, self.timeout): url for url in self.requestList()}
+            future_to_url = {executor.submit(self.get, url, self.timeout): url for url in self.getURLs()}
             for future in as_completed(future_to_url):
                 url = future_to_url[future]
                 try:
@@ -99,6 +99,7 @@ class Download(object):
                     {string}basename
         """
         suffix = self.getSuffix(contentType)
+        logger.info('content-type:%s,decode:%s', contentType, suffix)
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
             temp.write(buffer.getvalue())
             temp_file_name = temp.name
@@ -109,17 +110,15 @@ class Download(object):
             p = FileUtils.sequential(p)
 
         os.replace(temp_file_name, str(p))
-    def get(self, address, timeout):
+    def get(self, url, timeout):
         """
-            HTTP GET
-            @param  {string}address request addres
+            call requests#get
+            @param  {string}url
                     {int}timeout
             @return {io.BytesIO},{string}contentType
         """
-        logger.info('download:%s', address)
-        r = requests.get(address, headers=self.http_headers, timeout=timeout)
-        contentType = r.headers['content-type']
-        logger.info('content-type:%s,decode:%s', contentType, self.getSuffix(contentType))
-        return BytesIO(r.content), contentType
+        logger.info('download:%s', url)
+        r = requests.get(url, headers=self.http_headers, timeout=timeout)
+        return BytesIO(r.content), r.headers['content-type']
     def get_Executor(self):
         return ThreadPoolExecutor(max_workers=self.max_workers)
