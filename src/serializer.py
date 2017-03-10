@@ -5,7 +5,10 @@
         json / ini / csv / numpy
 """
 import json
-import configparser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 import csv
 #
 import numpy as np
