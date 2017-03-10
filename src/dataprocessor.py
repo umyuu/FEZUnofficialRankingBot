@@ -19,20 +19,25 @@ class ImageType(Enum):
     RAW = 1
     PLAN = 8
 class DataProcessor(object):
-    def __init__(self, name, image_type):
-        self.__name = name
+    """
+        DataProcessor is image convert
+    """
+    def __init__(self, media, image_type, save_image=False):
+        self.__media = media
         self.image_type = image_type
         self.color = None
         self.__hsv = None
-        self.filter = ImageStream(setup=self.base_filtered, task=self.filtered)
-        if image_type == ImageType.PLAN:
-            self.filter = ImageStream(setup=self.base_filtered, task=self.clipping_filtered)
-    @property
-    def name(self):
-        return self.__name
+        self.save_image = save_image
+        param = {'setup':self.base_filtered}
+        if image_type == ImageType.RAW:
+            param['task'] = self.filtered
+        else:
+            param['task'] = self.clipping_filtered
+        # image => ocr image.
+        self.filter = ImageStream(setup=param['setup'], task=param['task'])
     @property
     def media(self):
-        return self.__name
+        return self.__media
     @property
     def hsv(self):
         if self.__hsv is None:
@@ -40,32 +45,30 @@ class DataProcessor(object):
         return self.__hsv
     def prepare(self):
         """
-            @return color image
+            @return {color} image
             @exception FileNotFoundError
         """
-        filename = self.name
+        filename = self.media
         zoom = 2
         c = cv2.imread(filename)
         if c is None:
-            raise FileNotFoundError(self.name)
+            raise FileNotFoundError(self.media)
         self.color = cv2.resize(c, (c.shape[1]*zoom, c.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
         return self.color
     def batch(self):
         """
-            masking)
-                step1:color -> grayscale -> adaptiveThreshold
-                step2:AppImageFilter#filtered
             @return {binary} image
         """
-        
         result = self.filter.transform(self.color)
-        cv2.imwrite('../temp/binary_color111{0}'.format(os.path.basename(self.media)), result)
+        if self.save_image:
+            cv2.imwrite('../temp/ocr_{0}'.format(os.path.basename(self.media)), result)
         return result
     def base_filtered(self, sender, ev):
         result = cv2.cvtColor(sender, cv2.COLOR_BGR2GRAY)
         result = cv2.adaptiveThreshold(result, 255,
                                        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
-        cv2.imwrite('../temp/binary_color{0}'.format(os.path.basename(self.media)), sender)
+        if self.save_image:
+            cv2.imwrite('../temp/color{0}'.format(os.path.basename(self.media)), sender)
         return result
     def clipping_filtered(self, sender, ev):
         stream = sender
@@ -75,14 +78,14 @@ class DataProcessor(object):
         binary = cv2.bitwise_and(binary, binary, mask=white)
         height, width = stream.shape[:2]
         cv2.rectangle(binary, (0, 0), (min(1000, width), height), (0, 0, 0), -1)
-        return binary        
+        return binary
     def filtered(self, sender, ev):
         stream = sender
         binary = stream
-        
+
         # white color
         white = self.__getWhiteMasking(self.hsv)
-        binary = cv2.bitwise_and(binary, binary, mask=white) 
+        binary = cv2.bitwise_and(binary, binary, mask=white)
         lower, upper = HSVcolor(0, 0, 0), HSVcolor(30, 66, 255)
         binary = cv2.bitwise_and(binary, self.__inRange(self.hsv, lower, upper))
         # image out range fill
@@ -108,6 +111,6 @@ class DataProcessor(object):
             @param {cv2.binary} image
             @return {io.BytesIO} Memory
         """
-        baseName = Path(self.name)
+        baseName = Path(self.media)
         ret, buf = cv2.imencode(baseName.suffix, binary)
         return BytesIO(np.array(buf).tostring())

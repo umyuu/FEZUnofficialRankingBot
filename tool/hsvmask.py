@@ -14,6 +14,7 @@ class ImageData(object):
         assert src is not None
         self.__canvas = src.copy()
         self.__hsv = cv2.cvtColor(self.canvas.copy(), cv2.COLOR_BGR2HSV)
+        self.event = None
     @property
     def canvas(self):
         return self.__canvas
@@ -32,7 +33,22 @@ class ImageData(object):
     def bitwise_not(self, lower, upper):
         mask = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
         return cv2.bitwise_not(self.canvas, self.canvas.copy(), mask = mask)
-    
+    def bitOperation(self, operation, lower, upper):
+        if operation == 1:
+            result = self.bitwise_and(lower, upper)
+        elif operation == 2:
+            result = self.bitwise_or(lower, upper)
+        elif operation == 3:
+            result = self.bitwise_xor(lower, upper)
+        elif operation == 4:
+            result = self.bitwise_not(lower, upper)
+        else:
+            assert False
+        # callback
+        self.event.onChanged_Image(result)
+    def setEventListener(self, event):
+        self.event = event
+        return self
 class HSVcolor(object):
     __slots__ = ['h','s','v']
     def __init__(self, h=0, s=0, v=0):
@@ -45,15 +61,21 @@ class HSVcolor(object):
         return ','.join([str(self.h), str(self.s), str(self.v)])
     def to_np(self):
         return np.array([self.h, self.s, self.v])
-class CoreApp(tk.Frame):
+    @staticmethod
+    def valueOf(h, s, v):
+        return HSVcolor(h, s, v)
+class ApplicationCore(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+        self.isdestroyed = False
         self.focus_set()
         self.bind_all('<Control-Shift-KeyPress-Q>', self.onApplicationExit)
     def onApplicationExit(self, event=None):
         # spyder IDE Run Script app hangup
         # github doc\images\IDE_spyder_setting.jpg
-        self.quit()
+        if not self.isdestroyed:
+            self.isdestroyed = True
+            self.master.destroy()
     def run(self):
         """
              start messageloop
@@ -66,14 +88,12 @@ class CoreApp(tk.Frame):
         return self
     def __exit__(self, exception_type, exception_value, traceback):
         self.onApplicationExit()
-class Application(CoreApp):
+class Application(ApplicationCore):
     def __init__(self, master=None):
         super().__init__(master)
         self.data = None
-        self.frame_inputimage = None
         self.createMenu()
         self.createWidgets()
-        
     def createWidgets(self):
         controls = dict()
         # lower
@@ -121,13 +141,8 @@ class Application(CoreApp):
         
         self.hsvParamsReset()
 
-        self.frame_input_image = tk.LabelFrame(self, text='input')
-        self.frame_input_image.grid(row=1, column=0)
-        self.lbl_input = tk.Label(self.frame_input_image)
-        self.lbl_input.pack()
-        
         self.frame_output_image = tk.LabelFrame(self, text='output')
-        self.frame_output_image.grid(row=1, column=1)
+        self.frame_output_image.grid(row=1, column=0)
         self.lbl_output = tk.Label(self.frame_output_image)
         self.lbl_output.pack()
     def createMenu(self):
@@ -140,15 +155,19 @@ class Application(CoreApp):
         menubar.add_cascade(label="File(F)", menu=filemenu, underline=5)
         visualmenu = tk.Menu(menubar)
         menubar.add_cascade(label="Visual(V)", menu=visualmenu, underline=7)
-        visualmenu.add_command(label="Input Image(I)...", under=13, command=self.createInputImageWindow)
+        visualmenu.add_command(label="Input Image(I)...", under=12, command=self.createWindow_InputImage)
+        visualmenu.add_command(label="Python Code(C)", under=12, command=self.createPythonCode)
         visualmenu.add_separator()
         visualmenu.add_command(label="Reset params(R)", under=0, command=self.hsvParamsReset)
-    def createInputImageWindow(self):
-        if self.frame_inputimage is None:
-           self.frame_inputimage = tk.Toplevel()
-           self.frame_inputimage.lbl_input = tk.Label(self.frame_inputimage)
-           self.frame_inputimage.lbl_input.pack()
-        
+    def createPythonCode(self):
+        pass
+    def createWindow_InputImage(self):
+        toplevel = tk.LabelFrame(tk.Toplevel(), text='input')
+        self.inputimageWindow = toplevel
+        toplevel.pack()
+        toplevel.lbl_input = tk.Label(toplevel)
+        self.setLabelImage(toplevel.lbl_input, self.data.canvas)
+        toplevel.lbl_input.pack()
     def hsvParamsReset(self):
         self.lower_h.set(0)
         self.lower_s.set(0)
@@ -156,7 +175,6 @@ class Application(CoreApp):
         self.upper_h.set(180)
         self.upper_s.set(255)
         self.upper_v.set(255)
-    
     def openFile(self):
         name = askopenfilename(initialdir=os.getcwd())
         if len(name) == 0:
@@ -174,33 +192,22 @@ class Application(CoreApp):
         return tk.Scale(root,h), tk.Scale(root,s), tk.Scale(root,v)
     def loadImage(self, src):
         self.data = ImageData(src)
-        imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
-        self.lbl_input.imgtk = imgtk
-        self.lbl_input.configure(image= imgtk)
-        self.__changeImage(src)
-    def __changeImage(self, src):
-        imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
-        self.lbl_output.imgtk = imgtk
-        self.lbl_output.configure(image= imgtk)
+        self.data.setEventListener(self)
+        self.__stateChanged()
+    def onChanged_Image(self, src):
+        self.setLabelImage(self.lbl_output, src)
         #print('END:{0}'.format(datetime.now()))
     def __stateChanged(self):
         #print('STA:{0}'.format(datetime.now()))
-        lower = HSVcolor(self.lower_h.get(), self.lower_s.get(), self.lower_v.get())
-        upper = HSVcolor(self.upper_h.get(), self.upper_s.get(), self.upper_v.get())
-        result = None
+        lower = HSVcolor.valueOf(self.lower_h.get(), self.lower_s.get(), self.lower_v.get())
+        upper = HSVcolor.valueOf(self.upper_h.get(), self.upper_s.get(), self.upper_v.get())
         v = self.rbnOperation.get()
-        if v == 1:
-            result = self.data.bitwise_and(lower, upper)
-        elif v == 2:
-            result = self.data.bitwise_or(lower, upper)
-        elif v == 3:
-            result = self.data.bitwise_xor(lower, upper)
-        elif v == 4:
-            result = self.data.bitwise_not(lower, upper)
-        else:
-            assert False
-        self.__changeImage(result)
-
+        self.data.bitOperation(v, lower, upper)
+    def setLabelImage(self, label, src):
+        assert label is not None
+        imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
+        label.imgtk = imgtk
+        label.configure(image= imgtk)
 def main():
     APP_VERSION =  (0, 0, 4)
     parser = argparse.ArgumentParser(prog='hsvmask',
