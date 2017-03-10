@@ -4,7 +4,7 @@ FEZ 非公式な国家総力戦ランキングTwitterボット
 ランキング画像をダウンロードして1位/2位の国名とポイントをツイート
 ## Install
 1. [download a ZIP](https://github.com/umyuu/FEZUnofficialRankingBot/archive/master.zip) file.
-2. Dependencies installs.
+2. Install dependencies.
  1. [requirements install.](requirements.txt)
 
         `pip install -r requirements.txt`

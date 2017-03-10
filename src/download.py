@@ -10,8 +10,11 @@ import tempfile
 import re
 from pathlib import Path
 import functools
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 #
 import requests
+#
+from fileutils import FileUtils
 
 logger = getLogger('myapp.tweetbot')
 
@@ -45,7 +48,7 @@ class Download(object):
                     yield link
                     continue
                 yield text
-    @functools.lru_cache(maxsize=4)
+    #@functools.lru_cache(maxsize=4)
     def getSuffix(self, contentType, suffix='.html'):
         """
             @param {string} contentType
@@ -67,25 +70,21 @@ class Download(object):
         """
            internet -- (Get) --> local
         """
-        count = 0
-        for address in self.requestList():
-            count += 1
-            #if contentType.startswith('image'):
-            basename = os.path.basename(address)
-            buffer, contentType = self.get(address)
-            suffix = self.getSuffix(contentType)
-            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
-                temp.write(buffer.getvalue())
-                temp_file_name = temp.name
-                if len(basename) == 0:
-                    logger.warning('create_filename:%s', os.path.basename(temp.name))
-                    basename = os.path.basename(temp_file_name)
-                p = Path(self.dataDir, basename).with_suffix(suffix)
-                p = self.sequential(p)
-
-            os.replace(temp_file_name, str(p))
+        count = self.parallels()
         if count == 0:
             logger.warning('input:%s Empty', self.file_list)
+    def save_file(self, buffer, contentType, basename):
+        suffix = self.getSuffix(contentType)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
+            temp.write(buffer.getvalue())
+            temp_file_name = temp.name
+            if len(basename) == 0:
+                logger.warning('create_filename:%s', os.path.basename(temp.name))
+                basename = os.path.basename(temp_file_name)
+            p = Path(self.dataDir, basename).with_suffix(suffix)
+            p = FileUtils.sequential(p)
+
+        os.replace(temp_file_name, str(p))
     def sequential(self, file):
         """
             @param {pathlib.Path} file
@@ -104,14 +103,31 @@ class Download(object):
             if sys.maxsize == i:
                 break
         return file
-    def get(self, address):
+    def get(self, address, timeout):
         """
             HTTP GET
             @param  {string}address request addres
+                    {int}timeout
             @return {io.BytesIO}
         """
         logger.info('download:%s', address)
-        r = requests.get(address, headers=self.http_headers)
+        r = requests.get(address, headers=self.http_headers, timeout=timeout)
         contentType = r.headers['content-type']
         logger.info('content-type:%s,decode:%s', contentType, self.getSuffix(contentType))
         return BytesIO(r.content), contentType
+    def parallels(self):
+        count = 0
+        with self.get_Executor() as executor:
+            future_to_url = {executor.submit(self.get, url, 60): url for url in self.requestList()}
+            for future in as_completed(future_to_url):
+                url = future_to_url[future]
+                try:
+                    basename = os.path.basename(url)
+                    buffer, contentType = future.result()
+                    self.save_file(buffer, contentType, basename)
+                    count += 1
+                except Exception as ex:
+                    print('%r http_download an exception: %s' % (url, ex))
+        return count
+    def get_Executor(self):
+        return ThreadPoolExecutor(max_workers=5)
