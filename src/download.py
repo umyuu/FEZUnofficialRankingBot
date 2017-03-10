@@ -73,8 +73,20 @@ class Download(object):
     def request(self):
         """
            internet -- (Get) --> local
+           use PoolExecutor
         """
-        count = self.parallels()
+        count = 0
+        with self.get_Executor() as executor:
+            future_to_url = {executor.submit(self.get, url, self.timeout): url for url in self.requestList()}
+            for future in as_completed(future_to_url):
+                url = future_to_url[future]
+                try:
+                    basename = os.path.basename(url)
+                    buffer, contentType = future.result()
+                    self.save_file(buffer, contentType, basename)
+                    count += 1
+                except Exception as ex:
+                    logger.info('%r http_download an exception: %s' % (url, ex))
         if count == 0:
             logger.warning('input:%s Empty', self.file_list)
     def save_file(self, buffer, contentType, basename):
@@ -94,26 +106,12 @@ class Download(object):
             HTTP GET
             @param  {string}address request addres
                     {int}timeout
-            @return {io.BytesIO}
+            @return {io.BytesIO},{string}contentType
         """
         logger.info('download:%s', address)
         r = requests.get(address, headers=self.http_headers, timeout=timeout)
         contentType = r.headers['content-type']
         logger.info('content-type:%s,decode:%s', contentType, self.getSuffix(contentType))
         return BytesIO(r.content), contentType
-    def parallels(self):
-        count = 0
-        with self.get_Executor() as executor:
-            future_to_url = {executor.submit(self.get, url, self.timeout): url for url in self.requestList()}
-            for future in as_completed(future_to_url):
-                url = future_to_url[future]
-                try:
-                    basename = os.path.basename(url)
-                    buffer, contentType = future.result()
-                    self.save_file(buffer, contentType, basename)
-                    count += 1
-                except Exception as ex:
-                    logger.info('%r http_download an exception: %s' % (url, ex))
-        return count
     def get_Executor(self):
         return ThreadPoolExecutor(max_workers=self.max_workers)
