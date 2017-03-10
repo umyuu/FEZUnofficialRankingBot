@@ -16,6 +16,7 @@ import requests
 #
 from fileutils import FileUtils
 
+# pylint: disable=C0103
 logger = getLogger('myapp.tweetbot')
 
 class Download(object):
@@ -26,10 +27,13 @@ class Download(object):
     """
     def __init__(self, config):
         self.dataDir = config['WORK_DIRECTORY']['UPLOAD']
+        entry = config['DOWNLOAD']['FILE_LIST']
+        self.file_list = entry['NAME']
+        self.file_list_encoding = entry['ENCODING']
+        entry = config['DOWNLOAD']['REQUEST']
+        self.timeout = entry['TIMEOUT']
+        self.max_workers = entry['MAX_WORKERS']
         self.http_headers = {'User-Agent': config['DOWNLOAD']['USER_AGENT']}
-        file_list = config['DOWNLOAD']['FILE_LIST']
-        self.file_list = file_list['NAME']
-        self.file_list_encoding = file_list['ENCODING']
         self.comp = re.compile(r'/(\w+);?')
         self.htmllink = None
     def requestList(self):
@@ -118,7 +122,7 @@ class Download(object):
     def parallels(self):
         count = 0
         with self.get_Executor() as executor:
-            future_to_url = {executor.submit(self.get, url, 60): url for url in self.requestList()}
+            future_to_url = {executor.submit(self.get, url, self.timeout): url for url in self.requestList()}
             for future in as_completed(future_to_url):
                 url = future_to_url[future]
                 try:
@@ -127,7 +131,7 @@ class Download(object):
                     self.save_file(buffer, contentType, basename)
                     count += 1
                 except Exception as ex:
-                    print('%r http_download an exception: %s' % (url, ex))
+                    logger.info('%r http_download an exception: %s' % (url, ex))
         return count
     def get_Executor(self):
-        return ThreadPoolExecutor(max_workers=5)
+        return ThreadPoolExecutor(max_workers=self.max_workers)
