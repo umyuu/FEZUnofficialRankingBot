@@ -61,6 +61,9 @@ class HSVcolor(object):
         return ','.join([str(self.h), str(self.s), str(self.v)])
     def to_np(self):
         return np.array([self.h, self.s, self.v])
+    @staticmethod
+    def valueOf(h, s, v):
+        return HSVcolor(h, s, v)
 class ApplicationCore(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -89,10 +92,8 @@ class Application(ApplicationCore):
     def __init__(self, master=None):
         super().__init__(master)
         self.data = None
-
         self.createMenu()
         self.createWidgets()
-        
     def createWidgets(self):
         controls = dict()
         # lower
@@ -198,8 +199,8 @@ class Application(ApplicationCore):
         #print('END:{0}'.format(datetime.now()))
     def __stateChanged(self):
         #print('STA:{0}'.format(datetime.now()))
-        lower = HSVcolor(self.lower_h.get(), self.lower_s.get(), self.lower_v.get())
-        upper = HSVcolor(self.upper_h.get(), self.upper_s.get(), self.upper_v.get())
+        lower = HSVcolor.valueOf(self.lower_h.get(), self.lower_s.get(), self.lower_v.get())
+        upper = HSVcolor.valueOf(self.upper_h.get(), self.upper_s.get(), self.upper_v.get())
         v = self.rbnOperation.get()
         self.data.bitOperation(v, lower, upper)
     def setLabelImage(self, label, src):
