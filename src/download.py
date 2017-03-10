@@ -35,22 +35,18 @@ class Download(object):
         self.http_headers = {'User-Agent': config['DOWNLOAD']['USER_AGENT']}
         self.comp = re.compile(r'/(\w+);?')
         self.htmllink = None
-    def getURLs(self):
+    def get(self, url, timeout):
         """
-            @yield URL
+            call requests#get
+            @param  {string}url
+                    {int}timeout
+            @return {io.BytesIO},{string}contentType
         """
-        with open(self.file_list, 'r', encoding=self.file_list_encoding) as f:
-            for line in f:
-                text = line.rstrip('\n')
-                if not text.startswith('http'):
-                    #logger.warning(text)
-                    continue
-                if self.htmllink is not None:
-                    link = self.htmllink
-                    self.htmllink = None
-                    yield link
-                    continue
-                yield text
+        logger.info('download:%s', url)
+        r = requests.get(url, headers=self.http_headers, timeout=timeout)
+        return BytesIO(r.content), r.headers['content-type']
+    def get_Executor(self):
+        return ThreadPoolExecutor(max_workers=self.max_workers)
     @functools.lru_cache(maxsize=4)
     def getSuffix(self, contentType, suffix='.html'):
         """
@@ -67,6 +63,21 @@ class Download(object):
             return '.' + m.group(1)
         logger.error(contentType)
         return suffix
+    def getURLs(self):
+        """
+            @yield URL
+        """
+        with open(self.file_list, 'r', encoding=self.file_list_encoding) as f:
+            for line in f:
+                text = line.rstrip('\n')
+                if not text.startswith('http'):
+                    continue
+                if self.htmllink is not None:
+                    link = self.htmllink
+                    self.htmllink = None
+                    yield link
+                    continue
+                yield text
     def parselink(self):
         return None
     def request(self):
@@ -110,15 +121,3 @@ class Download(object):
             p = FileUtils.sequential(p)
 
         os.replace(temp_file_name, str(p))
-    def get(self, url, timeout):
-        """
-            call requests#get
-            @param  {string}url
-                    {int}timeout
-            @return {io.BytesIO},{string}contentType
-        """
-        logger.info('download:%s', url)
-        r = requests.get(url, headers=self.http_headers, timeout=timeout)
-        return BytesIO(r.content), r.headers['content-type']
-    def get_Executor(self):
-        return ThreadPoolExecutor(max_workers=self.max_workers)
