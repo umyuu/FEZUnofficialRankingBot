@@ -52,7 +52,7 @@ class Download(object):
                     yield link
                     continue
                 yield text
-    #@functools.lru_cache(maxsize=4)
+    @functools.lru_cache(maxsize=4)
     def getSuffix(self, contentType, suffix='.html'):
         """
             @param {string} contentType
@@ -90,6 +90,15 @@ class Download(object):
         if count == 0:
             logger.warning('input:%s Empty', self.file_list)
     def save_file(self, buffer, contentType, basename):
+        """
+            exsample)
+            1)http://www.exsample.co.jp/Netzawar.png => Netzawar.png
+            2)http://www.exsample.co.jp/ => exsample.suffix
+                .suffix := Response#contentType use self.getSuffix
+            @param  {io.BytesIO}buffer Response#content
+                    {string}contentType
+                    {string}basename
+        """
         suffix = self.getSuffix(contentType)
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
             temp.write(buffer.getvalue())
