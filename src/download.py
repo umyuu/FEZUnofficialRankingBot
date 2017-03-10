@@ -93,7 +93,7 @@ class Download(object):
             exsample)
             1)http://www.exsample.co.jp/Netzawar.png => Netzawar.png
             2)http://www.exsample.co.jp/ => exsample.suffix
-                .suffix := Response#contentType use self.getSuffix
+                .suffix := self.getSuffix
             @param  {io.BytesIO}buffer Response#content
                     {string}contentType
                     {string}basename
