@@ -2,51 +2,76 @@
 import argparse
 # library
 import cv2
+# pylint: disable=C0103
 
 class ImageStream(object):
-    def __init__(self, preprocessor=None, task=None, finish=None):
-        if preprocessor is None:
-            preprocessor = self.Empty
+    """
+        ImageStream stream transform
+    """
+    def __init__(self, setup=None, task=None, teardown=None):
+        self.filters = []
+        if setup is None:
+            setup = self.EmptyFilter
         if task is None:
-            task = self.Empty
-        if finish is None:
-            finish = self.Empty
-        self.preprocessor = preprocessor
-        self.task = task
-        self.finish = finish
-    def Empty(self, stream):
+            task = self.EmptyFilter
+        if teardown is None:
+            teardown = self.EmptyFilter
+        self.filters.append(setup)
+        self.filters.append(task)
+        self.filters.append(teardown)
+    def EmptyFilter(self, sender, args):
         """
-            stream => result
-            @param {stream}  stream
-            @return {stream} stream
+            EmptyFilter
+               stream => result
+            usage ImageStream(task=ImageStream().EmptyFilter)
+            @param {object}sender
+                   {object},{None}args event args
+            @return {object}
         """
-        return stream
-    def transform(self, data):
-        for t in [self.preprocessor, self.task, self.finish]:
-            data = t(data)
+        return sender
+    def transform(self, data, args=None):
+        """
+            call
+                preprocessor => task => finish
+            @param {dict}data stream & param
+            @return {dict}
+        """
+        for caller in self.filters:
+            data = caller(data, args)
             cv2.imshow('image:', data)
             cv2.waitKey(3000)
         return data
 class Processor(object):
-    def prepare(self, stream):
-        assert stream is not None
-        return stream
-    def task(self, stream):
+    """
+        ImageStream caller Processor method.
+    """
+    def prepare(self, sender, ev):
         """
             filtered prepare
-            @param {image}  stream
-            @return {image} filtered
+            @param {dict}sender  stream & param
         """
-        result = stream
-        result = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+        result = sender
+        assert result is not None
+        return result
+    def task(self, sender, ev):
+        """
+            filtered task
+            @param {dict}sender  stream & param
+        """
+        result = cv2.cvtColor(sender, cv2.COLOR_BGR2GRAY)
         result = cv2.adaptiveThreshold(result
                     , 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
         return result
-    def finish(self, stream):
-        height, width = stream.shape[:2]
+    def finish(self, sender, ev):
+        """
+            filtered finish
+            @param {dict}sender    stream & param
+        """
+        result = sender
+        height, width = result.shape[:2]
         widthLimit = 400
-        cv2.rectangle(stream, (0, min(widthLimit, height)), (width, height), (0 , 0, 0), -1)
-        return stream
+        cv2.rectangle(result, (0, min(widthLimit, height)), (width, height), (0, 0, 0), -1)
+        return result
 def main():
     parser = argparse.ArgumentParser(prog='ImageFilter',
                                      description='ImageFilter Simulator')
@@ -54,9 +79,9 @@ def main():
     parser.add_argument('--image', '-in', default='../resource/Netzawar.png')
     args = parser.parse_args()
     print('args:{0}'.format(args))
-    
+
     p = Processor()
-    stream = ImageStream(preprocessor=p.prepare, task=p.task, finish=p.finish)
+    stream = ImageStream(setup=p.prepare, task=p.task, teardown=p.finish)
     data = cv2.imread(args.image)
     #
     stream.transform(data)
