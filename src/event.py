@@ -17,32 +17,45 @@ class SimpleEvent(object):
         @thread non-safe
     """
     def __init__(self):
-        self.handlers = set()
+        self.__handlers = set()
     def __call__(self, *args, **kargs):
-        for handler in self.handlers:
+        for handler in self.__handlers:
             handler(*args, **kargs)
     def __add__(self, handler):
         if not hasattr(handler, '__call__'):
            raise TypeError("object is not callable:%s" % handler)
-        self.handlers.add(handler)
+        self.__handlers.add(handler)
         return self
     def __sub__(self, handler):
         try:
-            self.handlers.remove(handler)
+            self.__handlers.remove(handler)
         except:
             raise ValueError("is not handling this event:%s" % handler)
         return self
+    @property
+    def handlers(self):
+        return self.__handlers
     def clear(self):
-        self.handlers = set()
+        self.__handlers = set()
 
+class EventStream(SimpleEvent):
+    """
+        event stream
+        stream 
+    """
+    def __call__(self, *args, **kargs):
+        for handler in self.handlers:
+            handler(*args, **kargs)
 def aaaa(param):
     print(param)
     print('aaa')
+    return param
 def bbbb(param):
     print(param)
     print('bbb')
+    return param
 def main():
-    ev = SimpleEvent()
+    ev = EventStream()
     ev += aaaa
     ev += bbbb
     ev(123)
