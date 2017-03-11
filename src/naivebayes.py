@@ -27,11 +27,30 @@ if __name__ == "__main__":
     logger.addHandler(handler)
 
 class ModelValidator(object):
-    def __init__(self):
+    def __init__(self, data, target):
+        self.data = data
+        self.target = target
         self.cv = 2
-        pass
-    def createModel(self):
-        return MultinomialNB()
+    def search_BestParameter(self, test_model, params):
+        """
+            model search_best_parameter
+            @param  test_model
+            @return {dict}best_params_
+        """
+        grid = GridSearchCV(test_model, params, cv=self.cv)
+        grid.fit(self.data, self.target)
+        logger.info('best %s', grid.best_estimator_)
+        return grid.best_params_
+    def cross_validation(self, test_model):
+        """
+            model cross validation check
+            @param  test_model
+        """
+        #raise DeprecationWarning()
+        scores = cross_val_score(test_model, self.data, self.target, cv=self.cv)
+        logger.info('cross_validation:%s', np.mean(scores))
+        return
+
 class NaiveBayes(object):
     """
         NaiveBayes Classifier.
@@ -53,7 +72,7 @@ class NaiveBayes(object):
        #         ('classifier', MultinomialNB(0.3))])
         self.pipeline = Pipeline([
                 ('vectorizer', TfidfVectorizer(tokenizer=self.tokenizer)),
-                ('classifier', LinearSVC(C=0.1))])
+                ('classifier', self.create_Model())])
         
         corpus = Serializer.load_csv('../resource/corpus.tsv')
         self.data = []
@@ -120,59 +139,22 @@ class NaiveBayes(object):
             logger.debug('%s -> 推定: %s', x, value)
         assert len(result) == len(x_list)
         return result
-    def check_model(self):
-        validator = ModelValidator()
-        
+    def model_validation(self):
         x_train = self.vectorizer.fit_transform(self.data)
-        x_train = self.vectorizer.fit_transform(self.data)
-        cv = 2
-        self.cross_validation(self.model, x_train, cv)
-        test_model = MultinomialNB(alpha=0.1)
-        best_params = self.search_best_parameter(test_model, x_train, cv)
-        test_model = MultinomialNB()
-        test_model.set_params(**best_params)
-        self.cross_validation(test_model, x_train, cv)
-    def search_best_parameter(self, test_model, x_train, cv):
-        """
-            model search_best_parameter
-            @param  test_model
-                    x_train
-                    cv
-            @return {dict}best_params_
-        """
+        validator = ModelValidator(x_train, self.labels)
+        validator.cross_validation(self.model)
+        test_params = self.model.get_params
         params = {}
         params['alpha'] = np.logspace(-1, 2, 30)
         params['fit_prior'] = [True, False]
-        
-        grid = GridSearchCV(test_model, params, cv=cv)
-        grid.fit(x_train, self.labels)
-        logger.info('best %s', grid.best_estimator_)
-        return grid.best_params_
-    def cross_validation(self, test_model,x_train, cv):
-        """
-            model cross validation check
-            @param  x_train
-                    cv
-        """
-        #raise DeprecationWarning()
-        scores = cross_val_score(test_model, x_train, self.labels, cv=cv)
-        logger.info('cross_validation:%s', np.mean(scores))
-        return
-        
-        
-        result = []
-        for iv in [round(0.1*x, 2) for x in range(1, 11)]:
-            scores = cross_val_score(MultinomialNB(iv), x_train, self.labels, cv=7)
-            #scores = cross_val_score(self.model, x_train, self.labels, cv=5)
-            result.append([iv, np.mean(scores)])
-        
-        
-        result = sorted(result, key=lambda x: x[1])
-        logger.info('cross_validation:%s', result)
-        #logger.info('cross_validation:%s', np.mean(scores))
-        
-        #plt.plot(n_neighbors, train_scores.mean(axis=1), label="train score")
-        # scores 0.779300699301
+        best_params = validator.search_BestParameter(self.create_Model(), params)
+        validator.cross_validation(self.create_Model(best_params))
+    def create_Model(self, params=None):
+        model = MultinomialNB()
+        #model = LinearSVC(C=0.1)
+        if params is not None:
+            model.set_params(**params)
+        return model
 def main():
     ocr = OCREngine()
     temp_file_name = '../base_binary.png'
@@ -188,6 +170,6 @@ def main():
     x_list = ['ホルデイン王国', '力セドー丿ア連合王国', 'ゲブ「ラン ド帝国']
     out = naivebayes.predict_all(x_list, doc.countries)
     logger.info('out:%s', out)
-    naivebayes.check_model()
+    naivebayes.model_validation()
 if __name__ == "__main__":
     main()
