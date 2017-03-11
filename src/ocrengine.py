@@ -6,7 +6,8 @@ import pyocr.builders
 from PIL import Image
 #
 from serializer import Serializer
-#
+
+# pylint: disable=C0103
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
     handler = StreamHandler()
@@ -32,18 +33,24 @@ class OCRDocument(object):
             @return {list} ocr text ranking
         """
         return self.__ranking
-    def indexByContents(self, index, contents):
+    def indexByContents(self, contents, index, offset=5):
         """
-            ocr filed pair
-            
+            ocr text replaced
+            created filed pair
+            @param {string}contents
+                   {int}index
+                   {int}offset
             @return {dict} name score
         """
+        # exsample) input           => output
+        #           工ルソ一 ド王国    => 工ルソ一ド王国
+        name = str(contents[index]).replace(' ','')
         # \d+.\d+ [point] => \d+.\d+
         # exsample) input           => output
         #           228993.70 point => 228993.70
-        score = str(contents[index + 5])
+        score = str(contents[index + offset])
         score = score[:score.rfind(' ')]
-        return {"name":str(contents[index]), "score":score}
+        return {"name":name, "score":score}
     def parse(self, documents):
         """
             OCR data.
@@ -58,7 +65,7 @@ class OCRDocument(object):
                 trans = self.translate['score']
             result.append(OCRText(document, trans))
         for i in range(5):
-            content = self.indexByContents(i, result)
+            content = self.indexByContents(result, i)
             self.__ranking.append(content)
             self.__raw.append(content)
         return result
