@@ -10,7 +10,7 @@ import numpy as np
 #
 from serializer import Serializer
 from hsvcolor import HSVcolor
-from iimagefillter import ImageStream
+from event import Filters
 # pylint: disable=C0103
 logger = getLogger('myapp.tweetbot')
 
@@ -28,13 +28,13 @@ class DataProcessor(object):
         self.color = None
         self.__hsv = None
         self.save_image = save_image
-        param = {'setup':self.base_filtered}
-        if image_type == ImageType.RAW:
-            param['task'] = self.filtered
-        else:
-            param['task'] = self.clipping_filtered
         # image => ocr image.
-        self.filter = ImageStream(setup=param['setup'], task=param['task'])
+        self.filter = Filters()
+        self.filter += self.base_filtered
+        if image_type == ImageType.RAW:
+            self.filter += self.filtered
+        else:
+            self.filter += self.clipping_filtered
     @property
     def media(self):
         return self.__media
@@ -59,7 +59,7 @@ class DataProcessor(object):
         """
             @return {binary} image
         """
-        result = self.filter.transform(self.color)
+        result = self.filter(self.color)
         if self.save_image:
             cv2.imwrite('../temp/ocr_{0}'.format(os.path.basename(self.media)), result)
         return result

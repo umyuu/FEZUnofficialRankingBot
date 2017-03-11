@@ -4,6 +4,8 @@
 class SimpleEvent(object):
     """
         SimpleEvent class
+        note:handlers#iteratble
+            add ordering
         -----------------------------------------------------
         << usage >>
         ev = SimpleEvent()
@@ -17,47 +19,71 @@ class SimpleEvent(object):
         @thread non-safe
     """
     def __init__(self):
-        self.__handlers = set()
+        self.__handlers = []
     def __call__(self, *args, **kargs):
+        """
+            @param args
+                   kargs
+        """
         for handler in self.__handlers:
             handler(*args, **kargs)
     def __add__(self, handler):
+        """
+            add handler
+            @exception {TypeError}
+        """
         if not hasattr(handler, '__call__'):
-           raise TypeError("object is not callable:%s" % handler)
-        self.__handlers.add(handler)
+            raise TypeError("object is not callable:%s" % handler)
+        assert handler not in self.__handlers, "handlers in %s" % handler
+        self.__handlers.append(handler)
         return self
     def __sub__(self, handler):
-        try:
-            self.__handlers.remove(handler)
-        except:
-            raise ValueError("is not handling this event:%s" % handler)
+        """
+            remove handler
+            @exception {ValueError} handler not in list
+        """
+        self.__handlers.remove(handler)
         return self
     @property
     def handlers(self):
+        """
+            handler protected property
+        """
         return self.__handlers
     def clear(self):
-        self.__handlers = set()
+        """
+            handler#clear
+        """
+        self.__handlers = []
+class EventArgs(object):
+    @staticmethod
+    def Empty(*args, **kargs):
+        """
+            EventArgs#Empty
+        """
+        pass
 
-class EventStream(SimpleEvent):
+class Filters(SimpleEvent):
     """
-        event stream
-        stream 
+        Filters
+        -----------------------------------------------------
+        << usage >>
+        filters = Filters()
+        filters += self.filter_1
+        filters += self.filter_2
+        filters(1)
+        << result >>
+        self.filter_2(self.filter_1(1))
+        ------------------------------------------------------
     """
-    def __call__(self, *args, **kargs):
+    def __call__(self, data, args=None):
+        """
+            @param {object}data stream
+                   {object}args event args
+            @return {object}
+        """
+        assert data is not None, 'data has Non'
         for handler in self.handlers:
-            handler(*args, **kargs)
-def aaaa(param):
-    print(param)
-    print('aaa')
-    return param
-def bbbb(param):
-    print(param)
-    print('bbb')
-    return param
-def main():
-    ev = EventStream()
-    ev += aaaa
-    ev += bbbb
-    ev(123)
-if __name__ == "__main__":
-    main()
+            data = handler(data, args)
+            assert data is not None, '{0} has no return value'.format(str(handler))
+        return data
