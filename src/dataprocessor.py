@@ -31,6 +31,7 @@ class DataProcessor(object):
         # image => ocr image.
         self.filter = Filters()
         self.filter += self.base_filtered
+        self.filter += self.addWhiteMasking
         if image_type == ImageType.RAW:
             self.filter += self.filtered
         else:
@@ -69,13 +70,24 @@ class DataProcessor(object):
                                        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 5, 3)
         if self.save_image:
             cv2.imwrite('../temp/color{0}'.format(os.path.basename(self.media)), sender)
+            cv2.imwrite('../temp/base_filtered{0}'.format(os.path.basename(self.media)), result)
         return result
-    def clipping_filtered(self, sender, ev):
+    def addWhiteMasking(self, sender, ev):
         stream = sender
         binary = stream
         # white color
         white = self.__getWhiteMasking(self.hsv)
         binary = cv2.bitwise_and(binary, binary, mask=white)
+        cv2.imwrite('../temp/addWhiteMasking{0}'.format(os.path.basename(self.media)), binary)
+        return binary
+    def image_clipping(self, sender, ev):
+        pass
+    def clipping_filtered(self, sender, ev):
+        stream = sender
+        binary = stream
+        # white color
+        #white = self.__getWhiteMasking(self.hsv)
+        #binary = cv2.bitwise_and(binary, binary, mask=white)
         height, width = stream.shape[:2]
         cv2.rectangle(binary, (0, 0), (min(1000, width), height), (0, 0, 0), -1)
         return binary
@@ -84,8 +96,8 @@ class DataProcessor(object):
         binary = stream
 
         # white color
-        white = self.__getWhiteMasking(self.hsv)
-        binary = cv2.bitwise_and(binary, binary, mask=white)
+        #white = self.__getWhiteMasking(self.hsv)
+        #binary = cv2.bitwise_and(binary, binary, mask=white)
         lower, upper = HSVcolor(0, 0, 0), HSVcolor(30, 66, 255)
         binary = cv2.bitwise_and(binary, self.__inRange(self.hsv, lower, upper))
         # image out range fill
