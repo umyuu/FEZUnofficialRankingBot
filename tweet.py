@@ -80,14 +80,22 @@ class Settings(object):
         message = 'Please edit\n file:{0}'.format(self.dst)
         print(message)
         while True:
-            key = input('(Y/N)>').upper()
-            if not key.startswith('Y'):
-                continue
+            self.promptForString('(Y/N)>', 'Y')
             if not self.ischecksize():
                 print(message)
                 continue
             break
-
+    def promptForString(self, prompt, keyCode):
+        """
+            @param {string}prompt   Message
+                   {string}keyCode  confirmKey
+            @return {string}keycode
+        """
+        while True:
+            key = input(prompt).upper()
+            if not key.startswith(keyCode):
+                continue
+            return key
 if __name__ == "__main__":
     s = Settings()
     s.initialize()
