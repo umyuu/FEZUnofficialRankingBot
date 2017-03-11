@@ -10,7 +10,7 @@ import numpy as np
 #
 from serializer import Serializer
 from hsvcolor import HSVcolor
-from event import Filters
+from events import Filters
 # pylint: disable=C0103
 logger = getLogger('myapp.tweetbot')
 

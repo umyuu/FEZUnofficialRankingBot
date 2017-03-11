@@ -3,7 +3,7 @@ import pytest
 # pylint: disable=W0611
 import conftest
 # pylint: enable=W0611
-from event import SimpleEvent
+from events import SimpleEvent
 
 # pylint: disable=C0103
 class TestClass(object):
