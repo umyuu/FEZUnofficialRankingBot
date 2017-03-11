@@ -153,7 +153,7 @@ def main():
     parser.add_argument('--version', action='version', version='%(prog)s 0.0.5')
     parser.add_argument('--debug', default=True)
 
-    logger.info('Program START')
+    logger.info('START Program')
     parser.parse_args()
 
     config = Serializer.load_json('../resource/setting.json')
@@ -165,7 +165,7 @@ def main():
         bot.tweet(media)
         #bot.deletetweet()
         bot.backup(media)
-    logger.info('Program END')
+    logger.info('END Program')
 
 if __name__ == "__main__":
     main()
