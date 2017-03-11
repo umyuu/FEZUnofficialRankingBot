@@ -73,10 +73,15 @@ class DataProcessor(object):
             cv2.imwrite('../temp/base_filtered{0}'.format(os.path.basename(self.media)), result)
         return result
     def addWhiteMasking(self, sender, ev):
-        stream = sender
-        binary = stream
+        """
+            color masking
+        """
+        binary = sender
         # white color
-        white = self.__getWhiteMasking(self.hsv)
+        sensitivity = 15
+        lower = HSVcolor(0, 0, 255 - sensitivity)
+        upper = HSVcolor(255, sensitivity, 255)
+        white = self.__inRange(self.hsv, lower, upper)
         binary = cv2.bitwise_and(binary, binary, mask=white)
         cv2.imwrite('../temp/addWhiteMasking{0}'.format(os.path.basename(self.media)), binary)
         return binary
@@ -85,9 +90,6 @@ class DataProcessor(object):
     def clipping_filtered(self, sender, ev):
         stream = sender
         binary = stream
-        # white color
-        #white = self.__getWhiteMasking(self.hsv)
-        #binary = cv2.bitwise_and(binary, binary, mask=white)
         height, width = stream.shape[:2]
         cv2.rectangle(binary, (0, 0), (min(1000, width), height), (0, 0, 0), -1)
         return binary
@@ -95,9 +97,6 @@ class DataProcessor(object):
         stream = sender
         binary = stream
 
-        # white color
-        #white = self.__getWhiteMasking(self.hsv)
-        #binary = cv2.bitwise_and(binary, binary, mask=white)
         lower, upper = HSVcolor(0, 0, 0), HSVcolor(30, 66, 255)
         binary = cv2.bitwise_and(binary, self.__inRange(self.hsv, lower, upper))
         # image out range fill
@@ -110,11 +109,6 @@ class DataProcessor(object):
     def bitwise_not(self, binary, mask_range):
         lower, upper = mask_range
         return cv2.bitwise_not(binary, binary, mask=self.__inRange(self.hsv, lower, upper))
-    def __getWhiteMasking(self, hsv):
-        sensitivity = 15
-        lower = HSVcolor(0, 0, 255 - sensitivity)
-        upper = HSVcolor(255, sensitivity, 255)
-        return self.__inRange(hsv, lower, upper)
     def __inRange(self, hsv, lower, upper):
         return cv2.inRange(hsv, lower.to_np(), upper.to_np())
     def tobinary(self, binary):
