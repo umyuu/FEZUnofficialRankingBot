@@ -20,7 +20,15 @@ class ImageType(Enum):
     PLAN = 8
 class DataProcessor(object):
     """
-        DataProcessor is image convert
+        DataProcessor is image convert.
+        step1.
+            cv2.resize zooming scalle 2
+        step2.
+            a. image(color) => cv2.grayscale => cv2.adaptiveThreshold
+            b. image(color) => hsv
+            c. addWhiteMasking(a, b)  => step3
+        step3.
+            a. clipping image.
     """
     def __init__(self, media, image_type, save_image=False):
         self.__media = media
@@ -81,7 +89,7 @@ class DataProcessor(object):
         sensitivity = 15
         lower = HSVcolor(0, 0, 255 - sensitivity)
         upper = HSVcolor(255, sensitivity, 255)
-        white = self.__inRange(self.hsv, lower, upper)
+        white = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
         binary = cv2.bitwise_and(binary, binary, mask=white)
         cv2.imwrite('../temp/addWhiteMasking{0}'.format(os.path.basename(self.media)), binary)
         return binary
