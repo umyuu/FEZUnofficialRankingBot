@@ -30,5 +30,23 @@ class TestClass(object):
         pass
     def event_remove(self):
         pass
+    def base_filtered(self):
+        """
+            note: method define order 
+                1,base_filtered 
+                2,filtered
+        """
+        pass
+    def test_eventOrdering(self):
+        events = SimpleEvent()
+        addList = [self.base_filtered, self.filtered]
+        for event in addList:
+            events += event
+        for i, event in enumerate(events.handlers):
+            if addList[i] != event:
+                raise Exception('compare x:{0},y:{1}'.format(addList[i], event))
+    def filtered(self):
+        pass
+
 if __name__ == '__main__':
     pytest.main("--capture=sys")
