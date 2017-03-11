@@ -32,11 +32,20 @@ class XMLDocument(object):
         """
         element = SubElement(root, name)
         return element
+    def getiter(self, name):
+        """
+            @param {string}name
+            @yield {SubElement}
+            
+        """
+        for country in self.root.iter(name):
+            for row in country.findall('row'):
+                yield row
     @staticmethod
     def toPrettify(element):
         """
             @param {Element}element
-                   @return {xml}
+            @return {xml}
         """
         rough_string = tostring(element, 'utf-8')
         reparsed = minidom.parseString(rough_string)

@@ -60,24 +60,8 @@ class OCRDocument(object):
             @return {list} rawData
         """
         xml = self.xml
+        result = self.addOCRData(documents) 
         decode = xml.addChild(xml.body, 'decode')
-        ocr = xml.addChild(xml.body, 'ocr')
-        result = []
-        for i, document in enumerate(documents):
-
-            trans = self.translate['name']
-            if i > 5:
-                trans = self.translate['score']
-            ocr_decode = OCRText(document, trans)
-            result.append(ocr_decode)
-            
-
-            child = xml.addChild(ocr, 'row')
-            child.text = document.content
-            
-            
-        ocr.set('length', str(len(result)))
-        
         for i in range(5):
             print(i)
             print(result[i])
@@ -89,8 +73,21 @@ class OCRDocument(object):
             child_name.text = ddd['name']
             child_score = xml.addChild(child, 'score')
             child_score.text = ddd['score']
-            
-            self.__raw.append(content)
+        print(XMLDocument.toPrettify(xml.root))
+        return result
+    def addOCRData(self, documents):
+        xml = self.xml
+        ocr = xml.addChild(xml.body, 'ocr')
+        result = []
+        for i, document in enumerate(documents):
+            trans = self.translate['name']
+            if i > 5:
+                trans = self.translate['score']
+            ocr_decode = OCRText(document, trans)
+            result.append(ocr_decode)
+            child = xml.addChild(ocr, 'row')
+            child.text = document.content
+        ocr.set('length', str(len(result)))
         print(XMLDocument.toPrettify(xml.root))
         return result
     @property
@@ -99,27 +96,22 @@ class OCRDocument(object):
             @return {dict} __countries
         """
         return self.__countries
-    @property
-    def raw(self):
-        """
-            @return {list} ocr text raw
-        """
-        return self.__raw
     def names(self):
         """
+            name list
+                order ranking
             @return {list} ocr names
         """
         result = []
-        for n in self.raw:
-            result.append(str(n['name']))
+        for row in self.xml.getiter('decode'):
+            result.append(row.find('name').text)
         return result
     def dump(self):
         """
             developers method.
         """
-        for country in self.xml.root.iter('decode'):
-            for row in country.findall('row'):
-                logger.info('%s/%s', row.find('name').text, row.find('score').text)
+        for row in self.xml.getiter('decode'):
+            logger.info('%s/%s', row.find('name').text, row.find('score').text)
 class OCRText(object):
     def __init__(self, document, trans):
         self.document = document
@@ -178,6 +170,6 @@ def main():
     #temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
     doc = ocr.recognize(temp_file_name)
     doc.dump()
-
+    print(doc.names())
 if __name__ == "__main__":
     main()
