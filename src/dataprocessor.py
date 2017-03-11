@@ -36,6 +36,7 @@ class DataProcessor(object):
         self.color = None
         self.__hsv = None
         self.save_image = save_image
+        self.sensitivity = 60
         # image => ocr image.
         self.filter = Filters()
         self.filter += self.base_filtered
@@ -86,7 +87,7 @@ class DataProcessor(object):
         """
         binary = sender
         # white color
-        sensitivity = 15
+        sensitivity = self.sensitivity
         lower = HSVcolor(0, 0, 255 - sensitivity)
         upper = HSVcolor(255, sensitivity, 255)
         white = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
