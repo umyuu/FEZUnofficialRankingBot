@@ -8,7 +8,7 @@ import conftest
 # pylint: enable=W0611
 
 from serializer import Serializer
-from naivebayes import NaiveBayes, CorpusTokenizer
+from naivebayes import NaiveBayes
 
 # pylint: disable=C0103
 class TestClass(object):
@@ -18,11 +18,14 @@ class TestClass(object):
         Serializer.load_ini(config['AUTH']['TWITTER'])
         Serializer.load_json(os.path.join(basepath, 'ocr.json'))
         Serializer.load_csv(os.path.join(basepath, 'corpus.tsv'))
+    @pytest.mark.skipif("True")
     def test_naivebayes_compare(self):
         basepath = '../resource/'
         naivebayes = NaiveBayes()
         json_data = Serializer.load_json(os.path.join(basepath, 'ocr.json'))
         x_list = ['ネツァワル王国','カセドリア連合王国','ゲブランド帝国','ホルデイン王国','エルソード王国']
+        
+        print(json_data['translate']['country'])
         out = naivebayes.predict_all(x_list, json_data['translate']['country'])
         for i, y in enumerate(out):
             if x_list[i] != y:

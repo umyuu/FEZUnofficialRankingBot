@@ -8,8 +8,11 @@ from logging import getLogger, StreamHandler, DEBUG
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import scale
 from janome.tokenizer import Tokenizer
 #
 from serializer import Serializer
@@ -22,6 +25,32 @@ if __name__ == "__main__":
     handler.setLevel(DEBUG)
     logger.setLevel(DEBUG)
     logger.addHandler(handler)
+
+class ModelValidator(object):
+    def __init__(self, data, target):
+        self.data = data
+        self.target = target
+        self.cv = 4
+        self.n_jobs = -1
+    def search_BestParameter(self, test_model, params):
+        """
+            model search_best_parameter
+            @param  test_model
+            @return {dict}best_params_
+        """
+        grid = GridSearchCV(test_model, params, cv=self.cv, n_jobs=self.n_jobs)
+        grid.fit(self.data, self.target)
+        logger.info('best %s', grid.best_estimator_)
+        return grid.best_params_
+    def cross_validation(self, test_model):
+        """
+            model cross validation check
+            @param  test_model
+        """
+        #raise DeprecationWarning()
+        scores = cross_val_score(test_model, self.data, self.target, cv=self.cv)
+        logger.info('cross_validation:%s', np.mean(scores))
+        return
 
 class NaiveBayes(object):
     """
@@ -39,9 +68,13 @@ class NaiveBayes(object):
         self.skip_tokenize = skip_tokenize
         self.skip_count = 0
         self.t = Tokenizer()
+       # self.pipeline = Pipeline([
+       #         ('vectorizer', TfidfVectorizer(tokenizer=self.tokenizer)),
+       #         ('classifier', MultinomialNB(0.3))])
         self.pipeline = Pipeline([
-                ('vectorizer', TfidfVectorizer(use_idf=True, tokenizer=self.tokenizer)),
-                ('classifier', MultinomialNB(0.1))])
+                ('vectorizer', TfidfVectorizer(tokenizer=self.tokenizer)),
+                ('classifier', self.create_Model())])
+        
         corpus = Serializer.load_csv('../resource/corpus.tsv')
         self.data = []
         target = []
@@ -60,6 +93,7 @@ class NaiveBayes(object):
         """
         if self.skip_count < self.skip_tokenize:
             self.skip_count += 1
+            print(word)
             yield word
             return
         tokens = []
@@ -89,7 +123,7 @@ class NaiveBayes(object):
         if isinstance(x, str):
             x = self.vectorizer.transform([x])
 
-        logger.debug(self.model.predict_proba(x))
+        #logger.debug(self.model.predict_proba(x))
         return self.model.predict(x)
     def predict_all(self, x_list, pair):
         """
@@ -106,22 +140,33 @@ class NaiveBayes(object):
             logger.debug('%s -> 推定: %s', x, value)
         assert len(result) == len(x_list)
         return result
-    def cross_validation(self):
-        """
-            model cross validation check
-        """
-        #raise DeprecationWarning()
+    def model_validation(self):
         x_train = self.vectorizer.fit_transform(self.data)
-        scores = cross_val_score(self.model, x_train, self.labels, cv=5)
-        logger.info('cross_validation:%s', np.mean(scores))
-        # scores 0.779300699301
+        validator = ModelValidator(x_train, self.labels)
+        validator.cross_validation(self.model)
+        test_params = self.model.get_params
+        
+        
+        params = {}
+        
+        params['alpha'] = np.arange(0.01, 3.,step=0.01,dtype=np.float64)
+        #params['alpha'] = np.logspace(-1, 2, 30)
+        params['fit_prior'] = [True, False]
+        best_params = validator.search_BestParameter(self.create_Model(), params)
+        validator.cross_validation(self.create_Model(best_params))
+    def create_Model(self, params=None):
+        model = MultinomialNB(1)
+        #model = LinearSVC(C=0.1)
+        if params is not None:
+            model.set_params(**params)
+        return model
 def main():
     ocr = OCREngine()
     temp_file_name = '../base_binary.png'
     doc = ocr.recognize(temp_file_name)
     doc.dump()
     x_list = doc.names()
-    x_list.append('エルソード')
+    x_list.append('エルソード王国')
     logger.info(x_list)
     #np.set_printoptions(precision=4)
     naivebayes = NaiveBayes()
@@ -130,6 +175,6 @@ def main():
     x_list = ['ホルデイン王国', '力セドー丿ア連合王国', 'ゲブ「ラン ド帝国']
     out = naivebayes.predict_all(x_list, doc.countries)
     logger.info('out:%s', out)
-    naivebayes.cross_validation()
+    naivebayes.model_validation()
 if __name__ == "__main__":
     main()

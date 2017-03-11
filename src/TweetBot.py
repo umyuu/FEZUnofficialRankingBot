@@ -3,6 +3,7 @@
     tweetbot main code.
 """
 from logging import getLogger, StreamHandler, DEBUG
+import logging.config
 import argparse
 from datetime import datetime
 import os
@@ -19,6 +20,7 @@ import ranking
 logger = getLogger('myapp.tweetbot')
 handler = StreamHandler()
 handler.setLevel(DEBUG)
+handler.setFormatter(logging.Formatter('%(threadName)s:%(message)s'))
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
