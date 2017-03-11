@@ -8,13 +8,13 @@ class XMLDocument(object):
     """
         XMLDocument class
     """
-    def __init__(self):
+    def __init__(self, name):
         """
             XML Document
             root / header / body
         """
         # root
-        root = Element('ranking')
+        root = Element(name)
         root.set('version', '1.0')
         root.append(Comment('Generated for TweetBot'))
         self.root = root
@@ -42,7 +42,7 @@ class XMLDocument(object):
         reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="  ")
 def main():
-    xml = XMLDocument()
+    xml = XMLDocument('ranking')
     for i in range(5):
         child = xml.addChild(xml.body, 'row')
         child.text = 'This child contains text.'

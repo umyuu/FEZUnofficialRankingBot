@@ -6,7 +6,7 @@ import pyocr.builders
 from PIL import Image
 #
 from serializer import Serializer
-
+from xmldocument import XMLDocument
 # pylint: disable=C0103
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
@@ -22,6 +22,7 @@ class OCRDocument(object):
         out:application require data
     """
     def __init__(self):
+        self.xml = XMLDocument('ranking')
         self.__ranking = []
         self.__raw = []
         json_data = Serializer.load_json('../resource/ocr.json')
@@ -58,20 +59,39 @@ class OCRDocument(object):
             @param documents image_to_string result data
             @return {list} rawData
         """
+        xml = self.xml
+        decode = xml.addChild(xml.body, 'decode')
+        ocr = xml.addChild(xml.body, 'ocr')
         result = []
         for i, document in enumerate(documents):
-            print(document.content)
+
             trans = self.translate['name']
             if i > 5:
                 trans = self.translate['score']
-            result.append(OCRText(document, trans))
-        print(len(result))
+            ocr_decode = OCRText(document, trans)
+            result.append(ocr_decode)
+            
+
+            child = xml.addChild(ocr, 'row')
+            child.text = document.content
+            
+            
+        ocr.set('length', str(len(result)))
+        
         for i in range(5):
             print(i)
             print(result[i])
             content = self.indexByContents(result, i)
             self.__ranking.append(content)
+            ddd = content
+            child = xml.addChild(decode, 'row')
+            child_name = xml.addChild(child, 'name')
+            child_name.text = ddd['name']
+            child_score = xml.addChild(child, 'score')
+            child_score.text = ddd['score']
+            
             self.__raw.append(content)
+        print(XMLDocument.toPrettify(xml.root))
         return result
     @property
     def countries(self):
@@ -97,8 +117,9 @@ class OCRDocument(object):
         """
             developers method.
         """
-        for text in self.__ranking:
-            logger.info('{name}/{score}'.format_map(text))
+        for country in self.xml.root.iter('decode'):
+            for row in country.findall('row'):
+                logger.info('%s/%s', row.find('name').text, row.find('score').text)
 class OCRText(object):
     def __init__(self, document, trans):
         self.document = document
