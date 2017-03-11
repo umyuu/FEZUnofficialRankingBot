@@ -48,7 +48,7 @@ class OCRDocument(object):
         # \d+.\d+ [point] => \d+.\d+
         # exsample) input           => output
         #           228993.70 point => 228993.70
-        score = str(contents[index + offset])
+        score = str(contents[index + 5])
         score = score[:score.rfind(' ')]
         return {"name":name, "score":score}
     def parse(self, documents):
@@ -60,11 +60,15 @@ class OCRDocument(object):
         """
         result = []
         for i, document in enumerate(documents):
+            print(document.content)
             trans = self.translate['name']
             if i > 5:
                 trans = self.translate['score']
             result.append(OCRText(document, trans))
+        print(len(result))
         for i in range(5):
+            print(i)
+            print(result[i])
             content = self.indexByContents(result, i)
             self.__ranking.append(content)
             self.__raw.append(content)
@@ -119,6 +123,8 @@ class OCREngine(object):
         if "jpn" not in languages:
             raise Exception('Tesseract NotFound :tessdata\jpn.traineddata')
         self.lang = 'jpn'
+        self.tesseract_layout = Serializer.load_json('../resource/ocr.json')['pagesegmode']
+        
     def image_to_string(self, file, lang=None, builder=None):
         """
             @param {PIL.Image} file
@@ -129,7 +135,7 @@ class OCREngine(object):
         if lang is None:
             lang = self.lang
         if builder is None:
-            builder = pyocr.builders.LineBoxBuilder(tesseract_layout=7)
+            builder = pyocr.builders.LineBoxBuilder(tesseract_layout=self.tesseract_layout)
         return self.tool.image_to_string(file, lang=lang, builder=builder)
     def recognize(self, file):
         """
@@ -147,6 +153,8 @@ class OCREngine(object):
 def main():
     ocr = OCREngine()
     temp_file_name = '../base_binary.png'
+    
+    #temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
     doc = ocr.recognize(temp_file_name)
     doc.dump()
 
