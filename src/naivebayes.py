@@ -30,14 +30,15 @@ class ModelValidator(object):
     def __init__(self, data, target):
         self.data = data
         self.target = target
-        self.cv = 2
+        self.cv = 4
+        self.n_jobs = -1
     def search_BestParameter(self, test_model, params):
         """
             model search_best_parameter
             @param  test_model
             @return {dict}best_params_
         """
-        grid = GridSearchCV(test_model, params, cv=self.cv)
+        grid = GridSearchCV(test_model, params, cv=self.cv, n_jobs=self.n_jobs)
         grid.fit(self.data, self.target)
         logger.info('best %s', grid.best_estimator_)
         return grid.best_params_
@@ -144,13 +145,17 @@ class NaiveBayes(object):
         validator = ModelValidator(x_train, self.labels)
         validator.cross_validation(self.model)
         test_params = self.model.get_params
+        
+        
         params = {}
-        params['alpha'] = np.logspace(-1, 2, 30)
+        
+        params['alpha'] = np.arange(0.01, 3.,step=0.01,dtype=np.float64)
+        #params['alpha'] = np.logspace(-1, 2, 30)
         params['fit_prior'] = [True, False]
         best_params = validator.search_BestParameter(self.create_Model(), params)
         validator.cross_validation(self.create_Model(best_params))
     def create_Model(self, params=None):
-        model = MultinomialNB()
+        model = MultinomialNB(1)
         #model = LinearSVC(C=0.1)
         if params is not None:
             model.set_params(**params)
