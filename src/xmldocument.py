@@ -1,26 +1,37 @@
 # -*- coding: utf-8 -*-
-import os
 from datetime import datetime
 
 from xml.etree.ElementTree import tostring, Element, Comment, SubElement
 from xml.dom import minidom
 
 class XMLDocument(object):
+    """
+        XMLDocument class
+    """
     def __init__(self):
-        self.xml = None
-    def Root(self, rootname='ranking'):
-        root = Element(rootname)
+        """
+            XML Document
+            root / header / body
+        """
+        # root
+        root = Element('ranking')
         root.set('version', '1.0')
         root.append(Comment('Generated for TweetBot'))
-        return root
-    def Header(self, root):
-        header = SubElement(root, 'head')
-        dc = SubElement(header, 'Created')
+        self.root = root
+        # header
+        self.header = SubElement(self.root, 'head')
+        dc = SubElement(self.header, 'Created')
         dc.text = str(datetime.now())
-        return header
-    def Body(self, root):
-        body = SubElement(root, 'body')
-        return body
+        # body
+        self.body = SubElement(self.root, 'body')
+    def addChild(self, root, name):
+        """
+            @param {Element},{SubElement}root Element
+                   {string}name
+            @return {SubElement}
+        """
+        element = SubElement(root, name)
+        return element
     @staticmethod
     def toPrettify(element):
         """
@@ -32,13 +43,10 @@ class XMLDocument(object):
         return reparsed.toprettyxml(indent="  ")
 def main():
     xml = XMLDocument()
-    root = xml.Root()
-    xml.Header(root)
-    body = xml.Body(root)
     for i in range(5):
-        child = SubElement(body, 'row')
+        child = xml.addChild(xml.body, 'row')
         child.text = 'This child contains text.'
 
-    print(XMLDocument.toPrettify(root))
+    print(XMLDocument.toPrettify(xml.root))
 if __name__ == '__main__':
     main()
