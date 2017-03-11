@@ -1,0 +1,7 @@
+□Model
+--------------------------
+○MultinomialNB
+--------------------------
+best MultinomialNB(alpha=1.0826367338740546, class_prior=None, fit_prior=True)
+cross_validation:0.760368663594
+np.mean(scores)
