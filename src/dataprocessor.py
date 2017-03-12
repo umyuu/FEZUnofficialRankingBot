@@ -92,7 +92,7 @@ class DataProcessor(object):
         upper = HSVcolor(255, sensitivity, 255)
         white = cv2.inRange(self.hsv, lower.to_np(), upper.to_np())
         binary = cv2.bitwise_and(binary, binary, mask=white)
-        cv2.imwrite('../temp/addWhiteMasking{0}'.format(os.path.basename(self.media)), binary)
+        #cv2.imwrite('../temp/addWhiteMasking{0}'.format(os.path.basename(self.media)), binary)
         return binary
     def image_clipping(self, sender, ev):
         pass
