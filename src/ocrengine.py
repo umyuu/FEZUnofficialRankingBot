@@ -138,13 +138,15 @@ class OCREngine(object):
             raise Exception('Tesseract non install')
         self.tool = tools[0]
         languages = self.tool.get_available_languages()
-        if "jpn" not in languages:
-            raise Exception('Tesseract NotFound :tessdata\jpn.traineddata')
-        self.lang = 'jpn'
         json_data = Serializer.load_json('../resource/ocr.json')
-        self.ocr_settings = json_data
+        self.__settings = json_data
+        self.lang = json_data['lang']
         self.tesseract_layout = json_data['pagesegmode']
-        
+        if self.lang not in languages:
+            raise Exception('Tesseract NotFound :tessdata\\{0}.traineddata'.format(self.lang))
+    @property
+    def Settings(self):
+        return self.__settings
     def image_to_string(self, file, lang=None, builder=None):
         """
             @param {PIL.Image} file
@@ -166,7 +168,7 @@ class OCREngine(object):
             with Image.open(file) as image:
                 return self.recognize(image)
 
-        doc = OCRDocument(self.ocr_settings)
+        doc = OCRDocument(self.__settings)
         doc.parse(self.image_to_string(file))
         return doc
 
