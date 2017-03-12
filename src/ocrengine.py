@@ -40,7 +40,7 @@ class OCRDocument(object):
         """
             ocr text replaced
             created Field pair
-            @param {string}text
+            @param {list}text
                    {int}index
                    {int}maxLengh  ocr decord max length=5
                    {int}offset
@@ -51,15 +51,27 @@ class OCRDocument(object):
         #           工ルソ一 ド王国    　=> 工ルソ一ド王国
         # □score　　　　\d+.\d+ [point] => \d+.\d+
         #           228993.70 point => 228993.70
-        name = str(text[index])
+        name = text[index]
+        name = self.textTransrate(name, self.translate['name'])
         if maxLengh != offset:
-            score = str(text[index + offset])
+            score = text[index + offset]
             score = score[:score.rfind(' ')]
-            return {"name":name.replace(' ',''), "score":score}
+            score = self.textTransrate(score, self.translate['score'])
+            return self.createElement(name.replace(' ',''), score)
         rindex = name.rfind(' ')
-        return {"name":name[:rindex].replace(' ',''), "score":name[rindex + 1:]}
+        score = name[rindex + 1:]
+        score = self.textTransrate(score, self.translate['score'])
+        return self.createElement(name[:rindex].replace(' ',''), score)
     def createElement(self, name, score):
-        return  {"name":name, "score":score}
+        return {"name":name, "score":score}
+    def textTransrate(self, text, trans):
+        """
+            @param {string}text
+                   {dict}trans
+        """
+        for before, after in trans.items():
+            text = text.replace(before, after)
+        return text
     def parse(self, documents):
         """
             OCR data.
@@ -73,17 +85,17 @@ class OCRDocument(object):
         for i in range(5):
             content = self.splitText(result, i, length)
             xml.addChild(decode, 'row', content)
-        #print(XMLDocument.toPrettify(xml.root))
+        print(XMLDocument.toPrettify(xml.root))
     def addOCRData(self, documents):
+        """
+            @param {list}documents ocr data
+            @return {list}result
+        """
         xml = self.xml
         ocr = xml.addChild(xml.body, 'ocr')
         result = []
-        for i, document in enumerate(documents):
-            trans = self.translate['name']
-            if i > 5:
-                trans = self.translate['score']
-            ocr_decode = OCRText(document, trans)
-            result.append(ocr_decode)
+        for document in documents:
+            result.append(document.content)
             child = xml.addChild(ocr, 'row')
             child.text = document.content
         ocr.set('length', str(len(result)))
@@ -114,17 +126,6 @@ class OCRDocument(object):
         """
         for row in self.xml.findall(xpath):
             logger.info('%s/%s', row.find('name').text, row.find('score').text)
-class OCRText(object):
-    def __init__(self, document, trans):
-        self.document = document
-        self.content = document.content
-        # recognize translate replace
-        for before, after in trans.items():
-            self.content = self.content.replace(before, after)
-    def __getattr__(self, attr):
-        return getattr(self.document, attr)
-    def __str__(self):
-        return self.content
 class OCREngine(object):
     """
         OCREngine: call Tesseract-OCR.
@@ -167,9 +168,9 @@ class OCREngine(object):
 
 def main():
     ocr = OCREngine()
-    #temp_file_name = '../base_binary.png'
+    temp_file_name = '../base_binary.png'
     
-    temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
+    #temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
     doc = ocr.recognize(temp_file_name)
     doc.dump()
     print(doc.names())
