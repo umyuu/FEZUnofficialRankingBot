@@ -97,8 +97,7 @@ class OCRDocument(object):
         result = []
         for document in documents:
             result.append(document.content)
-            child = xml.addChild(ocr, 'row')
-            child.text = document.content
+            xml.addChild(ocr, 'row').text = document.content
         length = len(result)
         ocr.set('length', str(length))
         #print(XMLDocument.toPrettify(xml.root))

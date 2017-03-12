@@ -12,6 +12,7 @@ import glob
 import twitter
 # pylint: disable=E0401
 from serializer import Serializer
+from fileutils import FileUtils
 from events import SimpleEvent
 import download
 import ranking
@@ -82,16 +83,15 @@ class TweetBot(object):
         """
             @yield {string} media
         """
-        for ext in self.upload_file_suffixes:
-            for media in glob.iglob(os.path.join(self.uploadDir, ext)):
-                # upload fileSize limit
-                size = os.path.getsize(media)
-                if size > self.upload_max_file_size:
-                    logger.warning('skip:%s,size:%s,limit:%s', media, size, self.upload_max_file_size)
-                    self.backup(media)
-                    continue
-                # Todo:check image file
-                yield media
+        for media in FileUtils.search(self.uploadDir, self.upload_file_suffixes):
+            # upload fileSize limit
+            size = os.path.getsize(media)
+            if size > self.upload_max_file_size:
+                logger.warning('skip:%s,size:%s,limit:%s', media, size, self.upload_max_file_size)
+                self.backup(media)
+                continue
+            # Todo:check image file
+            yield media
     def tweet(self, media):
         """
             @param {string} media uploadFile

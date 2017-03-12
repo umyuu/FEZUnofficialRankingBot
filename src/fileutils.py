@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import os
 import sys
+import glob
 
 # pylint: disable=C0103
 class FileUtils(object):
@@ -25,3 +27,14 @@ class FileUtils(object):
             if sys.maxsize == i:
                 break
         return file
+    @staticmethod
+    def search(target, suffixes):
+        """
+            file search
+            @param {string}target Directory
+                   {list}suffix
+            @yield media
+        """
+        for suffix in suffixes:
+            for media in glob.iglob(os.path.join(target, suffix)):
+                yield media
