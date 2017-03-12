@@ -81,9 +81,8 @@ class OCRDocument(object):
             @param documents image_to_string result data
         """
         xml = self.xml
-        result = self.addOCRData(documents) 
+        result, length = self.addOCRData(documents) 
         decode = xml.addChild(xml.body, 'decode')
-        length = len(result)
         for i in range(5):
             content = self.splitText(result, i, length)
             xml.addChild(decode, 'row', content)
@@ -91,7 +90,7 @@ class OCRDocument(object):
     def addOCRData(self, documents):
         """
             @param {list}documents ocr data
-            @return {list}result
+            @return {list}result,{int}length
         """
         xml = self.xml
         ocr = xml.addChild(xml.body, 'ocr')
@@ -100,9 +99,10 @@ class OCRDocument(object):
             result.append(document.content)
             child = xml.addChild(ocr, 'row')
             child.text = document.content
-        ocr.set('length', str(len(result)))
+        length = len(result)
+        ocr.set('length', str(length))
         #print(XMLDocument.toPrettify(xml.root))
-        return result
+        return result, length
     def changeNames(self, change):
         for i, row in enumerate(self.xml.findall("./body/decode/row")):
             row.find('name').text = change[i]
