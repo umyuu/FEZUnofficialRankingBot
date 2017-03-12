@@ -43,11 +43,12 @@ class Ranking(object):
         
         doucument = self.ocr.recognize(temp_file_name)
         os.remove(temp_file_name)
+        
+        output = '#' + datetime.now().strftime('%F %T.%f')[:-3] + '\n'
+        output += '\n'.join(doucument.names()) + '\n'
         with Serializer.open_stream('../temp/corpus.txt', mode='a') as file:
-            header = '#' + datetime.now().strftime('%F %T.%f')[:-3] + '\n'
-            file.write(header)
-            file.write('\n'.join(doucument.names()))
-            file.write('\n')
+            file.write(output)
+
         # ocr corpus data -> NaiveBayes classifier
         # ranking name swap
         self.naivebayes.human_labels = doucument.countries
