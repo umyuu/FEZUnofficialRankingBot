@@ -12,6 +12,7 @@ import glob
 import twitter
 # pylint: disable=E0401
 from serializer import Serializer
+from events import SimpleEvent
 import download
 import ranking
 # pylint: enable=E0401
@@ -33,6 +34,7 @@ class TweetBot(object):
         self.dtnow = datetime.now()
         self.fillspace = 0
         self.isTweet = True
+        self.event = SimpleEvent()
         self.auth_twitter = config['AUTH']['TWITTER']
         self.__download = download.Download(config)
         self.__ranking = ranking.Ranking(config)
@@ -95,6 +97,7 @@ class TweetBot(object):
             @param {string} media uploadFile
         """
         try:
+            logger.info('tweet media:%s', media)
             ranks = self.ranking.getResult(media)
             if ranks is None:
                 return
@@ -158,13 +161,13 @@ def main():
 
     config = Serializer.load_json('../resource/setting.json')
     bot = TweetBot(config)
+    bot.event += bot.tweet
+    bot.event += bot.backup
     #bot.isTweet = False
     bot.download.request()
     for media in bot.getImage():
-        logger.info('tweet media:%s', media)
-        bot.tweet(media)
+        bot.event(media)
         #bot.deletetweet()
-        bot.backup(media)
     logger.info('END Program')
 
 if __name__ == "__main__":
