@@ -4,6 +4,15 @@ import argparse
 import cv2
 # pylint: disable=C0103
 
+"""
+    @deprecated
+    --------------------------------------------------------------
+    Shee new exsample)
+    old class   => new class
+    ImageStream => src/events.py         Filters
+    Processor   => src/DataProcessor.py  DataProcessor
+    --------------------------------------------------------------
+"""
 class ImageStream(object):
     """
         ImageStream stream transform

@@ -6,7 +6,8 @@ import pyocr.builders
 from PIL import Image
 #
 from serializer import Serializer
-#
+from xmldocument import XMLDocument
+# pylint: disable=C0103
 logger = getLogger('myapp.tweetbot')
 if __name__ == "__main__":
     handler = StreamHandler()
@@ -21,6 +22,7 @@ class OCRDocument(object):
         out:application require data
     """
     def __init__(self):
+        self.xml = XMLDocument('tweetbot')
         self.__ranking = []
         self.__raw = []
         json_data = Serializer.load_json('../resource/ocr.json')
@@ -32,35 +34,57 @@ class OCRDocument(object):
             @return {list} ocr text ranking
         """
         return self.__ranking
-    def indexByContents(self, index, contents):
+    def splitText(self, text, index, maxLengh, offset=5):
         """
-            ocr filed pair
-            
+            ocr text replaced
+            created Field pair
+            @param {string}text
+                   {int}index
+                   {int}maxLengh  ocr decord max length=5
+                   {int}offset
             @return {dict} name score
         """
-        # \d+.\d+ [point] => \d+.\d+
-        # exsample) input           => output
+        # exsample) input           　=> output
+        # □name
+        #           工ルソ一 ド王国    　=> 工ルソ一ド王国
+        # □score　　　　\d+.\d+ [point] => \d+.\d+
         #           228993.70 point => 228993.70
-        score = str(contents[index + 5])
-        score = score[:score.rfind(' ')]
-        return {"name":str(contents[index]), "score":score}
+        name = str(text[index])
+        if maxLengh != offset:
+            score = str(text[index + offset])
+            score = score[:score.rfind(' ')]
+            return {"name":name.replace(' ',''), "score":score}
+        rindex = name.rfind(' ')
+        return {"name":name[:rindex].replace(' ',''), "score":name[rindex + 1:]}
     def parse(self, documents):
         """
             OCR data.
                 parse & pickup
             @param documents image_to_string result data
-            @return {list} rawData
         """
+        xml = self.xml
+        result = self.addOCRData(documents) 
+        decode = xml.addChild(xml.body, 'decode')
+        length = len(result)
+        for i in range(5):
+            content = self.splitText(result, i, length)
+            self.__ranking.append(content)
+            xml.addChild(decode, 'row', content)
+        #print(XMLDocument.toPrettify(xml.root))
+    def addOCRData(self, documents):
+        xml = self.xml
+        ocr = xml.addChild(xml.body, 'ocr')
         result = []
         for i, document in enumerate(documents):
             trans = self.translate['name']
             if i > 5:
                 trans = self.translate['score']
-            result.append(OCRText(document, trans))
-        for i in range(5):
-            content = self.indexByContents(i, result)
-            self.__ranking.append(content)
-            self.__raw.append(content)
+            ocr_decode = OCRText(document, trans)
+            result.append(ocr_decode)
+            child = xml.addChild(ocr, 'row')
+            child.text = document.content
+        ocr.set('length', str(len(result)))
+        #print(XMLDocument.toPrettify(xml.root))
         return result
     @property
     def countries(self):
@@ -68,26 +92,22 @@ class OCRDocument(object):
             @return {dict} __countries
         """
         return self.__countries
-    @property
-    def raw(self):
-        """
-            @return {list} ocr text raw
-        """
-        return self.__raw
     def names(self):
         """
+            name list
+                order ranking
             @return {list} ocr names
         """
         result = []
-        for n in self.raw:
-            result.append(str(n['name']))
+        for row in self.xml.findall("./body/decode/row"):
+            result.append(row.find('name').text)
         return result
     def dump(self):
         """
             developers method.
         """
-        for text in self.__ranking:
-            logger.info('{name}/{score}'.format_map(text))
+        for row in self.xml.findall("./body/decode/row"):
+            logger.info('%s/%s', row.find('name').text, row.find('score').text)
 class OCRText(object):
     def __init__(self, document, trans):
         self.document = document
@@ -112,6 +132,8 @@ class OCREngine(object):
         if "jpn" not in languages:
             raise Exception('Tesseract NotFound :tessdata\jpn.traineddata')
         self.lang = 'jpn'
+        self.tesseract_layout = Serializer.load_json('../resource/ocr.json')['pagesegmode']
+        
     def image_to_string(self, file, lang=None, builder=None):
         """
             @param {PIL.Image} file
@@ -122,7 +144,7 @@ class OCREngine(object):
         if lang is None:
             lang = self.lang
         if builder is None:
-            builder = pyocr.builders.LineBoxBuilder(tesseract_layout=7)
+            builder = pyocr.builders.LineBoxBuilder(tesseract_layout=self.tesseract_layout)
         return self.tool.image_to_string(file, lang=lang, builder=builder)
     def recognize(self, file):
         """
@@ -139,9 +161,11 @@ class OCREngine(object):
 
 def main():
     ocr = OCREngine()
-    temp_file_name = '../base_binary.png'
+    #temp_file_name = '../base_binary.png'
+    
+    temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
     doc = ocr.recognize(temp_file_name)
     doc.dump()
-
+    print(doc.names())
 if __name__ == "__main__":
     main()

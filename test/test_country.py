@@ -18,7 +18,7 @@ class TestClass(object):
         Serializer.load_ini(config['AUTH']['TWITTER'])
         Serializer.load_json(os.path.join(basepath, 'ocr.json'))
         Serializer.load_csv(os.path.join(basepath, 'corpus.tsv'))
-    @pytest.mark.skipif("True")
+    #@pytest.mark.skipif("True")
     def test_naivebayes_compare(self):
         basepath = '../resource/'
         naivebayes = NaiveBayes()

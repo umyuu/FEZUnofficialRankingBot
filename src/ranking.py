@@ -21,6 +21,14 @@ class Ranking(object):
     def __init__(self, config):
         self.ocr = OCREngine()
         self.naivebayes = NaiveBayes()
+    def create_TemporyFile(self, buffer, verbose=False):
+        temp_file_name = ''
+        with tempfile.NamedTemporaryFile(delete=False) as temp:
+            temp.write(buffer.getvalue())
+            temp_file_name = temp.name
+            if verbose:
+                logger.info(temp_file_name)
+        return temp_file_name
     def getResult(self, src, save_image=False):
         """
             @param {string} src
@@ -31,11 +39,8 @@ class Ranking(object):
             logger.error('image error:{0}'.format(src))
             return None
         buffer = pro.tobinary(pro.batch())
-        temp_file_name = ''
-        with tempfile.NamedTemporaryFile(delete=False) as temp:
-            temp.write(buffer.getvalue())
-            temp_file_name = temp.name
-            logger.info(temp_file_name)
+        temp_file_name = self.create_TemporyFile(buffer, True)
+        
         doucument = self.ocr.recognize(temp_file_name)
         os.remove(temp_file_name)
         with Serializer.open_stream('../temp/corpus.txt', mode='a') as file:
