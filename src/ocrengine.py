@@ -23,17 +23,19 @@ class OCRDocument(object):
     """
     def __init__(self):
         self.xml = XMLDocument('tweetbot')
-        self.__ranking = []
-        self.__raw = []
         json_data = Serializer.load_json('../resource/ocr.json')
         self.translate = json_data['translate']
         self.__countries = json_data['translate']['country']
     @property
-    def ranking(self):
+    def ranking(self, xpath='./body/decode/row'):
         """
-            @return {list} ocr text ranking
+            @return {list} ocr text ranking copy
         """
-        return self.__ranking
+        result = []
+        for row in self.xml.findall(xpath):
+            d = self.createElement(row.find('name').text, row.find('score').text)
+            result.append(d)
+        return result
     def splitText(self, text, index, maxLengh, offset=5):
         """
             ocr text replaced
@@ -56,6 +58,8 @@ class OCRDocument(object):
             return {"name":name.replace(' ',''), "score":score}
         rindex = name.rfind(' ')
         return {"name":name[:rindex].replace(' ',''), "score":name[rindex + 1:]}
+    def createElement(self, name, score):
+        return  {"name":name, "score":score}
     def parse(self, documents):
         """
             OCR data.
@@ -68,7 +72,6 @@ class OCRDocument(object):
         length = len(result)
         for i in range(5):
             content = self.splitText(result, i, length)
-            self.__ranking.append(content)
             xml.addChild(decode, 'row', content)
         #print(XMLDocument.toPrettify(xml.root))
     def addOCRData(self, documents):
@@ -86,6 +89,9 @@ class OCRDocument(object):
         ocr.set('length', str(len(result)))
         #print(XMLDocument.toPrettify(xml.root))
         return result
+    def changeNames(self, change):
+        for i, row in enumerate(self.xml.findall("./body/decode/row")):
+            row.find('name').text = change[i]
     @property
     def countries(self):
         """
@@ -102,11 +108,11 @@ class OCRDocument(object):
         for row in self.xml.findall("./body/decode/row"):
             result.append(row.find('name').text)
         return result
-    def dump(self):
+    def dump(self, xpath='./body/decode/row'):
         """
             developers method.
         """
-        for row in self.xml.findall("./body/decode/row"):
+        for row in self.xml.findall(xpath):
             logger.info('%s/%s', row.find('name').text, row.find('score').text)
 class OCRText(object):
     def __init__(self, document, trans):

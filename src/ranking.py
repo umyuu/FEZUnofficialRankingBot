@@ -49,9 +49,10 @@ class Ranking(object):
             file.write('\n'.join(doucument.names()))
             file.write('\n')
         # ocr corpus data -> NaiveBayes classifier
-        # ranking name swap
-        for i, name in enumerate(self.naivebayes.predict_all(doucument.names(), doucument.countries)):
-            doucument.ranking[i]['name'] = name
+        # ranking name swap                             
+        change = self.naivebayes.predict_all(doucument.names(), doucument.countries)
+        doucument.changeNames(change)
+
         doucument.dump()
         return doucument
 
@@ -60,7 +61,7 @@ def main():
     r = Ranking(config)
     # benchMark
     ele = ['../backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
-            '../images/backup/2017-03-09_0525_Ielsord.png',
+           #'../images/backup/2017-03-12_0443_Geburand.png',
         #     '../backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
         ] * 1
     for media in ele:
