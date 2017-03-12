@@ -37,15 +37,6 @@ class XMLDocument(object):
             child = SubElement(element, key)
             child.text = value
         return element
-    def getiter(self, name):
-        """
-            @param {string}name
-            @yield {SubElement}
-            
-        """
-        for country in self.root.iter(name):
-            for row in country.findall('row'):
-                yield row
     def findall(self, xpath):
         """
             xpath findall
