@@ -50,7 +50,6 @@ class ModelValidator(object):
         #raise DeprecationWarning()
         scores = cross_val_score(test_model, self.data, self.target, cv=self.cv)
         logger.info('cross_validation:%s', np.mean(scores))
-        return
 
 class NaiveBayes(object):
     """
@@ -94,7 +93,6 @@ class NaiveBayes(object):
         """
         if self.skip_count < self.skip_tokenize:
             self.skip_count += 1
-            print(word)
             yield word
             return
         tokens = []
