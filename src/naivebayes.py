@@ -82,6 +82,7 @@ class NaiveBayes(object):
             self.data.append(str(row[0]))
             target.append(int(row[1]))
         self.labels = np.array(target, dtype=np.uint8, ndmin=1)
+        self.human_labels = None
         self.pipeline.fit(self.data, self.labels)
         #logger.debug(self.vectorizer.get_feature_names())
     def tokenizer(self, word):
@@ -125,7 +126,7 @@ class NaiveBayes(object):
 
         #logger.debug(self.model.predict_proba(x))
         return self.model.predict(x)
-    def predict_all(self, x_list, pair):
+    def predict_all(self, x_list):
         """
             mapping
             @param {list} x_list
@@ -135,7 +136,7 @@ class NaiveBayes(object):
         result = []
         for x in x_list:
             predicted = self.predict(x)[0]
-            value = pair[str(predicted)]
+            value = self.human_labels[str(predicted)]
             result.append(value)
             logger.debug('%s -> 推定: %s', x, value)
         assert len(result) == len(x_list)
@@ -170,10 +171,11 @@ def main():
     logger.info(x_list)
     #np.set_printoptions(precision=4)
     naivebayes = NaiveBayes()
-    out = naivebayes.predict_all(x_list, doc.countries)
+    naivebayes.human_labels = doc.countries
+    out = naivebayes.predict_all(x_list)
     logger.info('out:%s', out)
     x_list = ['ホルデイン王国', '力セドー丿ア連合王国', 'ゲブ「ラン ド帝国']
-    out = naivebayes.predict_all(x_list, doc.countries)
+    out = naivebayes.predict_all(x_list)
     logger.info('out:%s', out)
     naivebayes.model_validation()
 if __name__ == "__main__":

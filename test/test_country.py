@@ -23,10 +23,11 @@ class TestClass(object):
         basepath = '../resource/'
         naivebayes = NaiveBayes()
         json_data = Serializer.load_json(os.path.join(basepath, 'ocr.json'))
+        naivebayes.human_labels = json_data['translate']['country']
         x_list = ['ネツァワル王国','カセドリア連合王国','ゲブランド帝国','ホルデイン王国','エルソード王国']
         
         print(json_data['translate']['country'])
-        out = naivebayes.predict_all(x_list, json_data['translate']['country'])
+        out = naivebayes.predict_all(x_list)
         for i, y in enumerate(out):
             if x_list[i] != y:
                 raise Exception('compare x:{0},predict:{1}'.format(x_list[i], y))

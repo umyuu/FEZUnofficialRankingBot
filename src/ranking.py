@@ -49,8 +49,9 @@ class Ranking(object):
             file.write('\n'.join(doucument.names()))
             file.write('\n')
         # ocr corpus data -> NaiveBayes classifier
-        # ranking name swap                             
-        change = self.naivebayes.predict_all(doucument.names(), doucument.countries)
+        # ranking name swap
+        self.naivebayes.human_labels = doucument.countries
+        change = self.naivebayes.predict_all(doucument.names())
         doucument.changeNames(change)
 
         doucument.dump()
