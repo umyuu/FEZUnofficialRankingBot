@@ -22,7 +22,7 @@ class OCRDocument(object):
         out:application require data
     """
     def __init__(self):
-        self.xml = XMLDocument('ranking')
+        self.xml = XMLDocument('tweetbot')
         self.__ranking = []
         self.__raw = []
         json_data = Serializer.load_json('../resource/ocr.json')
@@ -34,47 +34,43 @@ class OCRDocument(object):
             @return {list} ocr text ranking
         """
         return self.__ranking
-    def indexByContents(self, contents, index, offset=5):
+    def splitText(self, text, index, maxLengh, offset=5):
         """
             ocr text replaced
-            created filed pair
-            @param {string}contents
+            created Field pair
+            @param {string}text
                    {int}index
+                   {int}maxLengh  ocr decord max length=5
                    {int}offset
             @return {dict} name score
         """
-        # exsample) input           => output
-        #           工ルソ一 ド王国    => 工ルソ一ド王国
-        name = str(contents[index]).replace(' ','')
-        # \d+.\d+ [point] => \d+.\d+
-        # exsample) input           => output
+        # exsample) input           　=> output
+        # □name
+        #           工ルソ一 ド王国    　=> 工ルソ一ド王国
+        # □score　　　　\d+.\d+ [point] => \d+.\d+
         #           228993.70 point => 228993.70
-        score = str(contents[index + 5])
-        score = score[:score.rfind(' ')]
-        return {"name":name, "score":score}
+        name = str(text[index])
+        if maxLengh != offset:
+            score = str(text[index + offset])
+            score = score[:score.rfind(' ')]
+            return {"name":name.replace(' ',''), "score":score}
+        rindex = name.rfind(' ')
+        return {"name":name[:rindex].replace(' ',''), "score":name[rindex + 1:]}
     def parse(self, documents):
         """
             OCR data.
                 parse & pickup
             @param documents image_to_string result data
-            @return {list} rawData
         """
         xml = self.xml
         result = self.addOCRData(documents) 
         decode = xml.addChild(xml.body, 'decode')
+        length = len(result)
         for i in range(5):
-            print(i)
-            print(result[i])
-            content = self.indexByContents(result, i)
+            content = self.splitText(result, i, length)
             self.__ranking.append(content)
-            ddd = content
-            child = xml.addChild(decode, 'row')
-            child_name = xml.addChild(child, 'name')
-            child_name.text = ddd['name']
-            child_score = xml.addChild(child, 'score')
-            child_score.text = ddd['score']
-        print(XMLDocument.toPrettify(xml.root))
-        return result
+            xml.addChild(decode, 'row', content)
+        #print(XMLDocument.toPrettify(xml.root))
     def addOCRData(self, documents):
         xml = self.xml
         ocr = xml.addChild(xml.body, 'ocr')
@@ -88,7 +84,7 @@ class OCRDocument(object):
             child = xml.addChild(ocr, 'row')
             child.text = document.content
         ocr.set('length', str(len(result)))
-        print(XMLDocument.toPrettify(xml.root))
+        #print(XMLDocument.toPrettify(xml.root))
         return result
     @property
     def countries(self):
@@ -103,14 +99,14 @@ class OCRDocument(object):
             @return {list} ocr names
         """
         result = []
-        for row in self.xml.getiter('decode'):
+        for row in self.xml.findall("./body/decode/row"):
             result.append(row.find('name').text)
         return result
     def dump(self):
         """
             developers method.
         """
-        for row in self.xml.getiter('decode'):
+        for row in self.xml.findall("./body/decode/row"):
             logger.info('%s/%s', row.find('name').text, row.find('score').text)
 class OCRText(object):
     def __init__(self, document, trans):
@@ -165,9 +161,9 @@ class OCREngine(object):
 
 def main():
     ocr = OCREngine()
-    temp_file_name = '../base_binary.png'
+    #temp_file_name = '../base_binary.png'
     
-    #temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
+    temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
     doc = ocr.recognize(temp_file_name)
     doc.dump()
     print(doc.names())
