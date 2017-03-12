@@ -21,11 +21,13 @@ class OCRDocument(object):
         in:OCREngine#recognize data
         out:application require data
     """
-    def __init__(self):
+    def __init__(self, settings):
+        """
+            @param {json}settings
+        """
         self.xml = XMLDocument('tweetbot')
-        json_data = Serializer.load_json('../resource/ocr.json')
-        self.translate = json_data['translate']
-        self.__countries = json_data['translate']['country']
+        self.translate = settings['translate']
+        self.__countries = settings['translate']['country']
     @property
     def ranking(self, xpath='./body/decode/row'):
         """
@@ -139,7 +141,9 @@ class OCREngine(object):
         if "jpn" not in languages:
             raise Exception('Tesseract NotFound :tessdata\jpn.traineddata')
         self.lang = 'jpn'
-        self.tesseract_layout = Serializer.load_json('../resource/ocr.json')['pagesegmode']
+        json_data = Serializer.load_json('../resource/ocr.json')
+        self.ocr_settings = json_data
+        self.tesseract_layout = json_data['pagesegmode']
         
     def image_to_string(self, file, lang=None, builder=None):
         """
@@ -162,7 +166,7 @@ class OCREngine(object):
             with Image.open(file) as image:
                 return self.recognize(image)
 
-        doc = OCRDocument()
+        doc = OCRDocument(self.ocr_settings)
         doc.parse(self.image_to_string(file))
         return doc
 
