@@ -46,13 +46,12 @@ class XMLDocument(object):
         """
         for row in self.root.findall(xpath):
             yield row
-    @staticmethod
-    def toPretty(element):
+    def toPretty(self):
         """
             @param {Element}element
             @return {xml}copy pretty xml
         """
-        rough_string = tostring(element, 'utf-8')
+        rough_string = tostring(self.root, 'utf-8')
         reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="  ")
 def main():
@@ -66,6 +65,6 @@ def main():
         print(row.text)
 
     print(tostring(xml.root, 'utf-8'))
-    print(XMLDocument.toPretty(xml.root))
+    print(xml.toPretty())
 if __name__ == '__main__':
     main()
