@@ -21,6 +21,7 @@ class Ranking(object):
     def __init__(self, config):
         self.ocr = OCREngine()
         self.naivebayes = NaiveBayes()
+        self.naivebayes.human_labels = self.ocr.settings['translate']['country']
     def create_TemporyFile(self, buffer, verbose=False):
         temp_file_name = ''
         with tempfile.NamedTemporaryFile(delete=False) as temp:
@@ -51,7 +52,6 @@ class Ranking(object):
 
         # ocr corpus data -> NaiveBayes classifier
         # ranking name swap
-        self.naivebayes.human_labels = doucument.countries
         change = self.naivebayes.predict_all(doucument.names())
         doucument.changeNames(change)
 
