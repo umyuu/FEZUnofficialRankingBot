@@ -130,14 +130,25 @@ class OCRDocument(object):
         """
         for row in self.xml.findall(xpath):
             logger.info('%s/%s', row.find('name').text, row.find('score').text)
+class OCRException(Exception):
+    """
+        OCR Exception
+    """
+    pass
 class OCREngine(object):
     """
         OCREngine: call Tesseract-OCR.
     """
     def __init__(self):
+        """
+            
+            @exception OCRException
+                a,ocr noninstall
+                b,traineddata NotFound
+        """
         tools = pyocr.get_available_tools()
         if len(tools) == 0:
-            raise Exception('Tesseract non install')
+            raise OCRException('Tesseract non install')
         self.tool = tools[0]
         languages = self.tool.get_available_languages()
         json_data = Serializer.load_json('../resource/ocr.json')
@@ -145,7 +156,7 @@ class OCREngine(object):
         self.lang = json_data['lang']
         self.tesseract_layout = json_data['pagesegmode']
         if self.lang not in languages:
-            raise Exception('Tesseract NotFound :tessdata\\{0}.traineddata'.format(self.lang))
+            raise OCRException('Tesseract NotFound :tessdata\\{0}.traineddata'.format(self.lang))
     @property
     def settings(self):
         return self.__settings
@@ -177,7 +188,6 @@ class OCREngine(object):
 def main():
     ocr = OCREngine()
     temp_file_name = '../base_binary.png'
-    
     #temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
     doc = ocr.recognize(temp_file_name)
     doc.dump()
