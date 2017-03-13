@@ -171,7 +171,7 @@ def main():
     """
     parser = argparse.ArgumentParser(prog='tweetbot',
                                      description='FEZ Unofficial Total War Ranking TwitterBot')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.5')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.6')
     parser.add_argument('--debug', default=True)
 
     logger.info('START Program')
