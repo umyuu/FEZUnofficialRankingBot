@@ -23,6 +23,12 @@ class Ranking(object):
         self.naivebayes = NaiveBayes()
         self.naivebayes.human_labels = self.ocr.settings['translate']['country']
     def create_TemporyFile(self, buffer, verbose=False):
+        """
+            
+            @param {io.BytesIO}buffer
+                   {bool}verbose
+            @return {string}create file tempory file
+        """
         temp_file_name = ''
         with tempfile.NamedTemporaryFile(delete=False) as temp:
             temp.write(buffer.getvalue())
@@ -33,6 +39,7 @@ class Ranking(object):
     def getResult(self, src, save_image=False):
         """
             @param {string} src
+                   {bool}save_image output debug image
             @return {OCRDocument} doucument
         """
         pro = DataProcessor(src, ImageType.RAW, save_image=save_image)

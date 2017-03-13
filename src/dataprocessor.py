@@ -53,14 +53,33 @@ class DataProcessor(object):
         if self.__hsv is None:
             self.__hsv = cv2.cvtColor(self.color, cv2.COLOR_BGR2HSV)
         return self.__hsv
+    def imread(self, filename, flags=1):
+        """
+            unicode filename support.
+            @param {string}filename
+                   {int}flags 1=cv2.IMREAD_COLOR
+            @return {Mat}image
+                           FileNotFound image == None
+            @issue
+                Unicode Path/Filename for imread and imwrite
+                https://github.com/opencv/opencv/issues/4292
+        """
+        image = None
+        try:
+            with open(filename, 'rb') as file:
+                buffer = np.asarray(bytearray(file.read()), dtype=np.uint8)
+                image = cv2.imdecode(buffer, flags)
+        except FileNotFoundError as ex:
+            # cv2.imread 互換
+            pass
+        return image
     def prepare(self):
         """
             @return {color} image
             @exception FileNotFoundError
         """
-        filename = self.media
         zoom = 2
-        c = cv2.imread(filename)
+        c = self.imread(self.media)
         if c is None:
             raise FileNotFoundError(self.media)
         self.color = cv2.resize(c, (c.shape[1]*zoom, c.shape[0]*zoom), interpolation=cv2.INTER_CUBIC)
