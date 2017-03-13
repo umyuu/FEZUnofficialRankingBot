@@ -28,7 +28,8 @@ class XMLDocument(object):
         """
             @param {Element},{SubElement}root Element
                    {string}name
-            @return {SubElement}
+                   {dict}d
+            @return {SubElement}created child element
         """
         element = SubElement(root, name)
         if d is None:
@@ -46,10 +47,10 @@ class XMLDocument(object):
         for row in self.root.findall(xpath):
             yield row
     @staticmethod
-    def toPrettify(element):
+    def toPretty(element):
         """
             @param {Element}element
-            @return {xml}
+            @return {xml}copy pretty xml
         """
         rough_string = tostring(element, 'utf-8')
         reparsed = minidom.parseString(rough_string)
@@ -65,6 +66,6 @@ def main():
         print(row.text)
 
     print(tostring(xml.root, 'utf-8'))
-    print(XMLDocument.toPrettify(xml.root))
+    print(XMLDocument.toPretty(xml.root))
 if __name__ == '__main__':
     main()

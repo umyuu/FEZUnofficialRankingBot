@@ -39,6 +39,7 @@ class OCRDocument(object):
         for row in self.xml.findall('./body/decode/row'):
             d = self.createElement(row.find('name').text, row.find('score').text)
             result.append(d)
+        assert len(result) != 0
         return result
     def splitText(self, text, index, maxLengh, offset=5):
         """
@@ -88,7 +89,7 @@ class OCRDocument(object):
         for i in range(5):
             content = self.splitText(result, i, length)
             xml.addChild(decode, 'row', content)
-        print(XMLDocument.toPrettify(xml.root))
+        print(XMLDocument.toPretty(xml.root))
     def addOCRData(self, documents, xml):
         """
             @param {list}documents ocr data
@@ -102,7 +103,7 @@ class OCRDocument(object):
             xml.addChild(ocr, 'row').text = document.content
         length = len(result)
         ocr.set('length', str(length))
-        #print(XMLDocument.toPrettify(xml.root))
+        #print(XMLDocument.toPretty(xml.root))
         return result, length
     def changeNames(self, change):
         for i, row in enumerate(self.xml.findall("./body/decode/row")):
@@ -146,7 +147,7 @@ class OCREngine(object):
         if self.lang not in languages:
             raise Exception('Tesseract NotFound :tessdata\\{0}.traineddata'.format(self.lang))
     @property
-    def Settings(self):
+    def settings(self):
         return self.__settings
     def image_to_string(self, file, lang=None, builder=None):
         """
