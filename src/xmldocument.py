@@ -59,8 +59,7 @@ def main():
     for i in ['decode', 'ocr']:
         child = xml.addChild(xml.body, i)
         for j in range(5):
-            r = xml.addChild(child, 'row')
-            r.text = 'This child contains text.' + i
+            xml.addChild(child, 'row').text = 'child contains text.' + i
 
     for row in xml.findall("./body/decode/row"):
         print(row.text)

@@ -84,6 +84,8 @@ class NaiveBayes(object):
         self.human_labels = None
         self.pipeline.fit(self.data, self.labels)
         #logger.debug(self.vectorizer.get_feature_names())
+    def loadData(self):
+        pass
     def tokenizer(self, word):
         """
             caller fit_transform / transform
@@ -117,7 +119,7 @@ class NaiveBayes(object):
         """
             predict params x
             @param {string},{np.array} x
-            @return result
+            @return predicted
         """
         if isinstance(x, str):
             x = self.vectorizer.transform([x])
