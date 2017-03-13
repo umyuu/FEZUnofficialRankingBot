@@ -41,32 +41,33 @@ class OCRDocument(object):
             result.append(d)
         assert len(result) != 0
         return result
-    def splitText(self, text, index, maxLengh, offset=5):
+    def get_name_score(self, data, index, maxLengh):
         """
-            ocr text replaced
-            created Field pair
-            @param {list}text
+            ocr data => split name,score
+            □name
+                工ルソ一 ド王国    　=> 工ルソ一ド王国
+            @param {list}data
                    {int}index
-                   {int}maxLengh  ocr decord max length=5
-                   {int}offset
-            @return {dict} name score
+                   {int}maxLengh
+            @return {list} name,score
         """
-        # exsample) input           　=> output
-        # □name
-        #           工ルソ一 ド王国    　=> 工ルソ一ド王国
-        # □score　　　　\d+.\d+ [point] => \d+.\d+
-        #           228993.70 point => 228993.70
-        name = text[index]
+        name_score = []
+        name = data[index]
+        if maxLengh == 5:
+            splits = name.split(' ')
+            name_score.append(''.join(splits[:-1]))
+            name_score.append(''.join(splits[-1:]))
+        else:
+            name_score.append(name)
+            name_score.append(data[index + 5])
+        return name_score
+    def splitText(self, name_score):
+        name = name_score[0]
+        score = name_score[1]
         name = self.textTransrate(name, self.translate['name'])
-        if maxLengh != offset:
-            score = text[index + offset]
-            score = score[:score.rfind(' ')]
-            score = self.textTransrate(score, self.translate['score'])
-            return self.createElement(name.replace(' ',''), score)
-        rindex = name.rfind(' ')
-        score = name[rindex + 1:]
         score = self.textTransrate(score, self.translate['score'])
-        return self.createElement(name[:rindex].replace(' ',''), score)
+        return self.createElement(name, score)
+
     def createElement(self, name, score):
         return {"name":name, "score":score}
     def textTransrate(self, text, trans):
@@ -85,9 +86,10 @@ class OCRDocument(object):
         """
         xml = self.xml
         decode = xml.addChild(xml.body, 'decode')
-        result, length = self.addOCRData(documents, xml)
-        for i in range(5):
-            content = self.splitText(result, i, length)
+        data, maxLengh = self.addOCRData(documents, xml)
+        for index in range(5):
+            name_score = self.get_name_score(data, index, maxLengh)
+            content = self.splitText(name_score)
             xml.addChild(decode, 'row', content)
         print(XMLDocument.toPretty(xml.root))
     def addOCRData(self, documents, xml):
@@ -184,13 +186,54 @@ class OCREngine(object):
         doc = OCRDocument(self.__settings)
         doc.parse(self.image_to_string(file))
         return doc
+    def test_splitText_1(self):
+        ocr_text = ['ゲフ`ランド帝国 es34。-ァ。',
+                    'ネッァワ丿レ王国 66sg4.6s',
+                    'ホ丿しディン王国 66346-4s',
+                    'ヵセドリア連合王目 65フ4。.ェ。',
+                    'ェ丿しソ一 ド王目 63263.60']
+        self.decodeText(ocr_text)
+    def test_splitText_2(self):
+        ocr_text = ['ネツァワ丿し王国',
+                    'ホ丿レテ〝イン王国',
+                    '力セドー丿ア連合王国',
+                    'ゲフ`「ラン ド帝国',
+                    '工丿レソ一 ド王国',
+                    'ーー6462.30',
+                    'ーー3883.60',
+                    'ー09730・ー0',
+                    'ー〔}8ー募)()-7()',
+                    'ー〔}(】548-()()',
+                    'p。int' ,
+                    'p。iーーt',
+                    'L)。iーーt',
+                    'ー}。麦ーーt',
+                    'ー}。麦ーーt']
+        self.decodeText(ocr_text)
+    def decodeText(self, data):
+        """
+            @param {list<string>} ocrText
+        """
+        json_data = Serializer.load_json('../resource/ocr.json')
+        doc = OCRDocument(json_data)
+        maxLengh = len(data)
+        xml = doc.xml
+        decode = xml.addChild(xml.body, 'decode')
+        for index in range(5):
+            name_score = doc.get_name_score(data, index, maxLengh)
+            print(name_score)
+            content = doc.splitText(name_score)
+            xml.addChild(decode, 'row', content)
 
 def main():
     ocr = OCREngine()
     temp_file_name = '../base_binary.png'
-    #temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
+    temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
+    
+    ocr.test_splitText_2()
+    
     doc = ocr.recognize(temp_file_name)
     doc.dump()
-    print(doc.names())
+    #print(doc.names())
 if __name__ == "__main__":
     main()
