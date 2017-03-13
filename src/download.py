@@ -45,8 +45,8 @@ class Download(object):
         logger.info('download:%s', url)
         r = requests.get(url, headers=self.http_headers, timeout=timeout)
         return BytesIO(r.content), r.headers['content-type']
-    def get_Executor(self):
-        return ThreadPoolExecutor(max_workers=self.max_workers)
+    def get_Executor(self, max_workers):
+        return ThreadPoolExecutor(max_workers=max_workers)
     @functools.lru_cache(maxsize=4)
     def getSuffix(self, contentType, suffix='.html'):
         """
@@ -86,7 +86,7 @@ class Download(object):
            use PoolExecutor
         """
         count = 0
-        with self.get_Executor() as executor:
+        with self.get_Executor(self.max_workers) as executor:
             future_to_url = {executor.submit(self.get, url, self.timeout): url for url in self.getURLs()}
             for future in as_completed(future_to_url):
                 url = future_to_url[future]
@@ -96,7 +96,7 @@ class Download(object):
                     self.save_file(buffer, contentType, basename)
                     count += 1
                 except Exception as ex:
-                    logger.info('%r http_download an exception: %s' % (url, ex))
+                    logger.exception(ex)
         if count == 0:
             logger.warning('input:%s Empty', self.file_list)
     def save_file(self, buffer, contentType, basename):
