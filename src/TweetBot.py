@@ -7,11 +7,13 @@ import logging.config
 import argparse
 from datetime import datetime
 import os
-import glob
+from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 #
 import twitter
 # pylint: disable=E0401
 from serializer import Serializer
+from fileutils import FileUtils
 from events import SimpleEvent
 import download
 import ranking
@@ -49,6 +51,7 @@ class TweetBot(object):
         self.tweet_limit = node['LIMIT']
         self.backup_file_prefix = config['BACKUP']['FILE']['PREFIX']
         self.initialize()
+        self.task = OrderedDict()
     def initialize(self):
         """
             create working directory.
@@ -82,23 +85,38 @@ class TweetBot(object):
         """
             @yield {string} media
         """
-        for ext in self.upload_file_suffixes:
-            for media in glob.iglob(os.path.join(self.uploadDir, ext)):
-                # upload fileSize limit
-                size = os.path.getsize(media)
-                if size > self.upload_max_file_size:
-                    logger.warning('skip:%s,size:%s,limit:%s', media, size, self.upload_max_file_size)
-                    self.backup(media)
-                    continue
-                # Todo:check image file
-                yield media
+        #result = []
+        for media in FileUtils.search(self.uploadDir, self.upload_file_suffixes):
+            # upload fileSize limit
+            size = os.path.getsize(media)
+            if size > self.upload_max_file_size:
+                logger.warning('skip:%s,size:%s,limit:%s', media, size, self.upload_max_file_size)
+                self.backup(media)
+                continue
+            # Todo:check image file
+            #result.append(media)
+            yield media
+        #return result
+    def parallels(self):
+        with self.get_Executor() as executor:
+            future_to_media = {executor.submit(self.ranking.getResult, media): media for media in self.getImage()}
+            for future in as_completed(future_to_media):
+                media = future_to_media[future]
+                try:
+                    logger.info(media)
+                    self.task[media] = future.result()
+                except Exception as ex:
+                    logger.exception(ex)
+    def get_Executor(self, max_workers=4):
+        return ThreadPoolExecutor(max_workers=max_workers)
+        #return ProcessPoolExecutor(max_workers=max_workers)
     def tweet(self, media):
         """
             @param {string} media uploadFile
         """
         try:
             logger.info('tweet media:%s', media)
-            ranks = self.ranking.getResult(media)
+            ranks = self.task[media]
             if ranks is None:
                 return
             self.twitter_init()
@@ -165,7 +183,8 @@ def main():
     bot.event += bot.backup
     #bot.isTweet = False
     bot.download.request()
-    for media in bot.getImage():
+    bot.parallels()
+    for media in bot.task.keys():
         bot.event(media)
         #bot.deletetweet()
     logger.info('END Program')

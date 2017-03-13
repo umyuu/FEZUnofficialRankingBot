@@ -21,6 +21,7 @@ class Ranking(object):
     def __init__(self, config):
         self.ocr = OCREngine()
         self.naivebayes = NaiveBayes()
+        self.naivebayes.human_labels = self.ocr.settings['translate']['country']
     def create_TemporyFile(self, buffer, verbose=False):
         temp_file_name = ''
         with tempfile.NamedTemporaryFile(delete=False) as temp:
@@ -43,15 +44,17 @@ class Ranking(object):
         
         doucument = self.ocr.recognize(temp_file_name)
         os.remove(temp_file_name)
+        
+        output = '#' + datetime.now().strftime('%F %T.%f')[:-3] + '\n'
+        output += '\n'.join(doucument.names()) + '\n'
         with Serializer.open_stream('../temp/corpus.txt', mode='a') as file:
-            header = '#' + datetime.now().strftime('%F %T.%f')[:-3] + '\n'
-            file.write(header)
-            file.write('\n'.join(doucument.names()))
-            file.write('\n')
+            file.write(output)
+
         # ocr corpus data -> NaiveBayes classifier
         # ranking name swap
-        for i, name in enumerate(self.naivebayes.predict_all(doucument.names(), doucument.countries)):
-            doucument.ranking[i]['name'] = name
+        change = self.naivebayes.predict_all(doucument.names())
+        doucument.changeNames(change)
+
         doucument.dump()
         return doucument
 
@@ -60,7 +63,7 @@ def main():
     r = Ranking(config)
     # benchMark
     ele = ['../backup/hints/201702190825_0565e4fcbc166f00577cbd1f9a76f8c7.png',
-            '../images/backup/2017-03-09_0525_Ielsord.png',
+           #'../images/backup/2017-03-12_0443_Geburand.png',
         #     '../backup/test/201702192006_2e268d7508c20aa00b22dfd41639d65e.png',
         ] * 1
     for media in ele:
