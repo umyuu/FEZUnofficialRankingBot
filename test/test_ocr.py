@@ -47,7 +47,8 @@ class TestClass(object):
         for index in range(5):
             name_score = doc.get_name_score(data, index, maxLengh)
             content = doc.splitText(name_score)
-            xml.addChild(decode, 'row', content)
-        print(XMLDocument.toPretty(xml.root))
+            child = xml.addChild(decode, 'row')
+            xml.addDict(child, content)
+        print(xml.toPretty())
 if __name__ == '__main__':
     pytest.main("--capture=sys")

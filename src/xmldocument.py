@@ -38,6 +38,13 @@ class XMLDocument(object):
             child = SubElement(element, key)
             child.text = value
         return element
+    def addDict(self, root, d):
+        for tag, value in d.items():
+            if not isinstance(tag, str):
+                raise Exception('Tag is not str type')
+            child = SubElement(root, tag)
+            child.text = value
+        return root
     def findall(self, xpath):
         """
             xpath findall

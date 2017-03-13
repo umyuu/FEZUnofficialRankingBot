@@ -93,8 +93,9 @@ class OCRDocument(object):
         for index in range(5):
             name_score = self.get_name_score(data, index, maxLengh)
             content = self.splitText(name_score)
-            xml.addChild(decode, 'row', content)
-        print(XMLDocument.toPretty(xml.root))
+            child = xml.addChild(decode, 'row')
+            xml.addDict(child, content)
+        print(xml.toPretty())
     def addOCRData(self, documents, xml):
         """
             @param {list}documents ocr data
@@ -108,7 +109,7 @@ class OCRDocument(object):
             xml.addChild(ocr, 'row').text = document.content
         length = len(result)
         ocr.set('length', str(length))
-        #print(XMLDocument.toPretty(xml.root))
+        #print(xml.toPretty())
         return result, length
     def changeNames(self, change):
         for i, row in enumerate(self.xml.findall(self.xpath_findkey)):
@@ -128,6 +129,7 @@ class OCRDocument(object):
         result = []
         for row in self.xml.findall(self.xpath_findkey):
             result.append(row.find('name').text)
+        assert len(result) != 0
         return result
     def dump(self):
         """
@@ -226,7 +228,9 @@ class OCREngine(object):
             name_score = doc.get_name_score(data, index, maxLengh)
             print(name_score)
             content = doc.splitText(name_score)
-            xml.addChild(decode, 'row', content)
+            child = xml.addChild(decode, 'row')
+            xml.addDict(child, content)
+        print(xml.toPretty())
 
 def main():
     ocr = OCREngine()
