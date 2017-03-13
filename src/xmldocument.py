@@ -57,12 +57,12 @@ class XMLDocument(object):
         return reparsed.toprettyxml(indent="  ")
 def main():
     xml = XMLDocument('tweetbot')
-    for i in ['decode', 'ocr']:
+    for i in ['ranking', 'ocr']:
         child = xml.addChild(xml.body, i)
         for j in range(5):
             xml.addChild(child, 'row').text = 'child contains text.' + i
 
-    for row in xml.findall("./body/decode/row"):
+    for row in xml.findall("./body/ranking/row"):
         print(row.text)
 
     print(tostring(xml.root, 'utf-8'))
