@@ -29,12 +29,14 @@ class OCRDocument(object):
         self.translate = settings['translate']
         self.__countries = settings['translate']['country']
     @property
-    def ranking(self, xpath='./body/decode/row'):
+    def ranking(self):
         """
-            @return {list} ocr text ranking copy
+            
+            @return {list.dict<string,string>} ocr text ranking copy
+                    order ranking score
         """
         result = []
-        for row in self.xml.findall(xpath):
+        for row in self.xml.findall('./body/decode/row'):
             d = self.createElement(row.find('name').text, row.find('score').text)
             result.append(d)
         return result
@@ -81,18 +83,18 @@ class OCRDocument(object):
             @param documents image_to_string result data
         """
         xml = self.xml
-        result, length = self.addOCRData(documents) 
         decode = xml.addChild(xml.body, 'decode')
+        result, length = self.addOCRData(documents, xml)
         for i in range(5):
             content = self.splitText(result, i, length)
             xml.addChild(decode, 'row', content)
         print(XMLDocument.toPrettify(xml.root))
-    def addOCRData(self, documents):
+    def addOCRData(self, documents, xml):
         """
             @param {list}documents ocr data
+                   {XMLDocument}xml
             @return {list}result,{int}length
         """
-        xml = self.xml
         ocr = xml.addChild(xml.body, 'ocr')
         result = []
         for document in documents:
