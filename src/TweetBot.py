@@ -125,7 +125,7 @@ class TweetBot(object):
             text += ('{:<{fill}}').format('', fill=self.fillspace)
             text += '\n{0}\n'.format(self.tweet_format)
             for i, contry in enumerate(ranks.ranking[:2], start=1):
-                text += str(i) + '位:{name} {score} point\n'.format_map(contry)
+                text += str(i) + '位:{name} {point} point\n'.format_map(contry)
             if self.isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)

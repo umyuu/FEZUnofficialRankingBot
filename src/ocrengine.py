@@ -34,42 +34,42 @@ class OCRDocument(object):
         """
             
             @return {list.dict<string,string>} ocr text ranking copy
-                    order ranking score
+                    order point
         """
         result = []
         for row in self.xml.findall(self.xpath_findkey):
-            d = self.createElement(row.find('name').text, row.find('score').text)
+            d = self.createElement(row.find('name').text, row.find('point').text)
             result.append(d)
         assert len(result) != 0
         return result
-    def get_name_score(self, data, index, maxLengh):
+    def get_name_point(self, data, index, maxLengh):
         """
-            ocr data => split name,score
+            ocr data => split name, point
             □name
                 工ルソ一 ド王国    　=> 工ルソ一ド王国
             @param {list}data
                    {int}index
                    {int}maxLengh
-            @return {list} name,score
+            @return {list} name, point
         """
-        name_score = []
+        name_point = []
         name = data[index]
         if maxLengh == 5:
             splits = name.split(' ')
-            name_score.append(''.join(splits[:-1]))
-            name_score.append(''.join(splits[-1:]))
+            name_point.append(''.join(splits[:-1]))
+            name_point.append(''.join(splits[-1:]))
         else:
-            name_score.append(name)
-            name_score.append(data[index + 5])
-        return name_score
-    def splitText(self, name_score):
-        name = name_score[0]
-        score = name_score[1]
+            name_point.append(name)
+            name_point.append(data[index + 5])
+        return name_point
+    def splitText(self, name_point):
+        name = name_point[0]
+        point = name_point[1]
         name = self.textTransrate(name, self.translate['name'])
-        score = self.textTransrate(score, self.translate['score'])
-        return self.createElement(name, score)
-    def createElement(self, name, score):
-        return {"name":name, "score":score}
+        point = self.textTransrate(point, self.translate['point'])
+        return self.createElement(name, point)
+    def createElement(self, name, point):
+        return {"name":name, "point":point}
     def textTransrate(self, text, trans):
         """
             @param {string}text
@@ -91,8 +91,8 @@ class OCRDocument(object):
         data, maxLengh = self.addOCRData(documents, xml)
         # decode
         for i in range(5):
-            name_score = self.get_name_score(data, i, maxLengh)
-            content = self.splitText(name_score)
+            name_point = self.get_name_point(data, i, maxLengh)
+            content = self.splitText(name_point)
             child = xml.addChild(decode, 'row')
             child.set('order', str(i))
             xml.addDict(child, content)
@@ -138,7 +138,7 @@ class OCRDocument(object):
             developers method.
         """
         for row in self.xml.findall(self.xpath_findkey):
-            logger.info('%s/%s', row.find('name').text, row.find('score').text)
+            logger.info('%s/%s', row.find('name').text, row.find('point').text)
 class OCRException(Exception):
     """
         OCR Exception
@@ -227,9 +227,9 @@ class OCREngine(object):
         xml = doc.xml
         decode = xml.addChild(xml.body, 'ranking')
         for index in range(5):
-            name_score = doc.get_name_score(data, index, maxLengh)
-            print(name_score)
-            content = doc.splitText(name_score)
+            name_point = doc.get_name_point(data, index, maxLengh)
+            print(name_point)
+            content = doc.splitText(name_point)
             child = xml.addChild(decode, 'row')
             xml.addDict(child, content)
         print(xml.toPretty())
