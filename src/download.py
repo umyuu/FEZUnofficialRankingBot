@@ -53,7 +53,7 @@ class Download(object):
             @param {string} contentType
                    {string} suffix
             @return suffix
-            exsample)
+            for example)
             ContentType -> suffix
             in:text/html; charset=utf-8         out:.html
             in:image/png                        out:.png
@@ -101,9 +101,9 @@ class Download(object):
             logger.warning('input:%s Empty', self.file_list)
     def save_file(self, buffer, contentType, basename):
         """
-            exsample)
-            1)http://www.exsample.co.jp/Netzawar.png => Netzawar.png
-            2)http://www.exsample.co.jp/ => exsample.suffix
+            for example)
+            1)http://www.example.co.jp/Netzawar.png => Netzawar.png
+            2)http://www.example.co.jp/ => example.suffix
                 .suffix := self.getSuffix
             @param  {io.BytesIO}buffer Response#content
                     {string}contentType

@@ -13,11 +13,11 @@ class FileUtils(object):
         """
             @param {pathlib.Path} file
             @return {pathlib.Path}
-            exsample)exists file
-                exsample.png
-                exsample(1).png
-                exsample(2).png
-                exsample(n).png
+            for example)exists file
+                example.png
+                example(1).png
+                example(2).png
+                example(n).png
         """
         i = 0
         basePath = file
