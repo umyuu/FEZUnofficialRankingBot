@@ -74,7 +74,9 @@ def main():
     for row in xml.findall("./body/ranking/row"):
         print(row.text)
 
+    print('')
     print(tostring(xml.root, 'utf-8'))
+    print('')
     print(xml.toPretty())
 if __name__ == '__main__':
     main()
