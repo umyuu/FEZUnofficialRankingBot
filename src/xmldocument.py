@@ -24,19 +24,22 @@ class XMLDocument(object):
         dc.text = str(datetime.now())
         # body
         self.body = SubElement(self.root, 'body')
-    def addChild(self, root, name, d=None):
+    def addChild(self, root, tag):
         """
+            Syntax Sugar　newSubElement
             @param {Element},{SubElement}root Element
-                   {string}name
-                   {dict}d
+                   {string}tag     first character non-numeric
             @return {SubElement}created child element
+            @exception Exception
         """
-        element = SubElement(root, name)
-        if d is None:
-            return element
-        for key, value in d.items():
-            child = SubElement(element, key)
-            child.text = value
+        if not isinstance(tag, str):
+            raise Exception('Tag is not str type')
+        if tag[0].isdigit():
+            # note)check throw self#toPretty
+            # xml.parsers.expat.ExpatError: not well-formed (invalid token)
+            raise Exception('The first character of the tag must be non-numeric')
+        
+        element = SubElement(root, tag)
         return element
     def addDict(self, root, d):
         for tag, value in d.items():

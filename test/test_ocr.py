@@ -50,5 +50,11 @@ class TestClass(object):
             child = xml.addChild(decode, 'row')
             xml.addDict(child, content)
         print(xml.toPretty())
+    def test_xml_insert_tag(self):
+        xml = XMLDocument('test')
+        with pytest.raises(Exception):
+            xml.addChild(xml.body, 12345)
+            xml.addChild(xml.body, '0A001')
+
 if __name__ == '__main__':
     pytest.main("--capture=sys")
