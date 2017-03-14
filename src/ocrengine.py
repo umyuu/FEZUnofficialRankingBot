@@ -90,10 +90,11 @@ class OCRDocument(object):
         # Create 2nd Node
         data, maxLengh = self.addOCRData(documents, xml)
         # decode
-        for index in range(5):
-            name_score = self.get_name_score(data, index, maxLengh)
+        for i in range(5):
+            name_score = self.get_name_score(data, i, maxLengh)
             content = self.splitText(name_score)
             child = xml.addChild(decode, 'row')
+            child.set('order', str(i))
             xml.addDict(child, content)
         print(xml.toPretty())
     def addOCRData(self, documents, xml):
@@ -104,11 +105,12 @@ class OCRDocument(object):
         """
         ocr = xml.addChild(xml.body, 'ocr')
         result = []
-        for document in documents:
+        for i, document in enumerate(documents):
             result.append(document.content)
-            xml.addChild(ocr, 'row').text = document.content
+            child = xml.addChild(ocr, 'row')
+            child.text = document.content
+            child.set('order', str(i))
         length = len(result)
-        ocr.set('length', str(length))
         #print(xml.toPretty())
         return result, length
     def changeNames(self, change):
@@ -235,12 +237,12 @@ class OCREngine(object):
 def main():
     ocr = OCREngine()
     temp_file_name = '../base_binary.png'
-    temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
+    #temp_file_name = '../temp/ocr_2017-03-12_0443_Geburand.png'
     
     ocr.test_splitText_2()
     
     doc = ocr.recognize(temp_file_name)
     doc.dump()
-    #print(doc.names())
+    print(doc.names())
 if __name__ == "__main__":
     main()
