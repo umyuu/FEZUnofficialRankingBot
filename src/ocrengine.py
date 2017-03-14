@@ -50,7 +50,7 @@ class OCRDocument(object):
             @param {list}data
                    {int}index
                    {int}maxLengh
-            @return {list} name, point
+            @return {list<string>} name, point
         """
         name_point = []
         name = data[index]
@@ -59,10 +59,14 @@ class OCRDocument(object):
             name_point.append(''.join(splits[:-1]))
             name_point.append(''.join(splits[-1:]))
         else:
-            name_point.append(name)
+            name_point.append(name.replace(' ',''))
             name_point.append(data[index + 5])
         return name_point
     def splitText(self, name_point):
+        """
+            @param {list}name_point name,point
+            @return {dict}
+        """
         name = name_point[0]
         point = name_point[1]
         name = self.textTransrate(name, self.translate['name'])
@@ -72,6 +76,7 @@ class OCRDocument(object):
         return {"name":name, "point":point}
     def textTransrate(self, text, trans):
         """
+            text replaced
             @param {string}text
                    {dict}trans
         """
@@ -94,7 +99,6 @@ class OCRDocument(object):
             name_point = self.get_name_point(data, i, maxLengh)
             content = self.splitText(name_point)
             child = xml.addChild(decode, 'row')
-            child.set('order', str(i))
             xml.addDict(child, content)
         print(xml.toPretty())
     def addOCRData(self, documents, xml):
@@ -109,11 +113,14 @@ class OCRDocument(object):
             result.append(document.content)
             child = xml.addChild(ocr, 'row')
             child.text = document.content
-            child.set('order', str(i))
         length = len(result)
         #print(xml.toPretty())
         return result, length
     def changeNames(self, change):
+        """
+            change after names
+            @param {list}change 
+        """
         for i, row in enumerate(self.xml.findall(self.xpath_findkey)):
             row.find('name').text = change[i]
     @property
