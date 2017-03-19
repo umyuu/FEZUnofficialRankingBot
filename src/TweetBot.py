@@ -193,7 +193,7 @@ def main():
     bot = TweetBot(config)
     bot.event += bot.tweet
     bot.event += bot.backup
-    #bot.isTweet = False
+    bot.isTweet = False
     bot.download.request()
     bot.parallels()
     for media in bot.task.keys():
