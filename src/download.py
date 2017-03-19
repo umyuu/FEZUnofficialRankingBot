@@ -101,8 +101,8 @@ class Download(object):
                 url = future_to_url[future]
                 try:
                     basename = os.path.basename(url)
-                    buffer, contentType = future.result()
-                    self.save_file(buffer, contentType, basename)
+                    buffer, content_type = future.result()
+                    self.save_file(buffer, content_type, basename)
                     count += 1
                 except Exception as ex:
                     logger.exception(ex)
@@ -112,7 +112,7 @@ class Download(object):
     def onDownloadComplete(self, buffer):
         pass
 
-    def save_file(self, buffer, contentType, basename):
+    def save_file(self, buffer, content_type, basename):
         """
             for example)
             1)http://www.example.co.jp/Netzawar.png => Netzawar.png
@@ -122,8 +122,8 @@ class Download(object):
                     {string}contentType
                     {string}basename
         """
-        suffix = self.getSuffix(contentType)
-        logger.info('content-type:%s,decode:%s', contentType, suffix)
+        suffix = self.getSuffix(content_type)
+        logger.info('content-type:%s,decode:%s', content_type, suffix)
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
             temp.write(buffer.getvalue())
             temp_file_name = temp.name

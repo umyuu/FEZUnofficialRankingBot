@@ -59,7 +59,7 @@ class NaiveBayes(object):
     """
         NaiveBayes Classifier.
         use sklearn.naive_bayes.MultinomialNB
-        << preprocessing >>
+        << preprocessor >>
             corpus => NaiveBayes#tokenizer
             NaiveBayes#tokenizer := word => {Word segmentation}token
         □model　training
