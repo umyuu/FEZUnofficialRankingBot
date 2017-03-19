@@ -71,6 +71,7 @@ class XMLDocument(object):
     def __str__(self):
         return self.toPretty()
 
+
 def main():
     xml = XMLDocument('tweetbot')
     for i in ['ranking', 'ocr']:

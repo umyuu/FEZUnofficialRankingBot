@@ -10,6 +10,7 @@ import re
 from pathlib import Path
 import functools
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+from events import SimpleEvent
 #
 import requests
 #
@@ -18,12 +19,14 @@ from fileutils import FileUtils
 # pylint: disable=C0103
 logger = getLogger('myapp.tweetbot')
 
+
 class Download(object):
     """
         Download　Links.
             DownloadList.txt
         use requests#get
     """
+
     def __init__(self, config):
         self.dataDir = config['WORK_DIRECTORY']['UPLOAD']
         entry = config['DOWNLOAD']['FILE_LIST']
@@ -35,6 +38,7 @@ class Download(object):
         self.http_headers = {'User-Agent': config['DOWNLOAD']['USER_AGENT']}
         self.comp = re.compile(r'/(\w+);?')
         self.htmllink = None
+
     def get(self, url, timeout):
         """
             call requests#get
@@ -45,10 +49,12 @@ class Download(object):
         logger.info('download:%s', url)
         r = requests.get(url, headers=self.http_headers, timeout=timeout)
         return BytesIO(r.content), r.headers['content-type']
+
     def get_Executor(self, max_workers):
         return ThreadPoolExecutor(max_workers=max_workers)
+
     @functools.lru_cache(maxsize=4)
-    def getSuffix(self, contentType, suffix='.html'):
+    def getSuffix(self, content_type, suffix='.html'):
         """
             @param {string} contentType
                    {string} suffix
@@ -58,11 +64,12 @@ class Download(object):
             in:text/html; charset=utf-8         out:.html
             in:image/png                        out:.png
         """
-        m = self.comp.search(contentType)
-        if not m is None:
+        m = self.comp.search(content_type)
+        if m is not None:
             return '.' + m.group(1)
-        logger.error(contentType)
+        logger.error(content_type)
         return suffix
+
     def getURLs(self):
         """
             @yield URL
@@ -78,8 +85,10 @@ class Download(object):
                     yield link
                     continue
                 yield text
+
     def parselink(self):
         return None
+
     def request(self):
         """
            internet -- (Get) --> local
@@ -99,6 +108,10 @@ class Download(object):
                     logger.exception(ex)
         if count == 0:
             logger.warning('input:%s Empty', self.file_list)
+
+    def onDownloadComplete(self, buffer):
+        pass
+
     def save_file(self, buffer, contentType, basename):
         """
             for example)

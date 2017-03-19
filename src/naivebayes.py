@@ -26,12 +26,14 @@ if __name__ == "__main__":
     logger.setLevel(DEBUG)
     logger.addHandler(handler)
 
+
 class ModelValidator(object):
     def __init__(self, data, target):
         self.data = data
         self.target = target
         self.cv = 4
         self.n_jobs = -1
+
     def search_BestParameter(self, test_model, params):
         """
             model search_best_parameter
@@ -42,6 +44,7 @@ class ModelValidator(object):
         grid.fit(self.data, self.target)
         logger.info('best %s', grid.best_estimator_)
         return grid.best_params_
+
     def cross_validation(self, test_model):
         """
             model cross validation check
@@ -50,6 +53,7 @@ class ModelValidator(object):
         #raise DeprecationWarning()
         scores = cross_val_score(test_model, self.data, self.target, cv=self.cv)
         logger.info('cross_validation:%s', np.mean(scores))
+
 
 class NaiveBayes(object):
     """
@@ -84,8 +88,10 @@ class NaiveBayes(object):
         self.human_labels = None
         self.pipeline.fit(self.data, self.labels)
         #logger.debug(self.vectorizer.get_feature_names())
+
     def loadData(self):
         pass
+
     def tokenizer(self, word):
         """
             caller fit_transform / transform
@@ -103,18 +109,21 @@ class NaiveBayes(object):
                 pass
             tokens.append(token.surface)
         yield " ".join(tokens)
+
     @property
     def model(self):
         """
             @return {Classifier}
         """
         return self.pipeline.named_steps['classifier']
+
     @property
     def vectorizer(self):
         """
             @return {Vectorizer}
         """
         return self.pipeline.named_steps['vectorizer']
+
     def predict(self, x):
         """
             predict params x
@@ -126,6 +135,7 @@ class NaiveBayes(object):
 
         #logger.debug(self.model.predict_proba(x))
         return self.model.predict(x)
+
     def predict_all(self, x_list):
         """
             mapping
@@ -141,6 +151,7 @@ class NaiveBayes(object):
             logger.debug('%s -> 推定: %s', x, value)
         assert len(result) == len(x_list)
         return result
+
     def model_validation(self):
         x_train = self.vectorizer.fit_transform(self.data)
         validator = ModelValidator(x_train, self.labels)
@@ -155,12 +166,15 @@ class NaiveBayes(object):
         params['fit_prior'] = [True, False]
         best_params = validator.search_BestParameter(self.create_Model(), params)
         validator.cross_validation(self.create_Model(best_params))
+
     def create_Model(self, params=None):
         model = MultinomialNB(1)
         #model = LinearSVC(C=0.1)
         if params is not None:
             model.set_params(**params)
         return model
+
+
 def main():
     ocr = OCREngine()
     temp_file_name = '../base_binary.png'

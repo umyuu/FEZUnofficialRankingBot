@@ -38,7 +38,7 @@ class Ranking(object):
             if verbose:
                 logger.info(temp_file_name)
         return temp_file_name
-    
+
     def getResult(self, src, save_image=False):
         """
             @param {string} src
