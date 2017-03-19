@@ -4,6 +4,7 @@ from datetime import datetime
 from xml.etree.ElementTree import tostring, Element, Comment, SubElement
 from xml.dom import minidom
 
+
 class XMLDocument(object):
     """
         XMLDocument class
@@ -24,6 +25,7 @@ class XMLDocument(object):
         dc.text = str(datetime.now())
         # body
         self.body = SubElement(self.root, 'body')
+
     def addChild(self, root, tag):
         """
             Syntax Sugar　newSubElement
@@ -41,11 +43,13 @@ class XMLDocument(object):
         
         element = SubElement(root, tag)
         return element
+
     def addDict(self, root, d):
         for tag, value in d.items():
             child = self.addChild(root, tag)
             child.text = value
         return root
+
     def findall(self, xpath):
         """
             xpath findall
@@ -54,6 +58,7 @@ class XMLDocument(object):
         """
         for row in self.root.findall(xpath):
             yield row
+
     def toPretty(self):
         """
             @param {Element}element
@@ -62,6 +67,10 @@ class XMLDocument(object):
         rough_string = tostring(self.root, 'utf-8')
         reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="  ")
+
+    def __str__(self):
+        return self.toPretty()
+
 def main():
     xml = XMLDocument('tweetbot')
     for i in ['ranking', 'ocr']:
@@ -76,5 +85,6 @@ def main():
     print(tostring(xml.root, 'utf-8'))
     print('')
     print(xml.toPretty())
+    print(xml)
 if __name__ == '__main__':
     main()
