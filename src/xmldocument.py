@@ -84,7 +84,6 @@ def main():
     print('')
     print(tostring(xml.root, 'utf-8'))
     print('')
-    print(xml.toPretty())
     print(xml)
 if __name__ == '__main__':
     main()

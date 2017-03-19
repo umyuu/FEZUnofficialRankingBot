@@ -13,6 +13,7 @@ import csv
 #
 import numpy as np
 
+
 class Serializer(object):
     @staticmethod
     def load_json(filename, encoding='utf-8-sig'):
@@ -26,6 +27,7 @@ class Serializer(object):
         with open(filename, 'r', encoding=encoding) as file:
             data = json.load(file)
         return data
+
     @staticmethod
     def load_ini(filename, encoding='utf-8-sig'):
         """
@@ -38,6 +40,7 @@ class Serializer(object):
         with open(filename, 'r', encoding=encoding) as file:
             data.read_file(file)
         return data
+
     @staticmethod
     def load_csv(filename, delimiter='\t', encoding='utf-8-sig', skip_header=1):
         """
@@ -57,6 +60,7 @@ class Serializer(object):
             for row in reader:
                 csv_data.append(row)
         return csv_data
+
     @staticmethod
     def load_np(filename, delimiter='\t', dtype=np.float, skip_header=1):
         """
@@ -68,6 +72,7 @@ class Serializer(object):
             @return {np.array}
         """
         return np.genfromtxt(filename, delimiter=delimiter, dtype=dtype, skip_header=skip_header)
+
     @staticmethod
     def open_stream(filename, mode='w',encoding='utf-8-sig'):
         """

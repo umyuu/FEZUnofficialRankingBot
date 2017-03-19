@@ -15,6 +15,7 @@ if __name__ == "__main__":
     logger.setLevel(DEBUG)
     logger.addHandler(handler)
 
+
 class OCRDocument(object):
     """
         data convert.
@@ -29,6 +30,7 @@ class OCRDocument(object):
         self.translate = settings['translate']
         self.__countries = settings['translate']['country']
         self.xpath_findkey = './body/ranking/row'
+
     @property
     def ranking(self):
         """
@@ -42,6 +44,7 @@ class OCRDocument(object):
             result.append(d)
         assert len(result) != 0
         return result
+
     def get_name_point(self, data, index, maxLengh):
         """
             ocr data => split name, point
@@ -62,6 +65,7 @@ class OCRDocument(object):
             name_point.append(name.replace(' ',''))
             name_point.append(data[index + 5])
         return name_point
+
     def splitText(self, name_point):
         """
             @param {list}name_point name,point
@@ -72,8 +76,10 @@ class OCRDocument(object):
         name = self.textTransrate(name, self.translate['name'])
         point = self.textTransrate(point, self.translate['point'])
         return self.createElement(name, point)
+
     def createElement(self, name, point):
         return {"name":name, "point":point}
+
     def textTransrate(self, text, trans):
         """
             text replaced
@@ -83,6 +89,7 @@ class OCRDocument(object):
         for before, after in trans.items():
             text = text.replace(before, after)
         return text
+
     def parse(self, documents):
         """
             OCR data.
@@ -100,7 +107,8 @@ class OCRDocument(object):
             content = self.splitText(name_point)
             child = xml.addChild(decode, 'row')
             xml.addDict(child, content)
-        print(xml.toPretty())
+        print(xml)
+
     def addOCRData(self, documents, xml):
         """
             @param {list}documents ocr data
@@ -114,8 +122,9 @@ class OCRDocument(object):
             child = xml.addChild(ocr, 'row')
             child.text = document.content
         length = len(result)
-        #print(xml.toPretty())
+        #print(xml)
         return result, length
+
     def changeNames(self, change):
         """
             change after names
@@ -123,12 +132,14 @@ class OCRDocument(object):
         """
         for i, row in enumerate(self.xml.findall(self.xpath_findkey)):
             row.find('name').text = change[i]
+
     @property
     def countries(self):
         """
             @return {dict} __countries
         """
         return self.__countries
+
     def names(self):
         """
             name list
@@ -140,17 +151,22 @@ class OCRDocument(object):
             result.append(row.find('name').text)
         assert len(result) != 0
         return result
+
     def dump(self):
         """
             developers method.
         """
         for row in self.xml.findall(self.xpath_findkey):
             logger.info('%s/%s', row.find('name').text, row.find('point').text)
+
+
 class OCRException(Exception):
     """
         OCR Exception
     """
     pass
+
+
 class OCREngine(object):
     """
         OCREngine: call Tesseract-OCR.
@@ -173,9 +189,11 @@ class OCREngine(object):
         self.tesseract_layout = json_data['pagesegmode']
         if self.lang not in languages:
             raise OCRException('Tesseract NotFound :tessdata\\{0}.traineddata'.format(self.lang))
+
     @property
     def settings(self):
         return self.__settings
+
     def image_to_string(self, file, lang=None, builder=None):
         """
             @param {PIL.Image} file
@@ -188,7 +206,8 @@ class OCREngine(object):
         if builder is None:
             builder = pyocr.builders.LineBoxBuilder(tesseract_layout=self.tesseract_layout)
         return self.tool.image_to_string(file, lang=lang, builder=builder)
-    def recognize(self, file):
+
+    def recognize(self, file: object) -> OCRDocument:
         """
             @params {string},{PIL.Image} file
             @return {OCRDocument}
@@ -200,6 +219,7 @@ class OCREngine(object):
         doc = OCRDocument(self.__settings)
         doc.parse(self.image_to_string(file))
         return doc
+
     def test_splitText_1(self):
         ocr_text = ['ゲフ`ランド帝国 es34。-ァ。',
                     'ネッァワ丿レ王国 66sg4.6s',
@@ -207,6 +227,7 @@ class OCREngine(object):
                     'ヵセドリア連合王目 65フ4。.ェ。',
                     'ェ丿しソ一 ド王目 63263.60']
         self.decodeText(ocr_text)
+
     def test_splitText_2(self):
         ocr_text = ['ネツァワ丿し王国',
                     'ホ丿レテ〝イン王国',
@@ -224,6 +245,7 @@ class OCREngine(object):
                     'ー}。麦ーーt',
                     'ー}。麦ーーt']
         self.decodeText(ocr_text)
+
     def decodeText(self, data):
         """
             @param {list<string>} ocrText
@@ -240,6 +262,7 @@ class OCREngine(object):
             child = xml.addChild(decode, 'row')
             xml.addDict(child, content)
         print(xml.toPretty())
+
 
 def main():
     ocr = OCREngine()
