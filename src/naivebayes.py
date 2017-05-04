@@ -79,11 +79,7 @@ class NaiveBayes(object):
                 ('classifier', self.create_Model())])
         
         corpus = Serializer.load_csv('../resource/corpus.tsv')
-        self.data = []
-        target = []
-        for row in corpus:
-            self.data.append(str(row[0]))
-            target.append(int(row[1]))
+        self.data, target = zip(*corpus)
         self.labels = np.array(target, dtype=np.uint8, ndmin=1)
         self.human_labels = None
         self.pipeline.fit(self.data, self.labels)
