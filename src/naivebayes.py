@@ -153,10 +153,7 @@ class NaiveBayes(object):
         validator = ModelValidator(x_train, self.labels)
         validator.cross_validation(self.model)
         test_params = self.model.get_params
-        
-        
         params = {}
-        
         params['alpha'] = np.arange(0.01, 3.,step=0.01,dtype=np.float64)
         #params['alpha'] = np.logspace(-1, 2, 30)
         params['fit_prior'] = [True, False]
