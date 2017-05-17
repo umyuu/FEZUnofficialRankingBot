@@ -22,11 +22,14 @@
 # ALL Directory.
 #   python cache
 #   spyder project
+#   pycharm project
 #   pytest cache
 # =========================
 __pycache__
 .spyproject
+.idea
 .cache
+
 # =========================
 !requirements.txt
 !.gitignore

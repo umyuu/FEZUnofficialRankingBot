@@ -27,6 +27,7 @@ handler.setFormatter(logging.Formatter('%(threadName)s:%(message)s'))
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
+
 class TweetBot(object):
     """
         tweetbot main code.
@@ -52,24 +53,28 @@ class TweetBot(object):
         self.backup_file_prefix = config['BACKUP']['FILE']['PREFIX']
         self.initialize()
         self.task = OrderedDict()
+
     def initialize(self):
         """
             create working directory.
         """
         os.makedirs(self.uploadDir, exist_ok=True)
         os.makedirs(self.backupDir, exist_ok=True)
+
     @property
     def download(self):
         """
             @return {Download}
         """
         return self.__download
+
     @property
     def ranking(self):
         """
             @return {Ranking}
         """
         return self.__ranking
+
     def twitter_init(self):
         """
             twitter api constractor.
@@ -81,6 +86,7 @@ class TweetBot(object):
                                    access_token_key=auth['ACCESS_TOKEN'],
                                    access_token_secret=auth['ACCESS_TOKEN_SECRET'])
             auth = None
+
     def getImage(self):
         """
             @yield {string} media
@@ -97,6 +103,7 @@ class TweetBot(object):
             #result.append(media)
             yield media
         #return result
+
     def parallels(self):
         with self.get_Executor() as executor:
             future_to_media = {executor.submit(self.ranking.getResult, media): media for media in self.getImage()}
@@ -107,9 +114,11 @@ class TweetBot(object):
                     self.task[media] = future.result()
                 except Exception as ex:
                     logger.exception(ex)
+
     def get_Executor(self, max_workers=4):
         return ThreadPoolExecutor(max_workers=max_workers)
         #return ProcessPoolExecutor(max_workers=max_workers)
+
     def tweet(self, media):
         """
             @param {string} media uploadFile
@@ -125,7 +134,7 @@ class TweetBot(object):
             text += ('{:<{fill}}').format('', fill=self.fillspace)
             text += '\n{0}\n'.format(self.tweet_format)
             for i, contry in enumerate(ranks.ranking[:2], start=1):
-                text += str(i) + '位:{name} {score} point\n'.format_map(contry)
+                text += str(i) + '位:{name} {point} point\n'.format_map(contry)
             if self.isTweet:
                 media_id = self.api.UploadMediaSimple(media=media)
                 self.api.PostUpdate(status=text, media=media_id)
@@ -133,6 +142,7 @@ class TweetBot(object):
             logger.info(text)
         except Exception as ex:
             logger.exception(ex)
+
     def deletetweet(self):
         """
             delete tweet
@@ -144,6 +154,7 @@ class TweetBot(object):
                 logger.info('delete:%s,posted:%s', s.text, s.created_at)
         except Exception as ex:
             logger.exception(ex)
+
     def backup(self, file):
         """
            moveTo
@@ -156,6 +167,7 @@ class TweetBot(object):
             logger.info('backup:%s', newfile)
         except Exception as ex:
             logger.exception(ex)
+
 
 def main():
     """
@@ -171,7 +183,7 @@ def main():
     """
     parser = argparse.ArgumentParser(prog='tweetbot',
                                      description='FEZ Unofficial Total War Ranking TwitterBot')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.0.5')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.0.6')
     parser.add_argument('--debug', default=True)
 
     logger.info('START Program')
@@ -181,7 +193,7 @@ def main():
     bot = TweetBot(config)
     bot.event += bot.tweet
     bot.event += bot.backup
-    #bot.isTweet = False
+    bot.isTweet = False
     bot.download.request()
     bot.parallels()
     for media in bot.task.keys():

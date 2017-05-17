@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # pylint: disable=C0103
+
+
 class SimpleEvent(object):
     """
         SimpleEvent class
@@ -20,48 +22,67 @@ class SimpleEvent(object):
     """
     def __init__(self):
         self.__handlers = []
+
     def __call__(self, *args, **kargs):
         """
-            @param args
-                   kargs
+
+        :param args:
+        :param kargs:
+        :return:
         """
         for handler in self.__handlers:
             handler(*args, **kargs)
+
     def __add__(self, handler):
         """
-            add handler
-            @exception {TypeError}
+        add handler
+        :param handler:
+        :return:
+        @exception {TypeError}
         """
         if not hasattr(handler, '__call__'):
             raise TypeError("object is not callable:%s" % handler)
         assert handler not in self.__handlers, "handlers in %s" % handler
         self.__handlers.append(handler)
         return self
+
     def __sub__(self, handler):
         """
-            remove handler
-            @exception {ValueError} handler not in list
+        remove handler
+        :param handler:
+        :return:
+        @exception {ValueError} handler not in list
         """
         self.__handlers.remove(handler)
         return self
+
     @property
     def handlers(self):
         """
-            handler protected property
+        hander protected property
+        :return:
         """
         return self.__handlers
+
     def clear(self):
         """
-            handler#clear
+        handler#clear
+        :return:
         """
         self.__handlers = []
+
+
 class EventArgs(object):
     @staticmethod
     def Empty(*args, **kargs):
         """
-            EventArgs#Empty
+        EventArgs#Empty
+        :param args:
+        :param kargs:
+        :return:
         """
         pass
+
 
 class Filters(SimpleEvent):
     """
@@ -78,9 +99,10 @@ class Filters(SimpleEvent):
     """
     def __call__(self, data, args=None):
         """
-            @param {object}data stream
-                   {object}args event args
-            @return {object}
+
+        :param {object}data:stream
+        :param {object}args:event args
+        :return: {object}
         """
         assert data is not None, 'data has Non'
         for handler in self.handlers:

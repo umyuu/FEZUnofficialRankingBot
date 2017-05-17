@@ -17,11 +17,13 @@ if __name__ == "__main__":
     logger.setLevel(DEBUG)
     logger.addHandler(handler)
 
+
 class Ranking(object):
     def __init__(self, config):
         self.ocr = OCREngine()
         self.naivebayes = NaiveBayes()
         self.naivebayes.human_labels = self.ocr.settings['translate']['country']
+
     def create_TemporyFile(self, buffer, verbose=False):
         """
             
@@ -36,6 +38,7 @@ class Ranking(object):
             if verbose:
                 logger.info(temp_file_name)
         return temp_file_name
+
     def getResult(self, src, save_image=False):
         """
             @param {string} src
@@ -48,22 +51,23 @@ class Ranking(object):
             return None
         buffer = pro.tobinary(pro.batch())
         temp_file_name = self.create_TemporyFile(buffer, True)
-        
-        doucument = self.ocr.recognize(temp_file_name)
+
+        document = self.ocr.recognize(temp_file_name)
         os.remove(temp_file_name)
         
         output = '#' + datetime.now().strftime('%F %T.%f')[:-3] + '\n'
-        output += '\n'.join(doucument.names()) + '\n'
+        output += '\n'.join(document.names()) + '\n'
         with Serializer.open_stream('../temp/corpus.txt', mode='a') as file:
             file.write(output)
 
         # ocr corpus data -> NaiveBayes classifier
         # ranking name swap
-        change = self.naivebayes.predict_all(doucument.names())
-        doucument.changeNames(change)
+        change = self.naivebayes.predict_all(document.names())
+        #doucument.changeNames(change)
 
-        doucument.dump()
-        return doucument
+        document.dump()
+        return document
+
 
 def main():
     config = Serializer.load_json('../resource/setting.json')
@@ -75,7 +79,7 @@ def main():
         ] * 1
     for media in ele:
         logger.info(media)
-        doucument = r.getResult(media, True)
-        logger.info(doucument.ranking)
+        document = r.getResult(media, True)
+        logger.info(document.ranking)
 if __name__ == "__main__":
     main()

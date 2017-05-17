@@ -4,6 +4,8 @@ import sys
 import glob
 
 # pylint: disable=C0103
+
+
 class FileUtils(object):
     """
         Fileutils class
@@ -13,20 +15,21 @@ class FileUtils(object):
         """
             @param {pathlib.Path} file
             @return {pathlib.Path}
-            exsample)exists file
-                exsample.png
-                exsample(1).png
-                exsample(2).png
-                exsample(n).png
+            for example)exists file
+                example.png
+                example(1).png
+                example(2).png
+                example(n).png
         """
         i = 0
-        basePath = file
+        base_path = file
         while file.exists():
             i += 1
-            file = file.with_name('{0}({1}){2}'.format(basePath.stem, i, basePath.suffix))
+            file = file.with_name('{0}({1}){2}'.format(base_path.stem, i, base_path.suffix))
             if sys.maxsize == i:
                 break
         return file
+
     @staticmethod
     def search(target, suffixes):
         """

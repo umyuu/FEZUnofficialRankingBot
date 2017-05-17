@@ -4,6 +4,7 @@ from datetime import datetime
 from xml.etree.ElementTree import tostring, Element, Comment, SubElement
 from xml.dom import minidom
 
+
 class XMLDocument(object):
     """
         XMLDocument class
@@ -24,20 +25,31 @@ class XMLDocument(object):
         dc.text = str(datetime.now())
         # body
         self.body = SubElement(self.root, 'body')
-    def addChild(self, root, name, d=None):
+
+    def addChild(self, root, tag):
         """
+            Syntax Sugar　newSubElement
             @param {Element},{SubElement}root Element
-                   {string}name
-                   {dict}d
+                   {string}tag     first character non-numeric
             @return {SubElement}created child element
+            @exception Exception
         """
-        element = SubElement(root, name)
-        if d is None:
-            return element
-        for key, value in d.items():
-            child = SubElement(element, key)
-            child.text = value
+        if not isinstance(tag, str):
+            raise Exception('Tag is not str type')
+        if tag[0].isdigit():
+            # note)check throw self#toPretty
+            # xml.parsers.expat.ExpatError: not well-formed (invalid token)
+            raise Exception('The first character of the tag must be non-numeric')
+        
+        element = SubElement(root, tag)
         return element
+
+    def addDict(self, root, d):
+        for tag, value in d.items():
+            child = self.addChild(root, tag)
+            child.text = value
+        return root
+
     def findall(self, xpath):
         """
             xpath findall
@@ -46,26 +58,33 @@ class XMLDocument(object):
         """
         for row in self.root.findall(xpath):
             yield row
-    @staticmethod
-    def toPretty(element):
+
+    def toPretty(self):
         """
             @param {Element}element
             @return {xml}copy pretty xml
         """
-        rough_string = tostring(element, 'utf-8')
+        rough_string = tostring(self.root, 'utf-8')
         reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="  ")
+
+    def __str__(self):
+        return self.toPretty()
+
+
 def main():
     xml = XMLDocument('tweetbot')
-    for i in ['decode', 'ocr']:
+    for i in ['ranking', 'ocr']:
         child = xml.addChild(xml.body, i)
         for j in range(5):
             xml.addChild(child, 'row').text = 'child contains text.' + i
 
-    for row in xml.findall("./body/decode/row"):
+    for row in xml.findall("./body/ranking/row"):
         print(row.text)
 
+    print('')
     print(tostring(xml.root, 'utf-8'))
-    print(XMLDocument.toPretty(xml.root))
+    print('')
+    print(xml)
 if __name__ == '__main__':
     main()
