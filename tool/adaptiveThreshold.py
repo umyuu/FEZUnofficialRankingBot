@@ -5,23 +5,28 @@ import tkinter as tk
 import cv2
 from PIL import Image, ImageTk
 
+
 class ImageData(object):
     def __init__(self, src):
         assert src is not None
         self.__canvas = src.copy()
         self.__grayscale = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2GRAY)
+
     @property
     def canvas(self):
         return self.__canvas
+
     @property
     def grayscale(self):
         return self.__grayscale
+
 
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.data = None
         self.createWidgets()
+
     def createWidgets(self):
         controls = dict()
         self.topframe = tk.LabelFrame(self, text='params')
@@ -50,6 +55,7 @@ class Application(tk.Frame):
         self.lblimage.grid(row=1, column=0)
         self.__adaptiveMethod = {0:cv2.ADAPTIVE_THRESH_MEAN_C, 1:cv2.ADAPTIVE_THRESH_GAUSSIAN_C}
         self.__thresholdType = {0:cv2.THRESH_BINARY, 1:cv2.THRESH_BINARY_INV}
+
     def draw(self):
         adaptiveMethod = self.__adaptiveMethod[self.scale_adaptive.get()]
         thresholdType = self.__thresholdType[self.scale_thresholdType.get()]
@@ -71,16 +77,21 @@ class Application(tk.Frame):
         except (Exception) as ex:
             print(ex)
             pass
+
     def loadImage(self, src):
         self.data = ImageData(src)
         self.__changeImage(src)
+
     def __changeImage(self, src):
         #imgtk = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)))
         imgtk = ImageTk.PhotoImage(Image.fromarray(src))
         self.lblimage.imgtk = imgtk
         self.lblimage.configure(image=imgtk)
+
     def __onChanged_ScaleValue(self, event):
         self.draw()
+
+
 def main():
     parser = argparse.ArgumentParser(prog='adaptiveThreshold',
                                      description='AdaptiveThreshold Simulator')
@@ -96,6 +107,7 @@ def main():
     app.loadImage(cv2.imread(args.image))
     app.pack()
     app.mainloop()
-    
+
+
 if __name__ == "__main__":
     main()
